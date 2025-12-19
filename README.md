@@ -4,6 +4,18 @@ A specialized utility for players of Corvus Belli's **Infinity N5**. This applic
 
 **[🚀 Launch the Infinity Comlog](https://romdeau.github.io/infinity-comlog/)**
 
+---
+
+## 🤖 For AI Assistants & Contributors
+
+**⚠️ Important**: Before making any changes to this project, please read **[PROJECT_GUIDELINES.md](./PROJECT_GUIDELINES.md)** for:
+- Git workflow (feature branches, conventional commits)
+- Required tooling (`bun` only - not npm/yarn)
+- Component architecture standards
+- Tech stack details
+
+---
+
 ## Documentation
 
 - [User Manual](./docs/user-manual.md) - How to use the application during a game.
