@@ -1,8 +1,8 @@
 import * as React from "react"
 import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
+  SectionWrapper,
+  AppLayout,
+} from "@/components/layout-containers"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -38,12 +38,12 @@ import {
 } from "@/components/ui/popover"
 import { GameStep, GameGroup } from "@/components/game-flow-components"
 
-export function ComponentExample() {
+export function GameTracker() {
   return (
-    <ExampleWrapper>
+    <AppLayout>
       <InfinityGameFlow />
       <TurnReference />
-    </ExampleWrapper>
+    </AppLayout>
   )
 }
 
@@ -252,7 +252,7 @@ function InfinityGameFlow() {
   ].filter(Boolean).length
 
   return (
-    <Example title="Infinity Game Flow" className="items-start justify-center">
+    <SectionWrapper title="Infinity Game Flow" className="items-start justify-center">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -798,7 +798,7 @@ function InfinityGameFlow() {
           )}
         </CardFooter>
       </Card>
-    </Example>
+    </SectionWrapper>
   )
 }
 
@@ -847,7 +847,7 @@ const ACTION_GROUPS = [
 
 function TurnReference() {
   return (
-    <Example title="Turn Reference" className="items-start justify-center">
+    <SectionWrapper title="Turn Reference" className="items-start justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -899,6 +899,6 @@ function TurnReference() {
           </Button>
         </CardFooter>
       </Card>
-    </Example>
+    </SectionWrapper>
   )
 }
