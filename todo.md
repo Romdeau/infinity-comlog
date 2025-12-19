@@ -42,7 +42,22 @@ We should update the json to include all the main objectives, which should inclu
 
 Some scenarios have attacker and defender objectives, which should be stored in the json as well. UI Elements specifically for tracking attacker and defender elements should only be displayed when this type of mission is played.
 
-Please make sure that the json is structured in a way that makes it easy to add new scenarios in the future, and make sure that the way that common objective as well as attacker and defender objectives are stored is easy to understand and maintain.
+Please make sure that the json is structured in a way that makes it easy to add new scenarios in the future, and make sure that the way that common objective as well as attacker and defender objectives are stored is easy to understand and maintain. Here is an example;
+
+```json
+{
+  "id": "akial-interference",
+  "name": "Akial Interference",
+  "classifieds": { "count": 1, "op": 2 },
+  "hasRoles": false,
+  "objectives": [
+    { "text": "Control more consoles", "op": 2, "type": "round-end" },
+    { "text": "Dominate area", "op": 1, "type": "game-end" }
+  ]
+}
+```
+
+The `hasRoles` field should be set to `true` if the scenario has attacker and defender objectives. Objectives in these game types should have an additional field `role` which should be set to `attacker` or `defender`. The `type` field should be set to `round-end` or `game-end` based on the logic defined above.
 
 #### Akial Interference
 
@@ -155,10 +170,9 @@ your own Safe Area than your adversary in their own
 Safe Area (3 Objective Points).
 * At the end of the game, Control the same number of
 Supply Boxes in your Safe Area than the adversary does
-in their Safe Area (1 Objective Point, but only if at least 1
-Supply Box is Controlled in their Safe Area).
+in their Safe Area (1 Objective Point, but only if at least 1 Supply Box is Controlled in their Safe Area).
 * At the end of the game, if your adversary does not
-Control any Supply B
+Control any Supply Boxes in their Safe Area (2 Objective Points).
 
 #### Area of Interest
 
@@ -172,7 +186,7 @@ Communication Antenna (1 Objective Point).
 
 ### Contextual OP tracking
 
-In each scenario there are defined rules for scoring OP. Some of these are scored per turn (which is to say after both the player and opponent have completed their turns in a specific numbered turn), some are scored at the end of the game. Provide a scoring module for these, so the 'Finalise Scoring' section should only contain an entry field for VP. This means that a checklist should be supplied per player, and each checked item should apply the appropriate amount of OP. These should be updated dynamically from the JSON based on the selected scenario.
+In each scenario there are defined rules for scoring OP. Some of these are scored per turn (which is to say after both the player and opponent have completed their turns in a specific numbered turn), some are scored at the end of the game. Provide a scoring module for these, so the 'Finalise Scoring' section should only contain an entry field for VP, as OP should not longer be manually entered. Instead a checklist should be supplied per player, and each checked item should apply the appropriate amount of OP. These should be updated dynamically from the JSON based on the selected scenario.
 
 ### Attacker and Defender Objectives
 
