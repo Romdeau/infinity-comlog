@@ -101,8 +101,7 @@ function InfinityGameFlow() {
     },
   })
 
-  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-  const getDisplayName = (s: string) => s === 'player' ? 'You' : capitalize(s);
+
 
   // TP Calculation Logic
   const calculateTP = (op: number, rivalOp: number) => {
@@ -396,14 +395,21 @@ function InfinityGameFlow() {
                   </div>
 
                   <div className="rounded-md bg-muted/30 p-2 text-[11px] leading-relaxed border border-border/50">
-                    The <span className="font-bold text-primary">{getDisplayName(gameStep.initiative.winner)}</span> has won the lieutenant roll and has chosen to keep <span className="font-bold text-primary">{getDisplayName(gameStep.initiative.choice)}</span>.
+                    <span className="font-bold text-primary">{gameStep.initiative.winner === 'player' ? 'You' : 'The Opponent'}</span> {gameStep.initiative.winner === 'player' ? 'have' : 'has'} won the lieutenant roll and {gameStep.initiative.winner === 'player' ? 'have' : 'has'} chosen to keep <span className="font-bold text-primary">{gameStep.initiative.choice}</span>.
                   </div>
 
                   {/* Dependent choices */}
                   <div className="space-y-2 pt-1 border-t border-muted/30">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] text-muted-foreground">
-                        {getDisplayName(gameStep.initiative.choice === 'deployment' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player'))} has <span className="font-semibold">deployment</span> and deploys:
+                        {(() => {
+                          const actor = gameStep.initiative.choice === 'deployment' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player');
+                          return actor === 'player' ? (
+                            <><span className="font-bold">You</span> have <span className="font-semibold">deployment</span> and deploy:</>
+                          ) : (
+                            <><span className="font-bold">The Opponent</span> has <span className="font-semibold">deployment</span> and deploys:</>
+                          );
+                        })()}
                       </span>
                       <Button
                         variant="outline"
@@ -426,7 +432,14 @@ function InfinityGameFlow() {
 
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] text-muted-foreground">
-                        {getDisplayName(gameStep.initiative.choice === 'initiative' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player'))} has <span className="font-semibold">initiative</span> and plays:
+                        {(() => {
+                          const actor = gameStep.initiative.choice === 'initiative' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player');
+                          return actor === 'player' ? (
+                            <><span className="font-bold">You</span> have <span className="font-semibold">initiative</span> and play:</>
+                          ) : (
+                            <><span className="font-bold">The Opponent</span> has <span className="font-semibold">initiative</span> and plays:</>
+                          );
+                        })()}
                       </span>
                       <Button
                         variant="outline"
