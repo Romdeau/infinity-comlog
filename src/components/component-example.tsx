@@ -172,7 +172,9 @@ function InfinityGameFlow() {
               <div className="pl-7 pr-4">
                 <Select
                   value={gameStep.scenario}
-                  onValueChange={(val) => setGameStep(prev => ({ ...prev, scenario: val }))}
+                  onValueChange={(val) => {
+                    setGameStep(prev => ({ ...prev, scenario: val, scenarioPicked: true }))
+                  }}
                 >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Select a scenario" />
