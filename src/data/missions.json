@@ -1,0 +1,375 @@
+[
+  {
+    "id": "akial-interference",
+    "name": "Akial Interference",
+    "classifieds": {
+      "count": 1,
+      "op": 2
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "classifieds-manual",
+        "text": "Accomplish Common Classified Objectives (1 OP each, max 6)",
+        "op": 1,
+        "type": "manual",
+        "max": 6
+      },
+      {
+        "id": "more-classifieds",
+        "text": "Accomplished more Classifieds than adversary",
+        "op": 1,
+        "type": "game-end"
+      },
+      {
+        "id": "one-per-round",
+        "text": "Accomplished at least 1 Classified in each Game Round",
+        "op": 1,
+        "type": "game-end"
+      }
+    ]
+  },
+  {
+    "id": "b-pong",
+    "name": "B-Pong",
+    "classifieds": {
+      "count": 2,
+      "op": 1
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "beacon-enemy-half",
+        "text": "Tracking Beacon totally inside enemy half",
+        "op": 2,
+        "type": "game-end"
+      },
+      {
+        "id": "control-beacon-round",
+        "text": "Control the Tracking Beacon",
+        "op": 1,
+        "type": "round-end"
+      },
+      {
+        "id": "control-console-round",
+        "text": "Control at least one Console",
+        "op": 1,
+        "type": "round-end"
+      }
+    ]
+  },
+  {
+    "id": "corporate-appropriation",
+    "name": "Corporate Appropriation",
+    "classifieds": {
+      "count": 3,
+      "op": 1
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "enemy-prototype-captured",
+        "text": "Enemy Prototype Captured",
+        "op": 2,
+        "type": "game-end"
+      },
+      {
+        "id": "enemy-prototype-dz",
+        "text": "Enemy Prototype Captured in your DZ",
+        "op": 1,
+        "type": "game-end"
+      },
+      {
+        "id": "prototype-not-captured",
+        "text": "Your Prototype is not Captured",
+        "op": 1,
+        "type": "game-end"
+      },
+      {
+        "id": "prototype-destroyed",
+        "text": "Your Prototype is Destroyed",
+        "op": 3,
+        "type": "game-end"
+      },
+      {
+        "id": "more-panoply",
+        "text": "More items from Panoplies than adversary",
+        "op": 1,
+        "type": "game-end"
+      }
+    ]
+  },
+  {
+    "id": "critical-intervention",
+    "name": "Critical Intervention",
+    "classifieds": {
+      "count": 1,
+      "op": 1
+    },
+    "hasRoles": true,
+    "objectives": [
+      {
+        "id": "unlock-console",
+        "text": "Unlock the Data Console",
+        "op": 1,
+        "type": "game-end",
+        "role": "attacker"
+      },
+      {
+        "id": "extract-pack",
+        "text": "Extract the Data Pack",
+        "op": 2,
+        "type": "game-end",
+        "role": "attacker"
+      },
+      {
+        "id": "specialist-safe",
+        "text": "Trooper that Extracted Data Pack is not Killed",
+        "op": 1,
+        "type": "game-end",
+        "role": "attacker"
+      },
+      {
+        "id": "specialist-dz",
+        "text": "Trooper that Extracted is in your DZ and not Null",
+        "op": 2,
+        "type": "game-end",
+        "role": "attacker"
+      },
+      {
+        "id": "dominate-room-attacker",
+        "text": "Dominate the Server Room",
+        "op": 2,
+        "type": "game-end",
+        "role": "attacker"
+      },
+      {
+        "id": "prevent-unlock",
+        "text": "Prevent Attacker from Unlocking Console",
+        "op": 1,
+        "type": "game-end",
+        "role": "defender"
+      },
+      {
+        "id": "prevent-extract",
+        "text": "Prevent Attacker from Extracting Data Pack",
+        "op": 3,
+        "type": "game-end",
+        "role": "defender"
+      },
+      {
+        "id": "kill-extractor",
+        "text": "Kill the Trooper that Extracted the Data Pack",
+        "op": 2,
+        "type": "game-end",
+        "role": "defender"
+      },
+      {
+        "id": "dominate-room-defender",
+        "text": "Dominate the Server Room",
+        "op": 3,
+        "type": "game-end",
+        "role": "defender"
+      }
+    ]
+  },
+  {
+    "id": "crossing-lines",
+    "name": "Crossing Lines",
+    "classifieds": {
+      "count": 0,
+      "op": 0
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "dominate-dead-zone-round",
+        "text": "Dominate a Dead Zone (1 OP each)",
+        "op": 1,
+        "type": "round-end-manual",
+        "max": 2
+      },
+      {
+        "id": "dominate-both-dead-zones",
+        "text": "Dominate both Dead Zones",
+        "op": 2,
+        "type": "game-end"
+      },
+      {
+        "id": "activated-antenna-manual",
+        "text": "Activated Antenna (1 OP each)",
+        "op": 1,
+        "type": "manual",
+        "max": 4
+      }
+    ]
+  },
+  {
+    "id": "evacuation",
+    "name": "Evacuation",
+    "classifieds": {
+      "count": 2,
+      "op": 2
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "extracted-civilian-manual",
+        "text": "Extracted Civilian (1 OP each)",
+        "op": 1,
+        "type": "manual",
+        "max": 10
+      },
+      {
+        "id": "extracted-hvt-manual",
+        "text": "Extracted enemy HVT (1 OP each)",
+        "op": 1,
+        "type": "manual",
+        "max": 10
+      }
+    ]
+  },
+  {
+    "id": "hardlock",
+    "name": "Hardlock",
+    "classifieds": {
+      "count": 1,
+      "op": 1
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "control-enemy-beacon-round",
+        "text": "Control the Enemy Beacon",
+        "op": 1,
+        "type": "round-end"
+      },
+      {
+        "id": "beacon-not-controlled",
+        "text": "Your Beacon is not Controlled by enemy",
+        "op": 1,
+        "type": "game-end"
+      },
+      {
+        "id": "more-activated-consoles",
+        "text": "More Activated Consoles than adversary",
+        "op": 2,
+        "type": "game-end"
+      },
+      {
+        "id": "activated-console-manual",
+        "text": "Activated Console (1 OP each)",
+        "op": 1,
+        "type": "manual",
+        "max": 3
+      }
+    ]
+  },
+  {
+    "id": "last-launch",
+    "name": "Last Launch",
+    "classifieds": {
+      "count": 3,
+      "op": 1
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "more-army-points",
+        "text": "Extracted more Army Points than adversary",
+        "op": 2,
+        "type": "game-end"
+      },
+      {
+        "id": "more-specialists-extracted",
+        "text": "Extracted more Specialist Troops than adversary",
+        "op": 2,
+        "type": "game-end"
+      },
+      {
+        "id": "more-specialists-killed",
+        "text": "Killed more Specialist Troops than adversary",
+        "op": 2,
+        "type": "game-end"
+      },
+      {
+        "id": "equal-specialists-killed",
+        "text": "Killed same number of Specialists as adversary",
+        "op": 1,
+        "type": "game-end"
+      },
+      {
+        "id": "dominate-tower",
+        "text": "Dominate the Launching Tower",
+        "op": 1,
+        "type": "game-end"
+      }
+    ]
+  },
+  {
+    "id": "provisioning",
+    "name": "Provisioning",
+    "classifieds": {
+      "count": 1,
+      "op": 1
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "control-supply-box-manual",
+        "text": "Control a Supply Box (1 OP each)",
+        "op": 1,
+        "type": "manual",
+        "max": 3
+      },
+      {
+        "id": "more-boxes-safe-area",
+        "text": "More Boxes in Safe Area than adversary",
+        "op": 3,
+        "type": "game-end"
+      },
+      {
+        "id": "equal-boxes-safe-area",
+        "text": "Same number of Boxes in Safe Area as adversary",
+        "op": 1,
+        "type": "game-end"
+      },
+      {
+        "id": "adversary-no-boxes",
+        "text": "Adversary does not Control any Boxes in Safe Area",
+        "op": 2,
+        "type": "game-end"
+      }
+    ]
+  },
+  {
+    "id": "area-of-interest",
+    "name": "Area of Interest",
+    "classifieds": {
+      "count": 1,
+      "op": 1
+    },
+    "hasRoles": false,
+    "objectives": [
+      {
+        "id": "dominate-area-manual",
+        "text": "Dominate Area of Interest (1 OP each, max 3)",
+        "op": 1,
+        "type": "manual",
+        "max": 3
+      },
+      {
+        "id": "dominate-special-area-round",
+        "text": "Dominate the Special Area of Interest",
+        "op": 1,
+        "type": "round-end"
+      },
+      {
+        "id": "activated-antenna-round",
+        "text": "Activated Communication Antenna",
+        "op": 1,
+        "type": "round-end"
+      }
+    ]
+  }
+]

@@ -37,6 +37,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { GameStep, GameGroup } from "@/components/game-flow-components"
+import missions from "@/data/missions.json"
 
 export function GameTracker() {
   return (
@@ -96,10 +97,21 @@ function InfinityGameFlow() {
     },
     scoring: {
       doneOverride: false,
-      player: { op: 0, vp: 0 },
-      opponent: { op: 0, vp: 0 },
+      player: {
+        op: 0,
+        vp: 0,
+        objectives: {} as Record<string, any>
+      },
+      opponent: {
+        op: 0,
+        vp: 0,
+        objectives: {} as Record<string, any>
+      },
     },
   })
+
+  // Helper to get active mission details
+  const activeMission = missions.find(m => m.id === gameStep.scenario)
 
 
 
@@ -136,7 +148,43 @@ function InfinityGameFlow() {
     gameStep.classifiedsDrawn &&
     isInitiativeComplete
 
-  const isScoringComplete = gameStep.scoring.player.op > 0 || gameStep.scoring.opponent.op > 0
+  // Calculate OP based on objectives
+  const calculateOP = (role: 'player' | 'opponent') => {
+    if (!activeMission) return gameStep.scoring[role].op
+
+    let total = 0
+    const objProgress = gameStep.scoring[role].objectives
+
+    // Determine player's role (Attacker/Defender)
+    let assignedRole: string | undefined = undefined
+    if (activeMission.hasRoles) {
+      const isFirst = gameStep.initiative.firstTurn !== null &&
+        ((role === 'player' && gameStep.initiative.firstTurn === 'player') ||
+          (role === 'opponent' && gameStep.initiative.firstTurn === 'opponent'))
+      assignedRole = isFirst ? 'attacker' : 'defender'
+    }
+
+    activeMission.objectives.forEach((obj: any) => {
+      // Check if objective applies to the player's role
+      if (obj.role && obj.role !== assignedRole) return
+
+      const progress = objProgress[obj.id]
+      if (progress) {
+        if (typeof progress === 'number') {
+          total += progress * obj.op
+        } else if (progress === true) {
+          total += obj.op
+        }
+      }
+    })
+
+    return Math.min(10, total) // Cap at 10 OP
+  }
+
+  const playerOP = calculateOP('player')
+  const opponentOP = calculateOP('opponent')
+
+  const isScoringComplete = playerOP > 0 || opponentOP > 0
 
   const toggleStep = (key: string, subKey?: string, tertiaryKey?: string) => {
     setGameStep(prev => {
@@ -287,15 +335,22 @@ function InfinityGameFlow() {
                 <Select
                   value={gameStep.scenario}
                   onValueChange={(val) => {
-                    setGameStep(prev => ({ ...prev, scenario: val, scenarioPicked: true }))
+                    const mission = missions.find(m => m.id === val)
+                    setGameStep(prev => ({
+                      ...prev,
+                      scenario: val,
+                      scenarioPicked: true,
+                      classifiedsCount: mission?.classifieds.count ?? 1
+                    }))
                   }}
                 >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Select a scenario" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="axial">Akial Interference</SelectItem>
-                    <SelectItem value="bpong">B-Pong</SelectItem>
+                    {missions.map(mission => (
+                      <SelectItem key={mission.id} value={mission.id}>{mission.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -396,6 +451,13 @@ function InfinityGameFlow() {
 
                   <div className="rounded-md bg-muted/30 p-2 text-[11px] leading-relaxed border border-border/50">
                     <span className="font-bold text-primary">{gameStep.initiative.winner === 'player' ? 'You' : 'The Opponent'}</span> {gameStep.initiative.winner === 'player' ? 'have' : 'has'} won the lieutenant roll and {gameStep.initiative.winner === 'player' ? 'have' : 'has'} chosen to keep <span className="font-bold text-primary">{gameStep.initiative.choice}</span>.
+                    {activeMission?.hasRoles && (
+                      <div className="mt-2 pt-2 border-t border-muted/30">
+                        <p className="font-semibold text-primary">Role-Based Mission:</p>
+                        <p className="text-muted-foreground mt-0.5">In this scenario, two distinct roles are established: Attacker and Defender. Each has different Main Objectives.</p>
+                        <p className="text-muted-foreground mt-1">The player with the first Player Turn is the <span className="font-bold text-foreground underline decoration-primary/50">Attacker</span>. The player with the second Player Turn is the <span className="font-bold text-foreground underline decoration-primary/50">Defender</span>.</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Dependent choices */}
@@ -709,81 +771,111 @@ function InfinityGameFlow() {
                   <div className="text-center">VP</div>
                 </div>
 
-                {/* You Row */}
-                <div className="grid grid-cols-4 gap-2 items-center">
-                  <div className="text-[11px] font-semibold">You</div>
-                  <div className="bg-primary/10 rounded-md border border-primary/20 flex items-center justify-center h-8 text-sm font-bold text-primary">
-                    {calculateTP(gameStep.scoring.player.op, gameStep.scoring.opponent.op)}
-                  </div>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={10}
-                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
-                    value={gameStep.scoring.player.op}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setGameStep(prev => ({
-                        ...prev,
-                        scoring: { ...prev.scoring, player: { ...prev.scoring.player, op: val === "" ? 0 : parseInt(val) } }
-                      }))
-                    }}
-                  />
-                  <Input
-                    type="number"
-                    min={0}
-                    max={300}
-                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
-                    value={gameStep.scoring.player.vp}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setGameStep(prev => ({
-                        ...prev,
-                        scoring: { ...prev.scoring, player: { ...prev.scoring.player, vp: val === "" ? 0 : parseInt(val) } }
-                      }))
-                    }}
-                  />
-                </div>
+                {['player', 'opponent'].map((role) => {
+                  const isPlayer = role === 'player'
+                  const op = isPlayer ? playerOP : opponentOP
+                  const rivalOp = isPlayer ? opponentOP : playerOP
 
-                {/* Opponent Row */}
-                <div className="grid grid-cols-4 gap-2 items-center">
-                  <div className="text-[11px] font-semibold text-muted-foreground">Opponent</div>
-                  <div className="bg-muted/50 rounded-md border border-border flex items-center justify-center h-8 text-sm font-bold text-muted-foreground">
-                    {calculateTP(gameStep.scoring.opponent.op, gameStep.scoring.player.op)}
-                  </div>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={10}
-                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
-                    value={gameStep.scoring.opponent.op}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setGameStep(prev => ({
-                        ...prev,
-                        scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, op: val === "" ? 0 : parseInt(val) } }
-                      }))
-                    }}
-                  />
-                  <Input
-                    type="number"
-                    min={0}
-                    max={300}
-                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
-                    value={gameStep.scoring.opponent.vp}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setGameStep(prev => ({
-                        ...prev,
-                        scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, vp: val === "" ? 0 : parseInt(val) } }
-                      }))
-                    }}
-                  />
-                </div>
+                  let assignedRole: string | undefined = undefined
+                  if (activeMission?.hasRoles) {
+                    const isFirst = gameStep.initiative.firstTurn !== null &&
+                      ((isPlayer && gameStep.initiative.firstTurn === 'player') ||
+                        (!isPlayer && gameStep.initiative.firstTurn === 'opponent'))
+                    assignedRole = isFirst ? 'attacker' : 'defender'
+                  }
+
+                  return (
+                    <div key={role} className="space-y-3">
+                      <div className="grid grid-cols-4 gap-2 items-center">
+                        <div className="flex flex-col">
+                          <div className="text-[11px] font-semibold">{isPlayer ? "You" : "Opponent"}</div>
+                          {assignedRole && (
+                            <div className="text-[9px] uppercase font-bold text-primary/70 tracking-tighter -mt-0.5 capitalize">{assignedRole}</div>
+                          )}
+                        </div>
+                        <div className="bg-primary/10 rounded-md border border-primary/20 flex items-center justify-center h-8 text-sm font-bold text-primary">
+                          {calculateTP(op, rivalOp)}
+                        </div>
+                        <div className="bg-muted/50 rounded-md border border-border flex items-center justify-center h-8 text-sm font-bold">
+                          {op}
+                        </div>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={300}
+                          className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                          value={gameStep.scoring[role as 'player' | 'opponent'].vp}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setGameStep(prev => ({
+                              ...prev,
+                              scoring: {
+                                ...prev.scoring,
+                                [role]: { ...prev.scoring[role as 'player' | 'opponent'], vp: val === "" ? 0 : parseInt(val) }
+                              }
+                            }))
+                          }}
+                        />
+                      </div>
+
+                      {/* Objective Checklist for this player */}
+                      {activeMission && (
+                        <div className="pl-4 pr-1 py-2 space-y-2 border-l-2 border-muted/30 ml-2">
+                          {activeMission.objectives
+                            .filter((obj: any) => !obj.role || obj.role === assignedRole)
+                            .map((obj: any) => (
+                              <div key={obj.id} className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2 flex-1">
+                                  <div
+                                    className={cn(
+                                      "size-4 rounded border border-primary/30 flex items-center justify-center cursor-pointer transition-colors",
+                                      gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id] ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50"
+                                    )}
+                                    onClick={() => {
+                                      setGameStep(prev => {
+                                        const objectives = { ...prev.scoring[role as 'player' | 'opponent'].objectives }
+                                        if (obj.type === 'manual' || obj.type === 'round-end-manual') {
+                                          const current = objectives[obj.id] || 0
+                                          objectives[obj.id] = current >= (obj.max || 1) ? 0 : current + 1
+                                        } else {
+                                          objectives[obj.id] = !objectives[obj.id]
+                                        }
+                                        return {
+                                          ...prev,
+                                          scoring: {
+                                            ...prev.scoring,
+                                            [role]: { ...prev.scoring[role as 'player' | 'opponent'], objectives }
+                                          }
+                                        }
+                                      })
+                                    }}
+                                  >
+                                    {gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id] ? (
+                                      <CheckCircle2Icon className="size-3" />
+                                    ) : null}
+                                  </div>
+                                  <span className="text-[10px] leading-tight text-muted-foreground mr-1">
+                                    {obj.text}
+                                  </span>
+                                </div>
+                                {(obj.type === 'manual' || obj.type === 'round-end-manual') && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[9px] font-bold text-primary/80">
+                                      {gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id] || 0}/{obj.max}
+                                    </span>
+                                  </div>
+                                )}
+                                <span className="text-[9px] font-bold text-muted-foreground/50 whitespace-nowrap pt-0.5">
+                                  {obj.op} OP
+                                </span>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </GameGroup>
           </div>
