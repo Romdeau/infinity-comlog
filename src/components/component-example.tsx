@@ -219,6 +219,7 @@ function InfinityGameFlow() {
               info="Phase where players determine turn order and deploy their models."
               checked={gameStep.initiationDoneOverride || isInitiativeComplete}
               onCheckedChange={() => toggleStep('initiation')}
+              size="sm"
             >
               <GameStep
                 label="Face-to-Face Roll Off"

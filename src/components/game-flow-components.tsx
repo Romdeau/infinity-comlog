@@ -75,6 +75,7 @@ interface GameGroupProps {
   value: string
   defaultOpen?: boolean
   className?: string
+  size?: "sm" | "md"
 }
 
 export function GameGroup({
@@ -85,8 +86,11 @@ export function GameGroup({
   children,
   value,
   defaultOpen = false,
-  className
+  className,
+  size = "md"
 }: GameGroupProps) {
+  const labelSize = size === "sm" ? "text-xs" : "text-sm"
+
   return (
     <Accordion
       type="single"
@@ -100,7 +104,7 @@ export function GameGroup({
             checked={checked}
             onCheckedChange={onCheckedChange}
           />
-          <AccordionTrigger className="flex-1 py-1 hover:no-underline font-semibold text-sm">
+          <AccordionTrigger className={cn("flex-1 py-1 hover:no-underline font-medium", labelSize)}>
             <div className="flex items-center gap-2">
               <span className={cn(
                 "transition-all",
