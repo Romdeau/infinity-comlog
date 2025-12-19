@@ -10,13 +10,12 @@ Currently when the page is refreshed the game state is lost, i'd like to persist
 
 It might be useful to track multiple sessions (maybe you're playing 3 games in a day for a tournament), and it could be useful to review what scoring was done by either player. Provide a way to name and store a session that can be loaded later. As in the 'Session Persistence' item above lets complete this will local storage but let's make sure to design it in a way that will be compatible with an account system in the future.
 
-## List Integration & Unit Data (In Progress - Buggy ⚠️)
-The player can input lists, but unit enrichment is currently failing to map IDs to names correctly.
+## List Integration & Unit Data (Completed ✅)
+The player can input lists, and unit enrichment maps IDs to names correctly.
 
 ### Action Items
-- [ ] **Fix Unit Data Loading**: Debug why `UnitService` is returning "Unit [ID]" instead of names.
-  - *Current Status*: Data is in `public/data/factions`, fetch seems to work, but mapping fails.
-  - *Investigation*: Check if unit IDs in the parsed list match the IDs in the JSON files.
+- [x] **Fix Unit Data Loading**: Debug why `UnitService` is returning "Unit [ID]" instead of names.
+  - *Resolution*: Fixed `UnitService` to use `import.meta.env.BASE_URL` for constructing fetch URLs, resolving 404s in subpath deployments.
 
 ### Implementation Details
 - **Binary Parser**: Robust `ArmyParser` handles `readVarInt`, `readString`, and URI-encoded codes.

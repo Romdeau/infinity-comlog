@@ -3,7 +3,7 @@ import {
   SectionWrapper,
 } from "@/components/layout-containers"
 import { HackingReference } from "./hacking-reference"
-import { Badge } from "@/components/ui/badge"
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -131,23 +131,23 @@ function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList 
     const list = armyLists[gameStep.selectedList];
     if (!list) return null;
 
-    const summary: Record<string, string[]> = {
-      "Hidden Deployment": [],
-      "Infiltration": [],
-      "Forward Deployment": [],
-      "Booty": []
-    }
+    const summary: Record<string, string[]> = {};
+    const trackedSkills = ["Hidden Deployment", "Infiltration", "Forward Deployment", "Booty"];
 
     list.combatGroups.forEach(group => {
       group.members.forEach(member => {
+        const relevantSkills = new Set<string>();
+
         member.skills.forEach(skill => {
           const skillName = SKILL_MAP[skill.id];
-          if (skillName) {
-            if (!summary[skillName].includes(member.name)) {
-              summary[skillName].push(member.name);
-            }
+          if (skillName && trackedSkills.includes(skillName)) {
+            relevantSkills.add(skillName);
           }
-        })
+        });
+
+        if (relevantSkills.size > 0) {
+          summary[member.name] = Array.from(relevantSkills);
+        }
       })
     })
 
@@ -704,117 +704,105 @@ function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList 
                   </div>
 
                   {/* Deployment Skills Summary */}
-                  {assistance && Object.values(assistance).some(arr => arr.length > 0) && (
+                  {assistance && Object.keys(assistance).length > 0 && (
                     <div className="pt-2">
                       <div className="bg-primary/5 border border-primary/20 rounded-md p-3 space-y-3">
                         <div className="flex items-center gap-2 text-primary font-bold text-[11px] uppercase tracking-wider">
                           <LayersIcon className="size-3.5" />
-                          Contextual Assistance
+                          Deployment Assistance
                         </div>
-                        <div className="grid gap-3">
-                          {Object.entries(assistance).map(([skill, units]) => {
-                            if (units.length === 0 || skill === "Booty") return null;
-                            return (
-                              <div key={skill} className="space-y-1">
-                                <div className="text-[10px] uppercase font-bold text-muted-foreground opacity-70">{skill}</div>
-                                <div className="flex flex-wrap gap-1">
-                                  {units.map((name, i) => (
-                                    <span key={i} className="text-[9px] bg-background border border-border/50 px-1.5 py-0.5 rounded-sm">
-                                      {name}
-                                    </span>
-                                  ))}
-                                </div>
+                        <div className="grid gap-2">
+                          {Object.entries(assistance).map(([unitName, skills]) => (
+                            <div key={unitName} className="flex items-start justify-between bg-background/50 p-2 rounded border border-border/40">
+                              <div className="text-[10px] font-bold text-foreground/90">{unitName}</div>
+                              <div className="flex flex-wrap gap-1 justify-end max-w-[60%]">
+                                {skills.map((skill, i) => (
+                                  <div key={i} className={cn(
+                                    "text-[9px] px-1.5 py-0.5 rounded-sm border",
+                                    skill === "Booty"
+                                      ? "bg-amber-500/10 text-amber-600 border-amber-500/30 dark:text-amber-400"
+                                      : "bg-muted text-muted-foreground border-border"
+                                  )}>
+                                    {skill === "Booty" ? (
+                                      <Popover>
+                                        <PopoverTrigger className="hover:underline cursor-pointer flex items-center gap-1">
+                                          Booty <CheckCircle2Icon className="size-2.5" />
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80 p-0 overflow-hidden" align="end">
+                                          <div className="bg-primary text-primary-foreground text-[10px] font-bold p-2 text-center uppercase tracking-widest">
+                                            Booty Table
+                                          </div>
+                                          <div className="p-0 text-[10px]">
+                                            <table className="w-full border-collapse">
+                                              <thead>
+                                                <tr className="bg-muted text-muted-foreground border-b border-border">
+                                                  <th className="p-1 text-center border-r border-border">Roll</th>
+                                                  <th className="p-1 text-left border-r border-border">Item</th>
+                                                  <th className="p-1 text-center border-r border-border">Roll</th>
+                                                  <th className="p-1 text-left">Item</th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">1-2</td>
+                                                  <td className="p-1 border-r border-border">+1 ARM</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">13</td>
+                                                  <td className="p-1">Panzerfaust</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">3-4</td>
+                                                  <td className="p-1 border-r border-border">Light Flamethrower</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">14</td>
+                                                  <td className="p-1">Monofilament CCW</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">5-6</td>
+                                                  <td className="p-1 border-r border-border">Grenades</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">15</td>
+                                                  <td className="p-1">MOV 8-4</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">7-8</td>
+                                                  <td className="p-1 border-r border-border">DA CCW</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">16</td>
+                                                  <td className="p-1">Shock/MULTI Rifle</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">9</td>
+                                                  <td className="p-1 border-r border-border">MSV L1</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">17</td>
+                                                  <td className="p-1">MULTI Sniper</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">10</td>
+                                                  <td className="p-1 border-r border-border">EXP CCW</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">18</td>
+                                                  <td className="p-1">Immune(ARM)/+4 ARM</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">11</td>
+                                                  <td className="p-1 border-r border-border">Adhesive L.</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">19</td>
+                                                  <td className="p-1">Mimetism (-6)</td>
+                                                </tr>
+                                                <tr>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">12</td>
+                                                  <td className="p-1 border-r border-border">Immune(AP)/+2 ARM</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">20</td>
+                                                  <td className="p-1">B+1/HMG</td>
+                                                </tr>
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        </PopoverContent>
+                                      </Popover>
+                                    ) : skill}
+                                  </div>
+                                ))}
                               </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Booty Reminder (if applicable) */}
-                  {assistance?.Booty && assistance.Booty.length > 0 && (
-                    <div className="pt-2">
-                      <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-md p-2">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2Icon className="size-3.5 text-primary" />
-                          <div className="flex flex-col">
-                            <span className="text-[11px] font-bold">Booty Roll Reminder!</span>
-                            <span className="text-[9px] text-muted-foreground">For: {assistance.Booty.join(", ")}</span>
-                          </div>
-                        </div>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-background">View Table</Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-80 p-0 overflow-hidden">
-                            <div className="bg-primary text-primary-foreground text-[10px] font-bold p-2 text-center uppercase tracking-widest">
-                              Booty Table
                             </div>
-                            <div className="p-0 text-[10px]">
-                              <table className="w-full border-collapse">
-                                <thead>
-                                  <tr className="bg-muted text-muted-foreground border-b border-border">
-                                    <th className="p-1 text-center border-r border-border">Roll</th>
-                                    <th className="p-1 text-left border-r border-border">Item</th>
-                                    <th className="p-1 text-center border-r border-border">Roll</th>
-                                    <th className="p-1 text-left">Item</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr className="border-b border-border">
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">1-2</td>
-                                    <td className="p-1 border-r border-border">+1 ARM</td>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">13</td>
-                                    <td className="p-1">Panzerfaust</td>
-                                  </tr>
-                                  <tr className="border-b border-border">
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">3-4</td>
-                                    <td className="p-1 border-r border-border">Light Flamethrower</td>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">14</td>
-                                    <td className="p-1">Monofilament CCW</td>
-                                  </tr>
-                                  <tr className="border-b border-border">
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">5-6</td>
-                                    <td className="p-1 border-r border-border">Grenades</td>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">15</td>
-                                    <td className="p-1">MOV 8-4</td>
-                                  </tr>
-                                  <tr className="border-b border-border">
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">7-8</td>
-                                    <td className="p-1 border-r border-border">DA CCW</td>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">16</td>
-                                    <td className="p-1">Shock/MULTI Rifle</td>
-                                  </tr>
-                                  <tr className="border-b border-border">
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">9</td>
-                                    <td className="p-1 border-r border-border">MSV L1</td>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">17</td>
-                                    <td className="p-1">MULTI Sniper</td>
-                                  </tr>
-                                  <tr className="border-b border-border">
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">10</td>
-                                    <td className="p-1 border-r border-border">EXP CCW</td>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">18</td>
-                                    <td className="p-1">Immune(ARM)/+4 ARM</td>
-                                  </tr>
-                                  <tr className="border-b border-border">
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">11</td>
-                                    <td className="p-1 border-r border-border">Adhesive L.</td>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">19</td>
-                                    <td className="p-1">Mimetism (-6)</td>
-                                  </tr>
-                                  <tr>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">12</td>
-                                    <td className="p-1 border-r border-border">Immune(AP)/+2 ARM</td>
-                                    <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">20</td>
-                                    <td className="p-1">B+1/HMG</td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
