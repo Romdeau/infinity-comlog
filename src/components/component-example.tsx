@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 import {
   Popover,
   PopoverContent,
@@ -78,7 +79,8 @@ function InfinityGameFlow() {
     initiative: {
       winner: 'player' as 'player' | 'opponent',
       choice: 'initiative' as 'initiative' | 'deployment',
-      firstPlayer: 'player' as 'player' | 'opponent',
+      firstTurn: null as 'player' | 'opponent' | null,
+      firstDeployment: null as 'player' | 'opponent' | null,
     },
     deploymentDetails: {
       hidden: false,
@@ -98,6 +100,8 @@ function InfinityGameFlow() {
       opponent: { op: 0, vp: 0 },
     },
   })
+
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
   // TP Calculation Logic
   const calculateTP = (op: number, rivalOp: number) => {
@@ -122,7 +126,9 @@ function InfinityGameFlow() {
 
   const isInitiativeComplete = gameStep.initiationSubSteps.rollOff &&
     gameStep.initiationSubSteps.deployment &&
-    gameStep.initiationSubSteps.commandTokens
+    gameStep.initiationSubSteps.commandTokens &&
+    gameStep.initiative.firstTurn !== null &&
+    gameStep.initiative.firstDeployment !== null
 
   const isSetupComplete = !!gameStep.scenario &&
     gameStep.scenarioPicked &&
@@ -345,7 +351,7 @@ function InfinityGameFlow() {
 
                 <div className="pl-7 space-y-3 pr-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">Roll Winner</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground">Roll Winner</span>
                     <div className="flex bg-muted/50 rounded-md p-0.5">
                       <Button
                         variant={gameStep.initiative.winner === 'player' ? "secondary" : "ghost"}
@@ -367,7 +373,7 @@ function InfinityGameFlow() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">Winner Choice</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground">Winner Choice</span>
                     <div className="flex bg-muted/50 rounded-md p-0.5">
                       <Button
                         variant={gameStep.initiative.choice === 'initiative' ? "secondary" : "ghost"}
@@ -389,41 +395,53 @@ function InfinityGameFlow() {
                   </div>
 
                   <div className="rounded-md bg-muted/30 p-2 text-[11px] leading-relaxed border border-border/50">
-                    The <span className="font-bold text-primary">{gameStep.initiative.winner}</span> has won the lieutenant roll and has chosen to keep <span className="font-bold text-primary">{gameStep.initiative.choice}</span>.
+                    The <span className="font-bold text-primary">{capitalize(gameStep.initiative.winner)}</span> has won the lieutenant roll and has chosen to keep <span className="font-bold text-primary">{capitalize(gameStep.initiative.choice)}</span>.
                   </div>
 
                   {/* Dependent choices */}
                   <div className="space-y-2 pt-1 border-t border-muted/30">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] text-muted-foreground">
-                        {gameStep.initiative.choice === 'deployment' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player')} has <span className="font-semibold">deployment</span> and deploys:
+                        {capitalize(gameStep.initiative.choice === 'deployment' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player'))} has <span className="font-semibold">deployment</span> and deploys:
                       </span>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="h-6 text-[10px] px-2 border border-border hover:bg-muted"
+                        className={cn(
+                          "h-6 text-[10px] px-2 font-bold",
+                          gameStep.initiative.firstDeployment === null && "text-muted-foreground font-normal"
+                        )}
                         onClick={() => {
-                          // This logic isn't strictly requested to be tracked but is shown in text
+                          const current = gameStep.initiative.firstDeployment
+
+                          if (current === null) setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstDeployment: 'player' } }))
+                          else if (current === 'player') setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstDeployment: 'opponent' } }))
+                          else setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstDeployment: null } }))
                         }}
                       >
-                        First/Second
+                        {gameStep.initiative.firstDeployment ? (gameStep.initiative.firstDeployment === 'player' ? "Player First" : "Opponent First") : "First/Second"}
                       </Button>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] text-muted-foreground">
-                        {gameStep.initiative.choice === 'initiative' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player')} has <span className="font-semibold">initiative</span> and plays:
+                        {capitalize(gameStep.initiative.choice === 'initiative' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player'))} has <span className="font-semibold">initiative</span> and plays:
                       </span>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-6 text-[10px] px-2 font-bold"
+                        className={cn(
+                          "h-6 text-[10px] px-2 font-bold",
+                          gameStep.initiative.firstTurn === null && "text-muted-foreground font-normal"
+                        )}
                         onClick={() => {
-                          const nextFirst = gameStep.initiative.firstPlayer === 'player' ? 'opponent' : 'player'
-                          setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstPlayer: nextFirst } }))
+                          const current = gameStep.initiative.firstTurn
+                          if (current === null) setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstTurn: 'player' } }))
+                          else if (current === 'player') setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstTurn: 'opponent' } }))
+                          else setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstTurn: null } }))
                         }}
                       >
-                        {gameStep.initiative.firstPlayer === 'player' ? "Player First" : "Opponent First"}
+                        {gameStep.initiative.firstTurn ? (gameStep.initiative.firstTurn === 'player' ? "Player First" : "Opponent First") : "First/Second"}
                       </Button>
                     </div>
                   </div>
@@ -574,7 +592,7 @@ function InfinityGameFlow() {
           <div className="px-4 pb-4 mt-4 space-y-3">
             {(['turn1', 'turn2', 'turn3'] as const).map((turnKey, idx) => {
               const turn = gameStep.turns[turnKey]
-              const isPlayerFirst = gameStep.initiative.firstPlayer === 'player'
+              const isPlayerFirst = gameStep.initiative.firstTurn === 'player'
               return (
                 <GameGroup
                   key={turnKey}
