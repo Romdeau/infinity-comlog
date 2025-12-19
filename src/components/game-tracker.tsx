@@ -1,8 +1,9 @@
 import * as React from "react"
 import {
   SectionWrapper,
-  AppLayout,
 } from "@/components/layout-containers"
+import { HackingReference } from "./hacking-reference"
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -20,7 +21,8 @@ import {
   ShieldCheckIcon,
   ZapIcon,
   CheckCircle2Icon,
-  LayersIcon
+  LayersIcon,
+  Trash2
 } from "lucide-react"
 import {
   Select,
@@ -37,18 +39,28 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { GameStep, GameGroup } from "@/components/game-flow-components"
+import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
-export function GameTracker() {
+const SKILL_MAP: Record<number, string> = {
+  238: "Hidden Deployment",
+  47: "Infiltration",
+  46: "Infiltration", // Inferior
+  48: "Infiltration", // Superior
+  161: "Forward Deployment",
+  25: "Booty"
+}
+
+export function GameTracker({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   return (
-    <AppLayout>
-      <InfinityGameFlow />
+    <>
+      <InfinityGameFlow armyLists={armyLists} />
       <TurnReference />
-    </AppLayout>
+    </>
   )
 }
 
-function InfinityGameFlow() {
+function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const initialPlayerTurn = () => ({
     doneOverride: false,
     tactical: {
@@ -108,10 +120,39 @@ function InfinityGameFlow() {
         objectives: {} as Record<string, any>
       },
     },
+    selectedList: "none" as "none" | "listA" | "listB"
   })
 
   // Helper to get active mission details
   const activeMission = missions.find(m => m.id === gameStep.scenario)
+
+  const assistance = React.useMemo(() => {
+    if (gameStep.selectedList === 'none') return null;
+    const list = armyLists[gameStep.selectedList];
+    if (!list) return null;
+
+    const summary: Record<string, string[]> = {};
+    const trackedSkills = ["Hidden Deployment", "Infiltration", "Forward Deployment", "Booty"];
+
+    list.combatGroups.forEach(group => {
+      group.members.forEach(member => {
+        const relevantSkills = new Set<string>();
+
+        member.skills.forEach(skill => {
+          const skillName = SKILL_MAP[skill.id];
+          if (skillName && trackedSkills.includes(skillName)) {
+            relevantSkills.add(skillName);
+          }
+        });
+
+        if (relevantSkills.size > 0) {
+          summary[member.name] = Array.from(relevantSkills);
+        }
+      })
+    })
+
+    return summary;
+  }, [armyLists, gameStep.selectedList]);
 
 
 
@@ -321,7 +362,7 @@ function InfinityGameFlow() {
 
   return (
     <SectionWrapper title="Infinity Game Flow" className="items-start justify-center">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full">
         <CardHeader>
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 rounded-lg p-2">
@@ -376,13 +417,80 @@ function InfinityGameFlow() {
               </div>
             </div>
 
-            <GameStep
-              label="Choose List"
-              info="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction."
-              checked={gameStep.listPicked}
-              onCheckedChange={() => toggleStep('listPicked')}
-              size="sm"
-            />
+            <div className="space-y-2">
+              <GameStep
+                label="Choose List"
+                info="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction."
+                checked={gameStep.listPicked}
+                onCheckedChange={() => toggleStep('listPicked')}
+                size="sm"
+              />
+              <div className="pl-7 pr-4 pb-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant={gameStep.selectedList === 'listA' ? "secondary" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-10 text-[10px] flex flex-col items-center justify-center gap-0",
+                      !armyLists.listA && "opacity-40 cursor-not-allowed"
+                    )}
+                    disabled={!armyLists.listA}
+                    onClick={() => {
+                      setGameStep(p => ({ ...p, selectedList: 'listA', listPicked: true }))
+                    }}
+                  >
+                    <span className="font-bold">LIST A</span>
+                    <span className="text-[9px] opacity-70 truncate max-w-full">
+                      {armyLists.listA ? armyLists.listA.armyName || armyLists.listA.sectoralName : "Not Imported"}
+                    </span>
+                  </Button>
+                  <Button
+                    variant={gameStep.selectedList === 'listB' ? "secondary" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-10 text-[10px] flex flex-col items-center justify-center gap-0",
+                      !armyLists.listB && "opacity-40 cursor-not-allowed"
+                    )}
+                    disabled={!armyLists.listB}
+                    onClick={() => {
+                      setGameStep(p => ({ ...p, selectedList: 'listB', listPicked: true }))
+                    }}
+                  >
+                    <span className="font-bold">LIST B</span>
+                    <span className="text-[9px] opacity-70 truncate max-w-full">
+                      {armyLists.listB ? armyLists.listB.armyName || armyLists.listB.sectoralName : "Not Imported"}
+                    </span>
+                  </Button>
+                </div>
+                {gameStep.selectedList !== 'none' && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="text-[10px] bg-primary/5 p-2 rounded border border-primary/20 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const list = armyLists[gameStep.selectedList];
+                          return (
+                            <>
+                              {list?.logo && <img src={list.logo} alt="" className="size-4 object-contain" />}
+                              <span className="font-bold text-primary truncate max-w-[150px]">
+                                {list?.armyName || list?.sectoralName}
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-5 h-5 text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={() => setGameStep(p => ({ ...p, selectedList: 'none', listPicked: false }))}
+                      >
+                        <Trash2 className="size-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <div className="flex items-center justify-between pr-4">
               <GameStep
@@ -595,87 +703,109 @@ function InfinityGameFlow() {
                     </div>
                   </div>
 
-                  {/* Booty Reminder (if applicable/manual toggle for now) */}
-                  <div className="pt-2">
-                    <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-md p-2">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2Icon className="size-3.5 text-primary" />
-                        <span className="text-[11px] font-bold">Booty Roll Reminder!</span>
+                  {/* Deployment Skills Summary */}
+                  {assistance && Object.keys(assistance).length > 0 && (
+                    <div className="pt-2">
+                      <div className="bg-primary/5 border border-primary/20 rounded-md p-3 space-y-3">
+                        <div className="flex items-center gap-2 text-primary font-bold text-[11px] uppercase tracking-wider">
+                          <LayersIcon className="size-3.5" />
+                          Deployment Assistance
+                        </div>
+                        <div className="grid gap-2">
+                          {Object.entries(assistance).map(([unitName, skills]) => (
+                            <div key={unitName} className="flex items-start justify-between bg-background/50 p-2 rounded border border-border/40">
+                              <div className="text-[10px] font-bold text-foreground/90">{unitName}</div>
+                              <div className="flex flex-wrap gap-1 justify-end max-w-[60%]">
+                                {skills.map((skill, i) => (
+                                  <div key={i} className={cn(
+                                    "text-[9px] px-1.5 py-0.5 rounded-sm border",
+                                    skill === "Booty"
+                                      ? "bg-amber-500/10 text-amber-600 border-amber-500/30 dark:text-amber-400"
+                                      : "bg-muted text-muted-foreground border-border"
+                                  )}>
+                                    {skill === "Booty" ? (
+                                      <Popover>
+                                        <PopoverTrigger className="hover:underline cursor-pointer flex items-center gap-1">
+                                          Booty <CheckCircle2Icon className="size-2.5" />
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80 p-0 overflow-hidden" align="end">
+                                          <div className="bg-primary text-primary-foreground text-[10px] font-bold p-2 text-center uppercase tracking-widest">
+                                            Booty Table
+                                          </div>
+                                          <div className="p-0 text-[10px]">
+                                            <table className="w-full border-collapse">
+                                              <thead>
+                                                <tr className="bg-muted text-muted-foreground border-b border-border">
+                                                  <th className="p-1 text-center border-r border-border">Roll</th>
+                                                  <th className="p-1 text-left border-r border-border">Item</th>
+                                                  <th className="p-1 text-center border-r border-border">Roll</th>
+                                                  <th className="p-1 text-left">Item</th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">1-2</td>
+                                                  <td className="p-1 border-r border-border">+1 ARM</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">13</td>
+                                                  <td className="p-1">Panzerfaust</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">3-4</td>
+                                                  <td className="p-1 border-r border-border">Light Flamethrower</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">14</td>
+                                                  <td className="p-1">Monofilament CCW</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">5-6</td>
+                                                  <td className="p-1 border-r border-border">Grenades</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">15</td>
+                                                  <td className="p-1">MOV 8-4</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">7-8</td>
+                                                  <td className="p-1 border-r border-border">DA CCW</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">16</td>
+                                                  <td className="p-1">Shock/MULTI Rifle</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">9</td>
+                                                  <td className="p-1 border-r border-border">MSV L1</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">17</td>
+                                                  <td className="p-1">MULTI Sniper</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">10</td>
+                                                  <td className="p-1 border-r border-border">EXP CCW</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">18</td>
+                                                  <td className="p-1">Immune(ARM)/+4 ARM</td>
+                                                </tr>
+                                                <tr className="border-b border-border">
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">11</td>
+                                                  <td className="p-1 border-r border-border">Adhesive L.</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">19</td>
+                                                  <td className="p-1">Mimetism (-6)</td>
+                                                </tr>
+                                                <tr>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">12</td>
+                                                  <td className="p-1 border-r border-border">Immune(AP)/+2 ARM</td>
+                                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">20</td>
+                                                  <td className="p-1">B+1/HMG</td>
+                                                </tr>
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        </PopoverContent>
+                                      </Popover>
+                                    ) : skill}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-background">View Table</Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 p-0 overflow-hidden">
-                          <div className="bg-primary text-primary-foreground text-[10px] font-bold p-2 text-center uppercase tracking-widest">
-                            Booty Table
-                          </div>
-                          <div className="p-0 text-[10px]">
-                            <table className="w-full border-collapse">
-                              <thead>
-                                <tr className="bg-muted text-muted-foreground border-b border-border">
-                                  <th className="p-1 text-center border-r border-border">Roll</th>
-                                  <th className="p-1 text-left border-r border-border">Item</th>
-                                  <th className="p-1 text-center border-r border-border">Roll</th>
-                                  <th className="p-1 text-left">Item</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr className="border-b border-border">
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">1-2</td>
-                                  <td className="p-1 border-r border-border">+1 ARM</td>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">13</td>
-                                  <td className="p-1">Panzerfaust</td>
-                                </tr>
-                                <tr className="border-b border-border">
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">3-4</td>
-                                  <td className="p-1 border-r border-border">Light Flamethrower</td>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">14</td>
-                                  <td className="p-1">Monofilament CCW</td>
-                                </tr>
-                                <tr className="border-b border-border">
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">5-6</td>
-                                  <td className="p-1 border-r border-border">Grenades</td>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">15</td>
-                                  <td className="p-1">MOV 8-4</td>
-                                </tr>
-                                <tr className="border-b border-border">
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">7-8</td>
-                                  <td className="p-1 border-r border-border">DA CCW</td>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">16</td>
-                                  <td className="p-1">Shock/MULTI Rifle</td>
-                                </tr>
-                                <tr className="border-b border-border">
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">9</td>
-                                  <td className="p-1 border-r border-border">MSV L1</td>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">17</td>
-                                  <td className="p-1">MULTI Sniper</td>
-                                </tr>
-                                <tr className="border-b border-border">
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">10</td>
-                                  <td className="p-1 border-r border-border">EXP CCW</td>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">18</td>
-                                  <td className="p-1">Immune(ARM)/+4 ARM</td>
-                                </tr>
-                                <tr className="border-b border-border">
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">11</td>
-                                  <td className="p-1 border-r border-border">Adhesive L.</td>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">19</td>
-                                  <td className="p-1">Mimetism (-6)</td>
-                                </tr>
-                                <tr>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">12</td>
-                                  <td className="p-1 border-r border-border">Immune(AP)/+2 ARM</td>
-                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">20</td>
-                                  <td className="p-1">B+1/HMG</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -1024,8 +1154,8 @@ function InfinityGameFlow() {
             </div>
           )}
         </CardFooter>
-      </Card>
-    </SectionWrapper>
+      </Card >
+    </SectionWrapper >
   )
 }
 
@@ -1038,6 +1168,7 @@ const ACTION_GROUPS = [
       { name: "Cautious Movement", type: "Entire Order", url: "https://infinitythewiki.com/Cautious_Movement" },
       { name: "Climb", type: "Movement", url: "https://infinitythewiki.com/Climb" },
       { name: "Jump", type: "Movement", url: "https://infinitythewiki.com/Jump" },
+      { name: "Dodge", type: "Short / ARO", url: "https://infinitythewiki.com/Dodge" },
     ],
   },
   {
@@ -1048,6 +1179,7 @@ const ACTION_GROUPS = [
       { name: "CC Attack", type: "Short Action", url: "https://infinitythewiki.com/CC_Attack" },
       { name: "Suppressive Fire", type: "Entire Order", url: "https://infinitythewiki.com/Suppressive_Fire" },
       { name: "Speculative Attack", type: "Entire Order", url: "https://infinitythewiki.com/Speculative_Attack" },
+      { name: "Intuitive Attack", type: "Short / Entire", url: "https://infinitythewiki.com/Intuitive_Attack" },
     ],
   },
   {
@@ -1065,9 +1197,13 @@ const ACTION_GROUPS = [
     icon: RadioIcon,
     actions: [
       { name: "Discover", type: "Short Action", url: "https://infinitythewiki.com/Discover" },
-      { name: "Reset", type: "Short Action", url: "https://infinitythewiki.com/Reset" },
+      { name: "Reset", type: "Short / ARO", url: "https://infinitythewiki.com/Reset" },
       { name: "Hacking Program", type: "Varies", url: "https://infinitythewiki.com/Hacking" },
       { name: "Interact", type: "Short Action", url: "https://infinitythewiki.com/Interact" },
+      { name: "Place Deployable", type: "Short Action", url: "https://infinitythewiki.com/Place_Deployable" },
+      { name: "Idle", type: "Short / ARO", url: "https://infinitythewiki.com/Idle" },
+      { name: "Reload", type: "Short Action", url: "https://infinitythewiki.com/Reload" },
+      { name: "Request Speedball", type: "Short Action", url: "https://infinitythewiki.com/Request_Speedball" },
     ],
   },
 ]
@@ -1075,14 +1211,14 @@ const ACTION_GROUPS = [
 function TurnReference() {
   return (
     <SectionWrapper title="Turn Reference" className="items-start justify-center">
-      <Card className="w-full max-w-md">
+      <Card className="w-full">
         <CardHeader>
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 rounded-lg p-2">
               <LayersIcon className="text-primary size-5" />
             </div>
             <div>
-              <CardTitle>Skill Quick Reference</CardTitle>
+              <CardTitle>Order Reference</CardTitle>
               <CardDescription>Commonly used skills and AROs</CardDescription>
             </div>
           </div>
@@ -1090,9 +1226,12 @@ function TurnReference() {
         <CardContent className="grid gap-6">
           {ACTION_GROUPS.map((group) => (
             <div key={group.title} className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary/80 uppercase tracking-wider">
-                <group.icon className="size-4" />
-                {group.title}
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary/80 uppercase tracking-wider justify-between">
+                <div className="flex items-center gap-2">
+                  <group.icon className="size-4" />
+                  {group.title}
+                </div>
+                {group.title === "Technical Actions" && <HackingReference />}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {group.actions.map((action) => (
