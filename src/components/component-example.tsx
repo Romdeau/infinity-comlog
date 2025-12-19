@@ -1,5 +1,4 @@
 import * as React from "react"
-import { cn } from "@/lib/utils"
 import {
   Example,
   ExampleWrapper,
@@ -13,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   ExternalLinkIcon,
   SwordIcon,
@@ -22,15 +20,8 @@ import {
   ShieldCheckIcon,
   ZapIcon,
   CheckCircle2Icon,
-  LayersIcon,
-  InfoIcon,
-  ChevronRightIcon
+  LayersIcon
 } from "lucide-react"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -39,12 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
+import { GameStep, GameGroup } from "@/components/game-flow-components"
 
 export function ComponentExample() {
   return (
@@ -55,73 +41,190 @@ export function ComponentExample() {
   )
 }
 
-function InfoTip({ content }: { content: string }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="text-muted-foreground hover:text-primary transition-colors focus:outline-none ml-1">
-          <InfoIcon className="size-3.5" />
-          <span className="sr-only">Help</span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="text-xs">
-        {content}
-      </PopoverContent>
-    </Popover>
-  )
-}
-
 function InfinityGameFlow() {
+  const initialPlayerTurn = () => ({
+    doneOverride: false,
+    tactical: {
+      doneOverride: false,
+      tokens: false,
+      retreat: false,
+      lol: false,
+      count: false,
+    },
+    impetuous: false,
+    orders: false,
+    states: false,
+    end: false,
+  })
+
   const [gameStep, setGameStep] = React.useState({
     scenario: "",
     classifiedsCount: 1,
-    setupDone: false,
+    scenarioPicked: false,
     listPicked: false,
     classifiedsDrawn: false,
-    initiationDone: false,
+    initiationDoneOverride: false,
+    setupDoneOverride: false,
     initiationSubSteps: {
       rollOff: false,
       deployment: false,
       commandTokens: false,
     },
     turns: {
-      turn1: false,
-      turn2: false,
-      turn3: false,
+      turn1: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
+      turn2: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
+      turn3: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
     },
-    scoring: false,
+    scoring: {
+      doneOverride: false,
+      player: { op: 0, vp: 0 },
+      opponent: { op: 0, vp: 0 },
+    },
   })
 
-  const toggleState = (key: string, subKey?: string) => {
-    if (subKey) {
-      setGameStep(prev => ({
-        ...prev,
-        [key]: {
-          ...prev[key as keyof typeof prev] as object,
-          [subKey]: !(prev[key as keyof typeof prev] as any)[subKey]
-        }
-      }))
-    } else {
-      setGameStep(prev => ({
-        ...prev,
-        [key]: !prev[key as keyof typeof prev]
-      }))
+  // TP Calculation Logic
+  const calculateTP = (op: number, rivalOp: number) => {
+    let tp = 0
+    if (op > rivalOp) tp = 4
+    else if (op === rivalOp) tp = 2
+    else {
+      tp = 0
+      if (rivalOp - op < 2) tp += 1 // Bonus for close loss
     }
+    if (op >= 5) tp += 1 // Bonus for 5+ OP
+    return tp
   }
 
-  const isSetupComplete = gameStep.scenario &&
-    gameStep.listPicked &&
-    gameStep.classifiedsDrawn &&
-    gameStep.initiationSubSteps.rollOff &&
+  // Derived state for automatic checkbox logic (Child -> Parent propagation)
+  const isTacticalComplete = (t: any) => t.tokens && t.retreat && t.lol && t.count
+  const isPlayerComplete = (p: any) =>
+    (p.doneOverride || (isTacticalComplete(p.tactical) && p.impetuous && p.orders && p.states && p.end))
+  const isTurnComplete = (t: any) =>
+    (t.doneOverride || (isPlayerComplete(t.p1) && isPlayerComplete(t.p2)))
+
+  const isInitiativeComplete = gameStep.initiationSubSteps.rollOff &&
     gameStep.initiationSubSteps.deployment &&
     gameStep.initiationSubSteps.commandTokens
 
+  const isSetupComplete = !!gameStep.scenario &&
+    gameStep.scenarioPicked &&
+    gameStep.listPicked &&
+    gameStep.classifiedsDrawn &&
+    isInitiativeComplete
+
+  const isScoringComplete = gameStep.scoring.player.op > 0 || gameStep.scoring.opponent.op > 0
+
+  const toggleStep = (key: string, subKey?: string, tertiaryKey?: string) => {
+    setGameStep(prev => {
+      const next = JSON.parse(JSON.stringify(prev))
+
+      if (key === 'setup') {
+        const val = !prev.setupDoneOverride && !isSetupComplete
+        next.setupDoneOverride = val
+        next.scenarioPicked = val
+        next.listPicked = val
+        next.classifiedsDrawn = val
+        next.initiationDoneOverride = val
+        next.initiationSubSteps = { rollOff: val, deployment: val, commandTokens: val }
+        if (!val) next.scenario = ""
+      } else if (key === 'initiation') {
+        const val = !prev.initiationDoneOverride && !isInitiativeComplete
+        next.initiationDoneOverride = val
+        next.initiationSubSteps = { rollOff: val, deployment: val, commandTokens: val }
+        if (!val) next.setupDoneOverride = false
+      } else if (key.startsWith('turn')) {
+        const turnKey = key as 'turn1' | 'turn2' | 'turn3'
+        const turn = next.turns[turnKey]
+
+        if (subKey === 'p1' || subKey === 'p2') {
+          const player = turn[subKey]
+          if (tertiaryKey === 'tactical') {
+            const val = !player.tactical.doneOverride && !isTacticalComplete(player.tactical)
+            player.tactical.doneOverride = val
+            player.tactical.tokens = val
+            player.tactical.retreat = val
+            player.tactical.lol = val
+            player.tactical.count = val
+            if (!val) {
+              player.doneOverride = false
+              turn.doneOverride = false
+            }
+          } else if (tertiaryKey) {
+            // Tactical sub-steps or player phases
+            if (['tokens', 'retreat', 'lol', 'count'].includes(tertiaryKey)) {
+              player.tactical[tertiaryKey as 'tokens' | 'retreat' | 'lol' | 'count'] = !player.tactical[tertiaryKey as 'tokens' | 'retreat' | 'lol' | 'count']
+              if (!player.tactical[tertiaryKey as 'tokens' | 'retreat' | 'lol' | 'count']) {
+                player.tactical.doneOverride = false
+                player.doneOverride = false
+                turn.doneOverride = false
+              }
+            } else {
+              player[tertiaryKey as 'impetuous' | 'orders' | 'states' | 'end'] = !player[tertiaryKey as 'impetuous' | 'orders' | 'states' | 'end']
+              if (!player[tertiaryKey as 'impetuous' | 'orders' | 'states' | 'end']) {
+                player.doneOverride = false
+                turn.doneOverride = false
+              }
+            }
+          } else {
+            // Toggle whole player turn
+            const val = !player.doneOverride && !isPlayerComplete(player)
+            player.doneOverride = val
+            player.impetuous = val
+            player.orders = val
+            player.states = val
+            player.end = val
+            player.tactical.doneOverride = val
+            player.tactical.tokens = val
+            player.tactical.retreat = val
+            player.tactical.lol = val
+            player.tactical.count = val
+            if (!val) turn.doneOverride = false
+          }
+        } else {
+          // Toggle whole turn
+          const val = !turn.doneOverride && !isTurnComplete(turn)
+          turn.doneOverride = val
+          const players = ['p1', 'p2'] as const
+          players.forEach(p => {
+            turn[p].doneOverride = val
+            turn[p].impetuous = val
+            turn[p].orders = val
+            turn[p].states = val
+            turn[p].end = val
+            turn[p].tactical.doneOverride = val
+            turn[p].tactical.tokens = val
+            turn[p].tactical.retreat = val
+            turn[p].tactical.lol = val
+            turn[p].tactical.count = val
+          })
+        }
+      } else if (key === 'scoring') {
+        const val = !prev.scoring.doneOverride && !isScoringComplete
+        next.scoring.doneOverride = val
+        if (!val) {
+          next.scoring.player = { op: 0, vp: 0 }
+          next.scoring.opponent = { op: 0, vp: 0 }
+        }
+      } else {
+        const stateKey = key as keyof typeof prev
+        const newVal = !(prev as any)[stateKey]
+          ; (next as any)[stateKey] = newVal
+        if (key === 'scenarioPicked' && !newVal) next.scenario = ""
+        if (!newVal && ['scenarioPicked', 'listPicked', 'classifiedsDrawn', 'initiationDoneOverride'].includes(key)) {
+          next.setupDoneOverride = false
+        }
+      }
+
+      return next
+    })
+  }
+
   const completedCount = [
-    isSetupComplete,
-    gameStep.turns.turn1,
-    gameStep.turns.turn2,
-    gameStep.turns.turn3,
-    gameStep.scoring
+    (gameStep.setupDoneOverride || isSetupComplete),
+    isTurnComplete(gameStep.turns.turn1),
+    isTurnComplete(gameStep.turns.turn2),
+    isTurnComplete(gameStep.turns.turn3),
+    (gameStep.scoring.doneOverride || isScoringComplete)
   ].filter(Boolean).length
 
   return (
@@ -139,191 +242,274 @@ function InfinityGameFlow() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="setup" className="border-none px-4">
-              <div className="flex items-center gap-3 py-3">
-                <Checkbox
-                  checked={isSetupComplete}
-                  onCheckedChange={() => { }} // Controlled by sub-steps
-                  className="opacity-50" // Visual feedback only
-                />
-                <AccordionTrigger className="flex-1 py-0 hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-sm font-semibold transition-all",
-                      isSetupComplete && "text-muted-foreground line-through opacity-70"
-                    )}>
-                      Game Setup
-                    </span>
-                    <InfoTip content="Initial phase to prepare the battlefield and armies." />
-                  </div>
-                </AccordionTrigger>
+          <GameGroup
+            label="Game Setup"
+            value="setup"
+            info="Initial phase to prepare the battlefield and armies."
+            checked={gameStep.setupDoneOverride || isSetupComplete}
+            onCheckedChange={() => toggleStep('setup')}
+            className="px-4"
+          >
+            {/* Pick Scenario */}
+            <div className="space-y-1">
+              <GameStep
+                label="Pick Scenario"
+                info="Select the mission for the match. Usually decided by the TO or rolled for."
+                checked={gameStep.scenarioPicked}
+                onCheckedChange={() => toggleStep('scenarioPicked')}
+                size="sm"
+              />
+              <div className="pl-7 pr-4">
+                <Select
+                  value={gameStep.scenario}
+                  onValueChange={(val) => {
+                    setGameStep(prev => ({ ...prev, scenario: val, scenarioPicked: true }))
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select a scenario" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="axial">Akial Interference</SelectItem>
+                    <SelectItem value="bpong">B-Pong</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <AccordionContent className="pl-7 pr-0 space-y-4 pt-1 pb-6">
-                {/* Pick Scenario */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium uppercase text-muted-foreground tracking-wider">Pick Scenario</span>
-                    <InfoTip content="Select the mission for the match. Usually decided by the TO or rolled for." />
-                  </div>
-                  <Select
-                    value={gameStep.scenario}
-                    onValueChange={(val) => setGameStep(prev => ({ ...prev, scenario: val }))}
+            </div>
+
+            <GameStep
+              label="Choose List"
+              info="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction."
+              checked={gameStep.listPicked}
+              onCheckedChange={() => toggleStep('listPicked')}
+              size="sm"
+            />
+
+            <div className="flex items-center justify-between pr-4">
+              <GameStep
+                label="Draw Classifieds"
+                info="Secondary objectives that provide additional Victory Points."
+                checked={gameStep.classifiedsDrawn}
+                onCheckedChange={() => toggleStep('classifiedsDrawn')}
+                size="sm"
+              />
+              <Input
+                type="number"
+                min={0}
+                className="w-12 h-7 text-xs px-1 text-center"
+                value={gameStep.classifiedsCount}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setGameStep(prev => ({ ...prev, classifiedsCount: val === "" ? 0 : parseInt(val) }))
+                }}
+              />
+            </div>
+
+            <GameGroup
+              label="Initiative & Deployment"
+              value="initiative"
+              defaultOpen
+              info="Phase where players determine turn order and deploy their models."
+              checked={gameStep.initiationDoneOverride || isInitiativeComplete}
+              onCheckedChange={() => toggleStep('initiation')}
+              size="sm"
+            >
+              <GameStep
+                label="Lieutenant Roll"
+                info="The winner can choose Deployment or Initiative. The player who kept Initiative chooses who goes first/second."
+                checked={gameStep.initiationSubSteps.rollOff}
+                onCheckedChange={() => toggleStep('initiationSubSteps', 'rollOff')}
+                size="sm"
+              />
+              <GameStep
+                label="Army Deployment"
+                checked={gameStep.initiationSubSteps.deployment}
+                onCheckedChange={() => toggleStep('initiationSubSteps', 'deployment')}
+                size="sm"
+              />
+              <GameStep
+                label="Strategic Cmd Tokens"
+                checked={gameStep.initiationSubSteps.commandTokens}
+                onCheckedChange={() => toggleStep('initiationSubSteps', 'commandTokens')}
+                size="sm"
+              />
+            </GameGroup>
+          </GameGroup>
+
+          <div className="px-4 pb-4 mt-4 space-y-3">
+            {(['turn1', 'turn2', 'turn3'] as const).map((turnKey, idx) => (
+              <GameGroup
+                key={turnKey}
+                label={`Turn ${idx + 1}`}
+                value={turnKey}
+                info={`Round ${idx + 1} of tactical actions and combat.`}
+                checked={isTurnComplete(gameStep.turns[turnKey])}
+                onCheckedChange={() => toggleStep(turnKey)}
+              >
+                {(['p1', 'p2'] as const).map((pKey) => (
+                  <GameGroup
+                    key={pKey}
+                    label={pKey === 'p1' ? "Player 1 Turn" : "Player 2 Turn"}
+                    value={`${turnKey}-${pKey}`}
+                    checked={isPlayerComplete(gameStep.turns[turnKey][pKey])}
+                    onCheckedChange={() => toggleStep(turnKey, pKey)}
+                    size="sm"
                   >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select a scenario" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="axial">Akial Interference</SelectItem>
-                      <SelectItem value="bpong">B-Pong</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Choose List */}
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <Checkbox
-                    checked={gameStep.listPicked}
-                    onCheckedChange={() => toggleState('listPicked')}
-                  />
-                  <div className="flex items-center gap-1">
-                    <span className={cn(
-                      "text-xs font-medium",
-                      gameStep.listPicked && "text-muted-foreground line-through opacity-70"
-                    )}>
-                      Choose List
-                    </span>
-                    <InfoTip content="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction." />
-                  </div>
-                </label>
-
-                {/* Draw Classifieds */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between pr-4">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <Checkbox
-                        checked={gameStep.classifiedsDrawn}
-                        onCheckedChange={() => toggleState('classifiedsDrawn')}
+                    <GameGroup
+                      label="Start of the Turn: Tactical Phase"
+                      value={`${turnKey}-${pKey}-tactical`}
+                      checked={isTacticalComplete(gameStep.turns[turnKey][pKey].tactical)}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'tactical')}
+                      size="sm"
+                    >
+                      <GameStep
+                        label="Executive Use of Command Tokens"
+                        checked={gameStep.turns[turnKey][pKey].tactical.tokens}
+                        onCheckedChange={() => toggleStep(turnKey, pKey, 'tokens')}
+                        size="sm"
                       />
-                      <div className="flex items-center gap-1">
-                        <span className={cn(
-                          "text-xs font-medium",
-                          gameStep.classifiedsDrawn && "text-muted-foreground line-through opacity-70"
-                        )}>
-                          Draw Classifieds
-                        </span>
-                        <InfoTip content="Secondary objectives that provide additional Victory Points. The number depends on the scenario." />
-                      </div>
-                    </label>
-                    <Input
-                      type="number"
-                      min={0}
-                      className="w-12 h-7 text-xs px-1 text-center"
-                      value={gameStep.classifiedsCount}
-                      onChange={(e) => setGameStep(prev => ({ ...prev, classifiedsCount: parseInt(e.target.value) || 0 }))}
+                      <GameStep
+                        label="Retreat! Check"
+                        checked={gameStep.turns[turnKey][pKey].tactical.retreat}
+                        onCheckedChange={() => toggleStep(turnKey, pKey, 'retreat')}
+                        size="sm"
+                      />
+                      <GameStep
+                        label="Loss of Lieutenant check"
+                        checked={gameStep.turns[turnKey][pKey].tactical.lol}
+                        onCheckedChange={() => toggleStep(turnKey, pKey, 'lol')}
+                        size="sm"
+                      />
+                      <GameStep
+                        label="Order count"
+                        checked={gameStep.turns[turnKey][pKey].tactical.count}
+                        onCheckedChange={() => toggleStep(turnKey, pKey, 'count')}
+                        size="sm"
+                      />
+                    </GameGroup>
+
+                    <GameStep
+                      label="Impetuous Phase"
+                      checked={gameStep.turns[turnKey][pKey].impetuous}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'impetuous')}
+                      size="sm"
                     />
-                  </div>
+                    <GameStep
+                      label="Orders Phase"
+                      checked={gameStep.turns[turnKey][pKey].orders}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'orders')}
+                      size="sm"
+                    />
+                    <GameStep
+                      label="States Phase"
+                      checked={gameStep.turns[turnKey][pKey].states}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'states')}
+                      size="sm"
+                    />
+                    <GameStep
+                      label="End of the Turn"
+                      checked={gameStep.turns[turnKey][pKey].end}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'end')}
+                      size="sm"
+                    />
+                  </GameGroup>
+                ))}
+              </GameGroup>
+            ))}
+
+            <GameGroup
+              label="Finalising Scoring"
+              value="scoring"
+              info="Tabulate tournament points based on objective points and victory points."
+              checked={gameStep.scoring.doneOverride || isScoringComplete}
+              onCheckedChange={() => toggleStep('scoring')}
+            >
+              <div className="space-y-3 pt-1">
+                <div className="grid grid-cols-4 gap-2 text-[10px] uppercase font-bold text-muted-foreground px-1">
+                  <div></div>
+                  <div className="text-center">TP</div>
+                  <div className="text-center">OP</div>
+                  <div className="text-center">VP</div>
                 </div>
 
-                {/* Initiative & Deployment Sub-Group */}
-                <div className="space-y-3 pt-2 border-l-2 ml-1.5 pl-4 border-muted">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-semibold text-muted-foreground/80">Initiative & Deployment</span>
-                    <InfoTip content="Phase where players determine turn order and deploy their models." />
+                {/* Player Row */}
+                <div className="grid grid-cols-4 gap-2 items-center">
+                  <div className="text-[11px] font-semibold">Player</div>
+                  <div className="bg-primary/10 rounded-md border border-primary/20 flex items-center justify-center h-8 text-sm font-bold text-primary">
+                    {calculateTP(gameStep.scoring.player.op, gameStep.scoring.opponent.op)}
                   </div>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <Checkbox
-                      checked={gameStep.initiationSubSteps.rollOff}
-                      onCheckedChange={() => toggleState('initiationSubSteps', 'rollOff')}
-                    />
-                    <span className={cn("text-xs transition-all", gameStep.initiationSubSteps.rollOff && "text-muted-foreground line-through opacity-70")}>
-                      Face-to-Face Roll Off
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <Checkbox
-                      checked={gameStep.initiationSubSteps.deployment}
-                      onCheckedChange={() => toggleState('initiationSubSteps', 'deployment')}
-                    />
-                    <span className={cn("text-xs transition-all", gameStep.initiationSubSteps.deployment && "text-muted-foreground line-through opacity-70")}>
-                      Army Deployment
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <Checkbox
-                      checked={gameStep.initiationSubSteps.commandTokens}
-                      onCheckedChange={() => toggleState('initiationSubSteps', 'commandTokens')}
-                    />
-                    <span className={cn("text-xs transition-all", gameStep.initiationSubSteps.commandTokens && "text-muted-foreground line-through opacity-70")}>
-                      Strategic Cmd Tokens
-                    </span>
-                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={10}
+                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                    value={gameStep.scoring.player.op}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGameStep(prev => ({
+                        ...prev,
+                        scoring: { ...prev.scoring, player: { ...prev.scoring.player, op: val === "" ? 0 : parseInt(val) } }
+                      }))
+                    }}
+                  />
+                  <Input
+                    type="number"
+                    min={0}
+                    max={300}
+                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                    value={gameStep.scoring.player.vp}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGameStep(prev => ({
+                        ...prev,
+                        scoring: { ...prev.scoring, player: { ...prev.scoring.player, vp: val === "" ? 0 : parseInt(val) } }
+                      }))
+                    }}
+                  />
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
 
-          <div className="px-4 pb-4 space-y-3">
-            <label className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer">
-              <Checkbox
-                checked={gameStep.turns.turn1}
-                onCheckedChange={() => toggleState('turns', 'turn1')}
-              />
-              <div className="flex items-center gap-1">
-                <span className={cn(
-                  "text-sm font-medium leading-none transition-all",
-                  gameStep.turns.turn1 && "text-muted-foreground line-through opacity-70"
-                )}>
-                  Turn 1
-                </span>
-                <InfoTip content="First round of tactical actions and combat." />
+                {/* Opponent Row */}
+                <div className="grid grid-cols-4 gap-2 items-center">
+                  <div className="text-[11px] font-semibold text-muted-foreground">Opponent</div>
+                  <div className="bg-muted/50 rounded-md border border-border flex items-center justify-center h-8 text-sm font-bold text-muted-foreground">
+                    {calculateTP(gameStep.scoring.opponent.op, gameStep.scoring.player.op)}
+                  </div>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={10}
+                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                    value={gameStep.scoring.opponent.op}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGameStep(prev => ({
+                        ...prev,
+                        scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, op: val === "" ? 0 : parseInt(val) } }
+                      }))
+                    }}
+                  />
+                  <Input
+                    type="number"
+                    min={0}
+                    max={300}
+                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                    value={gameStep.scoring.opponent.vp}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGameStep(prev => ({
+                        ...prev,
+                        scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, vp: val === "" ? 0 : parseInt(val) } }
+                      }))
+                    }}
+                  />
+                </div>
               </div>
-            </label>
-            <label className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer">
-              <Checkbox
-                checked={gameStep.turns.turn2}
-                onCheckedChange={() => toggleState('turns', 'turn2')}
-              />
-              <div className="flex items-center gap-1">
-                <span className={cn(
-                  "text-sm font-medium leading-none transition-all",
-                  gameStep.turns.turn2 && "text-muted-foreground line-through opacity-70"
-                )}>
-                  Turn 2
-                </span>
-                <InfoTip content="Mid-game maneuvering and objective capturing." />
-              </div>
-            </label>
-            <label className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer">
-              <Checkbox
-                checked={gameStep.turns.turn3}
-                onCheckedChange={() => toggleState('turns', 'turn3')}
-              />
-              <div className="flex items-center gap-1">
-                <span className={cn(
-                  "text-sm font-medium leading-none transition-all",
-                  gameStep.turns.turn3 && "text-muted-foreground line-through opacity-70"
-                )}>
-                  Turn 3
-                </span>
-                <InfoTip content="Final round to secure victory points." />
-              </div>
-            </label>
-            <label className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer">
-              <Checkbox
-                checked={gameStep.scoring}
-                onCheckedChange={() => toggleState('scoring')}
-              />
-              <div className="flex items-center gap-1">
-                <span className={cn(
-                  "text-sm font-medium leading-none transition-all",
-                  gameStep.scoring && "text-muted-foreground line-through opacity-70"
-                )}>
-                  Finalising Scoring
-                </span>
-                <InfoTip content="Tabulate all Victory Points from the mission and classifieds to determine the winner." />
-              </div>
-            </label>
+            </GameGroup>
           </div>
         </CardContent>
         <CardFooter className="bg-muted/30 border-t flex items-center justify-between text-xs text-muted-foreground p-4">
