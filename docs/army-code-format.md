@@ -6,6 +6,12 @@ This document describes the proprietary binary format used by Infinity Army 7 an
 
 The Army Code is a **Base64 encoded string** containing binary data. To parse it, you must first decode the Base64 string into a byte array (e.g., `Uint8Array`).
 
+### Encoding Handling
+Some army codes (especially those copied from the official Army URL or certain app buttons) may be **URI-encoded**.
+- Characters like `=` may appear as `%3D`.
+- Use `decodeURIComponent(code)` before Base64 decoding.
+- Army codes may also use "URL-safe" Base64 (replace `-` with `+` and `_` with `/`), though traditional Base64 is more common.
+
 ## Data Types
 
 The format relies heavily on two custom data types:
@@ -34,8 +40,8 @@ Contains metadata about the list.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| **Sectorial ID** | `VarInt` | Internal ID of the faction/sectorial. |
-| **Sectorial Name** | `String` | Internal name (e.g., "shindenbutai"). |
+| **Sectorial ID** | `VarInt` | Internal ID of the sectoral. Maps to `factions` in `metadata.json`. |
+| **Sectorial Name** | `String` | Internal name slug (e.g., "shindenbutai"). |
 | **List Name** | `String` | User-defined name of the army list. |
 | **Points** | `VarInt` | Total points cap (e.g., 300). |
 | **Group Count** | `VarInt` | Number of Combat Groups in the list. |
@@ -45,9 +51,9 @@ Repeated `Group Count` times.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| **Group Number** | `VarInt` | The visible group number (usually 1-10). |
-| **Unknown 1** | `VarInt` | Typically `1`. Purpose unknown. |
-| **Unknown 2** | `VarInt` | Typically `0`. Purpose unknown. |
+| **Group Number** | `VarInt` | The visible group number (usually 1). |
+| **Alignment 1** | `VarInt` | Typically `1`. Required for byte alignment. |
+| **Alignment 2** | `VarInt` | Typically `0`. Required for byte alignment. |
 | **Member Count** | `VarInt` | Number of troopers in this group. |
 
 ### 3. Group Members

@@ -11,21 +11,35 @@ export interface CombatGroup {
 }
 
 export interface ArmyList {
-  // factionId removed as it's not explicitly in the header
   sectoralId: number;
   sectoralName: string;
   armyName: string;
   points: number;
   combatGroups: CombatGroup[];
+  parentName?: string;
+  logo?: string;
 }
 
 // Map of unit IDs to names (to be imported)
 import unitsData from '../data/units.json';
+import metadata from '../data/metadata.json';
 
 const getUnitName = (id: number): string => {
   const data = unitsData as any[];
   const unit = data.find(u => u.id === id);
   return unit ? unit.name : `Unknown Unit (${id})`;
+};
+
+const getFactionInfo = (id: number) => {
+  const factions = (metadata as any).factions;
+  const faction = factions.find((f: any) => f.id === id);
+  if (!faction) return null;
+
+  const parent = factions.find((f: any) => f.id === faction.parent);
+  return {
+    parentName: parent ? parent.name : faction.name,
+    logo: faction.logo
+  };
 };
 
 export class ArmyParser {
@@ -110,12 +124,15 @@ export class ArmyParser {
       combatGroups.push({ groupNumber, members });
     }
 
+    const factionInfo = getFactionInfo(sectoralId);
+
     return {
       sectoralId,
       sectoralName,
       armyName,
       points,
-      combatGroups
+      combatGroups,
+      ...factionInfo
     };
   }
 }

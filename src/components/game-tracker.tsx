@@ -1,7 +1,6 @@
 import * as React from "react"
 import {
   SectionWrapper,
-  AppLayout,
 } from "@/components/layout-containers"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,7 +19,8 @@ import {
   ShieldCheckIcon,
   ZapIcon,
   CheckCircle2Icon,
-  LayersIcon
+  LayersIcon,
+  Trash2
 } from "lucide-react"
 import {
   Select,
@@ -37,19 +37,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { GameStep, GameGroup } from "@/components/game-flow-components"
-import { ArmyListImporter } from "@/components/army-list-importer"
+import { type ArmyList } from "@/lib/army-parser"
 import missions from "@/data/missions.json"
 
-export function GameTracker() {
+export function GameTracker({ armyLists }: { armyLists: { listA: ArmyList | null; listB: ArmyList | null } }) {
   return (
-    <AppLayout>
-      <InfinityGameFlow />
+    <>
+      <InfinityGameFlow armyLists={armyLists} />
       <TurnReference />
-    </AppLayout>
+    </>
   )
 }
 
-function InfinityGameFlow() {
+function InfinityGameFlow({ armyLists }: { armyLists: { listA: ArmyList | null; listB: ArmyList | null } }) {
   const initialPlayerTurn = () => ({
     doneOverride: false,
     tactical: {
@@ -109,6 +109,7 @@ function InfinityGameFlow() {
         objectives: {} as Record<string, any>
       },
     },
+    selectedList: "none" as "none" | "listA" | "listB"
   })
 
   // Helper to get active mission details
@@ -322,7 +323,7 @@ function InfinityGameFlow() {
 
   return (
     <SectionWrapper title="Infinity Game Flow" className="items-start justify-center">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full">
         <CardHeader>
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 rounded-lg p-2">
@@ -385,10 +386,70 @@ function InfinityGameFlow() {
                 onCheckedChange={() => toggleStep('listPicked')}
                 size="sm"
               />
-              <div className="pl-7 pr-4 pb-2">
-                <ArmyListImporter onListParsed={(list) => {
-                  if (list && !gameStep.listPicked) toggleStep('listPicked')
-                }} />
+              <div className="pl-7 pr-4 pb-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant={gameStep.selectedList === 'listA' ? "secondary" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-10 text-[10px] flex flex-col items-center justify-center gap-0",
+                      !armyLists.listA && "opacity-40 cursor-not-allowed"
+                    )}
+                    disabled={!armyLists.listA}
+                    onClick={() => {
+                      setGameStep(p => ({ ...p, selectedList: 'listA', listPicked: true }))
+                    }}
+                  >
+                    <span className="font-bold">LIST A</span>
+                    <span className="text-[9px] opacity-70 truncate max-w-full">
+                      {armyLists.listA ? armyLists.listA.armyName || armyLists.listA.sectoralName : "Not Imported"}
+                    </span>
+                  </Button>
+                  <Button
+                    variant={gameStep.selectedList === 'listB' ? "secondary" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-10 text-[10px] flex flex-col items-center justify-center gap-0",
+                      !armyLists.listB && "opacity-40 cursor-not-allowed"
+                    )}
+                    disabled={!armyLists.listB}
+                    onClick={() => {
+                      setGameStep(p => ({ ...p, selectedList: 'listB', listPicked: true }))
+                    }}
+                  >
+                    <span className="font-bold">LIST B</span>
+                    <span className="text-[9px] opacity-70 truncate max-w-full">
+                      {armyLists.listB ? armyLists.listB.armyName || armyLists.listB.sectoralName : "Not Imported"}
+                    </span>
+                  </Button>
+                </div>
+                {gameStep.selectedList !== 'none' && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="text-[10px] bg-primary/5 p-2 rounded border border-primary/20 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const list = armyLists[gameStep.selectedList];
+                          return (
+                            <>
+                              {list?.logo && <img src={list.logo} alt="" className="size-4 object-contain" />}
+                              <span className="font-bold text-primary truncate max-w-[150px]">
+                                {list?.armyName || list?.sectoralName}
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-5 h-5 text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={() => setGameStep(p => ({ ...p, selectedList: 'none', listPicked: false }))}
+                      >
+                        <Trash2 className="size-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1083,14 +1144,14 @@ const ACTION_GROUPS = [
 function TurnReference() {
   return (
     <SectionWrapper title="Turn Reference" className="items-start justify-center">
-      <Card className="w-full max-w-md">
+      <Card className="w-full">
         <CardHeader>
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 rounded-lg p-2">
               <LayersIcon className="text-primary size-5" />
             </div>
             <div>
-              <CardTitle>Skill Quick Reference</CardTitle>
+              <CardTitle>Order Reference</CardTitle>
               <CardDescription>Commonly used skills and AROs</CardDescription>
             </div>
           </div>

@@ -10,45 +10,23 @@ Currently when the page is refreshed the game state is lost, i'd like to persist
 
 It might be useful to track multiple sessions (maybe you're playing 3 games in a day for a tournament), and it could be useful to review what scoring was done by either player. Provide a way to name and store a session that can be loaded later. As in the 'Session Persistence' item above lets complete this will local storage but let's make sure to design it in a way that will be compatible with an account system in the future.
 
-## List Integration
+## List Integration (Completed ✅)
+The player can now input two tournament lists. 
 
-The player should be able to input their infinity list code. The codes are Base64 encoded strings representing a proprietary binary format.
+### Implementation Details
+- **Binary Parser**: Robust `ArmyParser` handles `readVarInt`, `readString`, and URI-encoded codes.
+- **Metadata Integration**: Factions are automatically mapped to names, parent factions (e.g., JSA -> Yu Jing), and official logos using `src/data/metadata.json`.
+- **UI**: Added `ArmyManager` for dual-list management with clear/switch logic.
+- **Game Selection**: Integrated list choice directly into the "Choose List" step of the game flow.
 
-### Parsing Implementation
-- **Binary Format**: The code consists of a header (Faction, List Name, Points) and multiple Combat Groups.
-- **Parsing Logic**:
-  - Implement a `readVarInt` helper for variable-length integers.
-  - Implement a `readString` helper for length-prefixed strings.
-  - Map `Unit IDs` to human-readable names using an imported or created `units.json` database.
-
-### UI Changes
-- Add an "Import Army Code" input field in the "Choose List" section of `GameTracker`.
-- Display the parsed list summary (Groups, Order Counts, and Unit List) for verification.
-
-### Data Requirements
-- **Unit Database**: Need to acquire a mapping of IDs to Names (e.g., from `Infinity-Data`). 
-
-#### Example Codes
-
-```
-hE4Mc2hpbmRlbmJ1dGFpFU5pZ2h0TWVtZU9uTWVtZVN0cmVldIEsAgEBAAkAhxoBAQAAhx8BAQAAhx0BAgAAhx4BAQAAhyABAgAAhxsBAwAAgJ8BAQAAhyMBAgAAgIcBBwACAQAGAIcjAQIAAIcZAQYAAIcZAQYAAIU1AQMA
-```
-
-Decodes to **Faction**: `shindenbutai` (JSA), **List**: `NightMemeOnMemeStreet`. This is a 300 point list that contains 2 combat groups, the first contains 9 units, and the second contains 6.
-
-```
-gl0JbmV4dC13YXZlCkFjaGlsbGVzVjGBLAIBAQAKAIdHAQUAAIc6AQQAAIdWAQMAAIdUAQQAAIdUAQkAAIdXAQIAAIIUAQEAAIH%2FAQEAAIdcAQIAAIPFAQEAAgEABQCCFAEBAACHUgEBAACB7QECAACDDwECAACHXAEEAA%3D%3D
-```
-
-Decodes to **Faction**: `next-wave` (Combined Army), **List**: `AchillesV1`. This is a 300 point list that contains 2 combat groups, the first contains 10 units, and the second contains 5.
-
-```
-axZrZXN0cmVsLWNvbG9uaWFsLWZvcmNlDkNvbXByZWhlbnNpYmxlgSwCAQEACQAhAQQAABABAgAAhxEBBAAAhwwBAwAAhxUBAgAAhxUBAgAAhxUBBQAAg6cBAgAAEwEBAAIBAAYAhxIBAwAALgECAACHCwEJAACGIgEEAACHIAEFAACHIAEFAA%3D%3D
-```
-
-Decodes to **Faction**: `kestrel-colonial-force` (PanOceania), **List**: `Comprehensible`. This is a 300 point list that contains 2 combat groups, the first contains 9 units, and the second contains 6.
-
-NB: for the above the data only contains the name of the faction (e.g. Shindenbutai), but does not include the Army this comes from (in the examples case, JSA). I've added this extra data as its useful to understand the wider context isn't present in the army strings.
+### Next Step: Unit Data Enrichment
+The parser currently extracts `Unit ID`s, but these need to be mapped to full profiles to enable contextual assistance.
+- [ ] **Unit Database**: Map `Unit ID` to profile data (Skills, Weapons, Armor, etc.).
+- [ ] **Contextual Assistance**: Use unit skills to auto-populate reminders for:
+  - Hidden Deployment
+  - Infiltration
+  - Forward Deployment
+  - Booty rolls (only if a unit has the 'Booty' skill)
 
 ### Game Sequence Integration
 
