@@ -23,8 +23,7 @@ import {
   ZapIcon,
   CheckCircle2Icon,
   LayersIcon,
-  InfoIcon,
-  ChevronRightIcon
+  InfoIcon
 } from "lucide-react"
 import {
   Popover,
@@ -109,7 +108,7 @@ function InfinityGameFlow() {
     }
   }
 
-  const isSetupComplete = gameStep.scenario &&
+  const isSetupComplete = !!gameStep.scenario &&
     gameStep.listPicked &&
     gameStep.classifiedsDrawn &&
     gameStep.initiationSubSteps.rollOff &&
@@ -143,15 +142,14 @@ function InfinityGameFlow() {
             <AccordionItem value="setup" className="border-none px-4">
               <div className="flex items-center gap-3 py-3">
                 <Checkbox
-                  checked={isSetupComplete}
-                  onCheckedChange={() => { }} // Controlled by sub-steps
-                  className="opacity-50" // Visual feedback only
+                  checked={gameStep.setupDone || isSetupComplete}
+                  onCheckedChange={() => toggleState('setupDone')}
                 />
                 <AccordionTrigger className="flex-1 py-0 hover:no-underline">
                   <div className="flex items-center gap-2">
                     <span className={cn(
                       "text-sm font-semibold transition-all",
-                      isSetupComplete && "text-muted-foreground line-through opacity-70"
+                      (gameStep.setupDone || isSetupComplete) && "text-muted-foreground line-through opacity-70"
                     )}>
                       Game Setup
                     </span>
@@ -227,9 +225,20 @@ function InfinityGameFlow() {
 
                 {/* Initiative & Deployment Sub-Group */}
                 <div className="space-y-3 pt-2 border-l-2 ml-1.5 pl-4 border-muted">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-semibold text-muted-foreground/80">Initiative & Deployment</span>
-                    <InfoTip content="Phase where players determine turn order and deploy their models." />
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={gameStep.initiationDone || (gameStep.initiationSubSteps.rollOff && gameStep.initiationSubSteps.deployment && gameStep.initiationSubSteps.commandTokens)}
+                      onCheckedChange={() => toggleState('initiationDone')}
+                    />
+                    <div className="flex items-center gap-1">
+                      <span className={cn(
+                        "text-xs font-semibold text-muted-foreground/80",
+                        (gameStep.initiationDone || (gameStep.initiationSubSteps.rollOff && gameStep.initiationSubSteps.deployment && gameStep.initiationSubSteps.commandTokens)) && "line-through opacity-70"
+                      )}>
+                        Initiative & Deployment
+                      </span>
+                      <InfoTip content="Phase where players determine turn order and deploy their models." />
+                    </div>
                   </div>
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <Checkbox
