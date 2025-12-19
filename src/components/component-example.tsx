@@ -42,6 +42,21 @@ export function ComponentExample() {
 }
 
 function InfinityGameFlow() {
+  const initialPlayerTurn = () => ({
+    doneOverride: false,
+    tactical: {
+      doneOverride: false,
+      tokens: false,
+      retreat: false,
+      lol: false,
+      count: false,
+    },
+    impetuous: false,
+    orders: false,
+    states: false,
+    end: false,
+  })
+
   const [gameStep, setGameStep] = React.useState({
     scenario: "",
     classifiedsCount: 1,
@@ -56,9 +71,9 @@ function InfinityGameFlow() {
       commandTokens: false,
     },
     turns: {
-      turn1: { doneOverride: false, p1: false, p2: false },
-      turn2: { doneOverride: false, p1: false, p2: false },
-      turn3: { doneOverride: false, p1: false, p2: false },
+      turn1: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
+      turn2: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
+      turn3: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
     },
     scoring: {
       doneOverride: false,
@@ -68,6 +83,12 @@ function InfinityGameFlow() {
   })
 
   // Derived state for automatic checkbox logic (Child -> Parent propagation)
+  const isTacticalComplete = (t: any) => t.tokens && t.retreat && t.lol && t.count
+  const isPlayerComplete = (p: any) =>
+    (p.doneOverride || (isTacticalComplete(p.tactical) && p.impetuous && p.orders && p.states && p.end))
+  const isTurnComplete = (t: any) =>
+    (t.doneOverride || (isPlayerComplete(t.p1) && isPlayerComplete(t.p2)))
+
   const isInitiativeComplete = gameStep.initiationSubSteps.rollOff &&
     gameStep.initiationSubSteps.deployment &&
     gameStep.initiationSubSteps.commandTokens
@@ -78,14 +99,11 @@ function InfinityGameFlow() {
     gameStep.classifiedsDrawn &&
     isInitiativeComplete
 
-  const isTurnComplete = (turnKey: 'turn1' | 'turn2' | 'turn3') =>
-    gameStep.turns[turnKey].p1 && gameStep.turns[turnKey].p2
-
   const isScoringComplete = gameStep.scoring.op && gameStep.scoring.vp
 
-  const toggleStep = (key: string, subKey?: string) => {
+  const toggleStep = (key: string, subKey?: string, tertiaryKey?: string) => {
     setGameStep(prev => {
-      const next = JSON.parse(JSON.stringify(prev)) // Deep clone for complex nested updates
+      const next = JSON.parse(JSON.stringify(prev))
 
       if (key === 'setup') {
         const val = !prev.setupDoneOverride && !isSetupComplete
@@ -103,14 +121,69 @@ function InfinityGameFlow() {
         if (!val) next.setupDoneOverride = false
       } else if (key.startsWith('turn')) {
         const turnKey = key as 'turn1' | 'turn2' | 'turn3'
-        if (subKey) {
-          next.turns[turnKey][subKey as 'p1' | 'p2'] = !prev.turns[turnKey][subKey as 'p1' | 'p2']
-          if (!next.turns[turnKey][subKey as 'p1' | 'p2']) next.turns[turnKey].doneOverride = false
+        const turn = next.turns[turnKey]
+
+        if (subKey === 'p1' || subKey === 'p2') {
+          const player = turn[subKey]
+          if (tertiaryKey === 'tactical') {
+            const val = !player.tactical.doneOverride && !isTacticalComplete(player.tactical)
+            player.tactical.doneOverride = val
+            player.tactical.tokens = val
+            player.tactical.retreat = val
+            player.tactical.lol = val
+            player.tactical.count = val
+            if (!val) {
+              player.doneOverride = false
+              turn.doneOverride = false
+            }
+          } else if (tertiaryKey) {
+            // Tactical sub-steps or player phases
+            if (['tokens', 'retreat', 'lol', 'count'].includes(tertiaryKey)) {
+              player.tactical[tertiaryKey as 'tokens' | 'retreat' | 'lol' | 'count'] = !player.tactical[tertiaryKey as 'tokens' | 'retreat' | 'lol' | 'count']
+              if (!player.tactical[tertiaryKey as 'tokens' | 'retreat' | 'lol' | 'count']) {
+                player.tactical.doneOverride = false
+                player.doneOverride = false
+                turn.doneOverride = false
+              }
+            } else {
+              player[tertiaryKey as 'impetuous' | 'orders' | 'states' | 'end'] = !player[tertiaryKey as 'impetuous' | 'orders' | 'states' | 'end']
+              if (!player[tertiaryKey as 'impetuous' | 'orders' | 'states' | 'end']) {
+                player.doneOverride = false
+                turn.doneOverride = false
+              }
+            }
+          } else {
+            // Toggle whole player turn
+            const val = !player.doneOverride && !isPlayerComplete(player)
+            player.doneOverride = val
+            player.impetuous = val
+            player.orders = val
+            player.states = val
+            player.end = val
+            player.tactical.doneOverride = val
+            player.tactical.tokens = val
+            player.tactical.retreat = val
+            player.tactical.lol = val
+            player.tactical.count = val
+            if (!val) turn.doneOverride = false
+          }
         } else {
-          const val = !prev.turns[turnKey].doneOverride && !isTurnComplete(turnKey)
-          next.turns[turnKey].doneOverride = val
-          next.turns[turnKey].p1 = val
-          next.turns[turnKey].p2 = val
+          // Toggle whole turn
+          const val = !turn.doneOverride && !isTurnComplete(turn)
+          turn.doneOverride = val
+          const players = ['p1', 'p2'] as const
+          players.forEach(p => {
+            turn[p].doneOverride = val
+            turn[p].impetuous = val
+            turn[p].orders = val
+            turn[p].states = val
+            turn[p].end = val
+            turn[p].tactical.doneOverride = val
+            turn[p].tactical.tokens = val
+            turn[p].tactical.retreat = val
+            turn[p].tactical.lol = val
+            turn[p].tactical.count = val
+          })
         }
       } else if (key === 'scoring') {
         if (subKey) {
@@ -139,9 +212,9 @@ function InfinityGameFlow() {
 
   const completedCount = [
     (gameStep.setupDoneOverride || isSetupComplete),
-    (gameStep.turns.turn1.doneOverride || isTurnComplete('turn1')),
-    (gameStep.turns.turn2.doneOverride || isTurnComplete('turn2')),
-    (gameStep.turns.turn3.doneOverride || isTurnComplete('turn3')),
+    isTurnComplete(gameStep.turns.turn1),
+    isTurnComplete(gameStep.turns.turn2),
+    isTurnComplete(gameStep.turns.turn3),
     (gameStep.scoring.doneOverride || isScoringComplete)
   ].filter(Boolean).length
 
@@ -257,21 +330,77 @@ function InfinityGameFlow() {
                 label={`Turn ${idx + 1}`}
                 value={turnKey}
                 info={`Round ${idx + 1} of tactical actions and combat.`}
-                checked={gameStep.turns[turnKey].doneOverride || isTurnComplete(turnKey)}
+                checked={isTurnComplete(gameStep.turns[turnKey])}
                 onCheckedChange={() => toggleStep(turnKey)}
               >
-                <GameStep
-                  label="Player 1 Turn"
-                  checked={gameStep.turns[turnKey].p1}
-                  onCheckedChange={() => toggleStep(turnKey, 'p1')}
-                  size="sm"
-                />
-                <GameStep
-                  label="Player 2 Turn"
-                  checked={gameStep.turns[turnKey].p2}
-                  onCheckedChange={() => toggleStep(turnKey, 'p2')}
-                  size="sm"
-                />
+                {(['p1', 'p2'] as const).map((pKey) => (
+                  <GameGroup
+                    key={pKey}
+                    label={pKey === 'p1' ? "Player 1 Turn" : "Player 2 Turn"}
+                    value={`${turnKey}-${pKey}`}
+                    checked={isPlayerComplete(gameStep.turns[turnKey][pKey])}
+                    onCheckedChange={() => toggleStep(turnKey, pKey)}
+                    size="sm"
+                  >
+                    <GameGroup
+                      label="Start of the Turn: Tactical Phase"
+                      value={`${turnKey}-${pKey}-tactical`}
+                      checked={isTacticalComplete(gameStep.turns[turnKey][pKey].tactical)}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'tactical')}
+                      size="sm"
+                    >
+                      <GameStep
+                        label="Executive Use of Command Tokens"
+                        checked={gameStep.turns[turnKey][pKey].tactical.tokens}
+                        onCheckedChange={() => toggleStep(turnKey, pKey, 'tokens')}
+                        size="sm"
+                      />
+                      <GameStep
+                        label="Retreat! Check"
+                        checked={gameStep.turns[turnKey][pKey].tactical.retreat}
+                        onCheckedChange={() => toggleStep(turnKey, pKey, 'retreat')}
+                        size="sm"
+                      />
+                      <GameStep
+                        label="Loss of Lieutenant check"
+                        checked={gameStep.turns[turnKey][pKey].tactical.lol}
+                        onCheckedChange={() => toggleStep(turnKey, pKey, 'lol')}
+                        size="sm"
+                      />
+                      <GameStep
+                        label="Order count"
+                        checked={gameStep.turns[turnKey][pKey].tactical.count}
+                        onCheckedChange={() => toggleStep(turnKey, pKey, 'count')}
+                        size="sm"
+                      />
+                    </GameGroup>
+
+                    <GameStep
+                      label="Impetuous Phase"
+                      checked={gameStep.turns[turnKey][pKey].impetuous}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'impetuous')}
+                      size="sm"
+                    />
+                    <GameStep
+                      label="Orders Phase"
+                      checked={gameStep.turns[turnKey][pKey].orders}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'orders')}
+                      size="sm"
+                    />
+                    <GameStep
+                      label="States Phase"
+                      checked={gameStep.turns[turnKey][pKey].states}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'states')}
+                      size="sm"
+                    />
+                    <GameStep
+                      label="End of the Turn"
+                      checked={gameStep.turns[turnKey][pKey].end}
+                      onCheckedChange={() => toggleStep(turnKey, pKey, 'end')}
+                      size="sm"
+                    />
+                  </GameGroup>
+                ))}
               </GameGroup>
             ))}
 
