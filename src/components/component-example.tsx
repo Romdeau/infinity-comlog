@@ -102,6 +102,7 @@ function InfinityGameFlow() {
   })
 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const getDisplayName = (s: string) => s === 'player' ? 'You' : capitalize(s);
 
   // TP Calculation Logic
   const calculateTP = (op: number, rivalOp: number) => {
@@ -334,7 +335,7 @@ function InfinityGameFlow() {
               label="Initiative & Deployment"
               value="initiative"
               defaultOpen
-              info="Phase where players determine turn order and deploy their models."
+              info="Phase where you and your opponent determine turn order and deploy models."
               checked={gameStep.initiationDoneOverride || isInitiativeComplete}
               onCheckedChange={() => toggleStep('initiation')}
               size="sm"
@@ -343,7 +344,7 @@ function InfinityGameFlow() {
               <div className="space-y-3 pb-2 border-b border-muted/30">
                 <GameStep
                   label="Lieutenant Roll"
-                  info="The winner can choose Deployment or Initiative. The player who kept Initiative chooses who goes first/second."
+                  info="The winner can choose Deployment or Initiative. The one who kept Initiative chooses who goes first/second."
                   checked={gameStep.initiationSubSteps.rollOff}
                   onCheckedChange={() => toggleStep('initiationSubSteps', 'rollOff')}
                   size="sm"
@@ -359,7 +360,7 @@ function InfinityGameFlow() {
                         className="h-6 text-[10px] px-2"
                         onClick={() => setGameStep(p => ({ ...p, initiative: { ...p.initiative, winner: 'player' } }))}
                       >
-                        Player
+                        You
                       </Button>
                       <Button
                         variant={gameStep.initiative.winner === 'opponent' ? "secondary" : "ghost"}
@@ -395,14 +396,14 @@ function InfinityGameFlow() {
                   </div>
 
                   <div className="rounded-md bg-muted/30 p-2 text-[11px] leading-relaxed border border-border/50">
-                    The <span className="font-bold text-primary">{capitalize(gameStep.initiative.winner)}</span> has won the lieutenant roll and has chosen to keep <span className="font-bold text-primary">{capitalize(gameStep.initiative.choice)}</span>.
+                    The <span className="font-bold text-primary">{getDisplayName(gameStep.initiative.winner)}</span> has won the lieutenant roll and has chosen to keep <span className="font-bold text-primary">{getDisplayName(gameStep.initiative.choice)}</span>.
                   </div>
 
                   {/* Dependent choices */}
                   <div className="space-y-2 pt-1 border-t border-muted/30">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] text-muted-foreground">
-                        {capitalize(gameStep.initiative.choice === 'deployment' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player'))} has <span className="font-semibold">deployment</span> and deploys:
+                        {getDisplayName(gameStep.initiative.choice === 'deployment' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player'))} has <span className="font-semibold">deployment</span> and deploys:
                       </span>
                       <Button
                         variant="outline"
@@ -419,13 +420,13 @@ function InfinityGameFlow() {
                           else setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstDeployment: null } }))
                         }}
                       >
-                        {gameStep.initiative.firstDeployment ? (gameStep.initiative.firstDeployment === 'player' ? "Player First" : "Opponent First") : "First/Second"}
+                        {gameStep.initiative.firstDeployment ? (gameStep.initiative.firstDeployment === 'player' ? "You First" : "Opponent First") : "First/Second"}
                       </Button>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] text-muted-foreground">
-                        {capitalize(gameStep.initiative.choice === 'initiative' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player'))} has <span className="font-semibold">initiative</span> and plays:
+                        {getDisplayName(gameStep.initiative.choice === 'initiative' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player'))} has <span className="font-semibold">initiative</span> and plays:
                       </span>
                       <Button
                         variant="outline"
@@ -441,7 +442,7 @@ function InfinityGameFlow() {
                           else setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstTurn: null } }))
                         }}
                       >
-                        {gameStep.initiative.firstTurn ? (gameStep.initiative.firstTurn === 'player' ? "Player First" : "Opponent First") : "First/Second"}
+                        {gameStep.initiative.firstTurn ? (gameStep.initiative.firstTurn === 'player' ? "You First" : "Opponent First") : "First/Second"}
                       </Button>
                     </div>
                   </div>
@@ -695,9 +696,9 @@ function InfinityGameFlow() {
                   <div className="text-center">VP</div>
                 </div>
 
-                {/* Player Row */}
+                {/* You Row */}
                 <div className="grid grid-cols-4 gap-2 items-center">
-                  <div className="text-[11px] font-semibold">Player</div>
+                  <div className="text-[11px] font-semibold">You</div>
                   <div className="bg-primary/10 rounded-md border border-primary/20 flex items-center justify-center h-8 text-sm font-bold text-primary">
                     {calculateTP(gameStep.scoring.player.op, gameStep.scoring.opponent.op)}
                   </div>
