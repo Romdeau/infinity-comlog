@@ -91,9 +91,9 @@ function InfinityGameFlow() {
       booty: false,
     },
     turns: {
-      turn1: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
-      turn2: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
-      turn3: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
+      turn1: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn(), objectives: { player: {}, opponent: {} } as Record<string, any> },
+      turn2: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn(), objectives: { player: {}, opponent: {} } as Record<string, any> },
+      turn3: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn(), objectives: { player: {}, opponent: {} } as Record<string, any> },
     },
     scoring: {
       doneOverride: false,
@@ -172,12 +172,28 @@ function InfinityGameFlow() {
       // Check if objective applies to the player's role
       if (obj.role && obj.role !== assignedRole) return
 
-      const progress = objProgress[obj.id]
-      if (progress) {
-        if (typeof progress === 'number') {
-          total += progress * obj.op
-        } else if (progress === true) {
-          total += obj.op
+      if (obj.type.startsWith('round-end')) {
+        // Sum across all turns
+        Object.keys(gameStep.turns).forEach(tKey => {
+          const turnObjs = (gameStep.turns as any)[tKey].objectives[role]
+          const progress = turnObjs?.[obj.id]
+          if (progress) {
+            if (typeof progress === 'number') {
+              total += progress * obj.op
+            } else if (progress === true) {
+              total += obj.op
+            }
+          }
+        })
+      } else {
+        // Global game-end or manual objectives
+        const progress = objProgress[obj.id]
+        if (progress) {
+          if (typeof progress === 'number') {
+            total += progress * obj.op
+          } else if (progress === true) {
+            total += obj.op
+          }
         }
       }
     })
@@ -767,6 +783,85 @@ function InfinityGameFlow() {
                       </GameGroup>
                     )
                   })}
+
+                  {/* Round Scoring Section */}
+                  {activeMission && activeMission.objectives.some((o: any) => o.type.startsWith('round-end')) && (
+                    <GameGroup
+                      label={`Round ${idx + 1} Scoring`}
+                      value={`${turnKey}-round-scoring`}
+                      defaultOpen={idx === 0}
+                      size="sm"
+                      className="mt-2 border-t pt-2 border-primary/10"
+                      checked={false}
+                      onCheckedChange={() => { }}
+                    >
+                      {['player', 'opponent'].map(role => {
+                        const isPlayer = role === 'player'
+                        const assignedRole = activeMission.hasRoles ? (
+                          (isPlayer && isPlayerFirst) || (!isPlayer && !isPlayerFirst) ? 'attacker' : 'defender'
+                        ) : undefined
+
+                        return (
+                          <div key={role} className="space-y-2 mb-4 last:mb-0">
+                            <div className="flex items-center gap-2 px-1">
+                              <span className="text-[10px] font-bold uppercase text-primary/80">
+                                {isPlayer ? "Your" : "Opponent"} Scoring
+                              </span>
+                              {assignedRole && (
+                                <span className="text-[8px] bg-primary/10 px-1 rounded font-bold uppercase tracking-tighter">
+                                  {assignedRole}
+                                </span>
+                              )}
+                            </div>
+                            <div className="space-y-1.5 pl-2">
+                              {activeMission.objectives
+                                .filter((obj: any) => obj.type.startsWith('round-end') && (!obj.role || obj.role === assignedRole))
+                                .map((obj: any) => (
+                                  <div key={obj.id} className="flex items-center justify-between pr-2">
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <div
+                                        className={cn(
+                                          "size-4 rounded border border-primary/30 flex items-center justify-center cursor-pointer transition-colors",
+                                          turn.objectives[role][obj.id] ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50"
+                                        )}
+                                        onClick={() => {
+                                          setGameStep(prev => {
+                                            const next = JSON.parse(JSON.stringify(prev))
+                                            const turnObjs = next.turns[turnKey].objectives[role]
+                                            if (obj.type === 'round-end-manual') {
+                                              const current = turnObjs[obj.id] || 0
+                                              turnObjs[obj.id] = current >= (obj.max || 1) ? 0 : current + 1
+                                            } else {
+                                              turnObjs[obj.id] = !turnObjs[obj.id]
+                                            }
+                                            return next
+                                          })
+                                        }}
+                                      >
+                                        {turn.objectives[role][obj.id] ? (
+                                          <CheckCircle2Icon className="size-3" />
+                                        ) : null}
+                                      </div>
+                                      <span className="text-[10px] text-muted-foreground leading-tight">
+                                        {obj.text}
+                                      </span>
+                                    </div>
+                                    {obj.type === 'round-end-manual' && (
+                                      <span className="text-[9px] font-bold text-primary/70 mr-2">
+                                        {turn.objectives[role][obj.id] || 0}/{obj.max}
+                                      </span>
+                                    )}
+                                    <span className="text-[9px] font-bold text-muted-foreground/40 italic">
+                                      {obj.op} OP
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </GameGroup>
+                  )}
                 </GameGroup>
               )
             })}
@@ -849,56 +944,76 @@ function InfinityGameFlow() {
 
                       {/* Objective Checklist for this player */}
                       {activeMission && (
-                        <div className="pl-4 pr-1 py-2 space-y-2 border-l-2 border-muted/30 ml-2">
+                        <div className="pl-4 pr-1 py-1 space-y-2 border-l-2 border-muted/30 ml-2">
                           {activeMission.objectives
                             .filter((obj: any) => !obj.role || obj.role === assignedRole)
-                            .map((obj: any) => (
-                              <div key={obj.id} className="flex items-start justify-between gap-2">
-                                <div className="flex items-center gap-2 flex-1">
-                                  <div
-                                    className={cn(
-                                      "size-4 rounded border border-primary/30 flex items-center justify-center cursor-pointer transition-colors",
-                                      gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id] ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50"
-                                    )}
-                                    onClick={() => {
-                                      setGameStep(prev => {
-                                        const objectives = { ...prev.scoring[role as 'player' | 'opponent'].objectives }
-                                        if (obj.type === 'manual' || obj.type === 'round-end-manual') {
-                                          const current = objectives[obj.id] || 0
-                                          objectives[obj.id] = current >= (obj.max || 1) ? 0 : current + 1
-                                        } else {
-                                          objectives[obj.id] = !objectives[obj.id]
-                                        }
-                                        return {
-                                          ...prev,
-                                          scoring: {
-                                            ...prev.scoring,
-                                            [role]: { ...prev.scoring[role as 'player' | 'opponent'], objectives }
+                            .map((obj: any) => {
+                              const isRoundEnd = obj.type.startsWith('round-end')
+                              // Sum progress for round-end objectives
+                              let roundProgress = 0
+                              if (isRoundEnd) {
+                                Object.keys(gameStep.turns).forEach(tKey => {
+                                  const val = (gameStep.turns as any)[tKey].objectives[role][obj.id]
+                                  if (typeof val === 'number') roundProgress += val
+                                  else if (val === true) roundProgress += 1
+                                })
+                              }
+
+                              return (
+                                <div key={obj.id} className="flex items-start justify-between gap-2 opacity-90">
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <div
+                                      className={cn(
+                                        "size-4 rounded border border-primary/20 flex items-center justify-center transition-colors",
+                                        (isRoundEnd ? roundProgress > 0 : gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id])
+                                          ? "bg-primary/40 text-primary-foreground border-primary/40"
+                                          : "bg-muted/30",
+                                        isRoundEnd && "cursor-default" // Readonly for round end
+                                      )}
+                                      onClick={() => {
+                                        if (isRoundEnd) return // Managed in turn tracker
+                                        setGameStep(prev => {
+                                          const objectives = { ...prev.scoring[role as 'player' | 'opponent'].objectives }
+                                          if (obj.type === 'manual') {
+                                            const current = objectives[obj.id] || 0
+                                            objectives[obj.id] = current >= (obj.max || 1) ? 0 : current + 1
+                                          } else {
+                                            objectives[obj.id] = !objectives[obj.id]
                                           }
-                                        }
-                                      })
-                                    }}
-                                  >
-                                    {gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id] ? (
-                                      <CheckCircle2Icon className="size-3" />
-                                    ) : null}
-                                  </div>
-                                  <span className="text-[10px] leading-tight text-muted-foreground mr-1">
-                                    {obj.text}
-                                  </span>
-                                </div>
-                                {(obj.type === 'manual' || obj.type === 'round-end-manual') && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-[9px] font-bold text-primary/80">
-                                      {gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id] || 0}/{obj.max}
+                                          return {
+                                            ...prev,
+                                            scoring: {
+                                              ...prev.scoring,
+                                              [role]: { ...prev.scoring[role as 'player' | 'opponent'], objectives }
+                                            }
+                                          }
+                                        })
+                                      }}
+                                    >
+                                      {(isRoundEnd ? roundProgress > 0 : gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id]) ? (
+                                        <CheckCircle2Icon className="size-3" />
+                                      ) : null}
+                                    </div>
+                                    <span className={cn(
+                                      "text-[10px] leading-tight text-muted-foreground mr-1",
+                                      isRoundEnd && "italic"
+                                    )}>
+                                      {obj.text} {isRoundEnd && <span className="text-[8px] font-bold opacity-50 ml-1">(Managed per-round)</span>}
                                     </span>
                                   </div>
-                                )}
-                                <span className="text-[9px] font-bold text-muted-foreground/50 whitespace-nowrap pt-0.5">
-                                  {obj.op} OP
-                                </span>
-                              </div>
-                            ))}
+                                  {(obj.type === 'manual' || obj.type === 'round-end-manual') && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[9px] font-bold text-primary/60">
+                                        {(isRoundEnd ? roundProgress : gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id]) || 0}/{isRoundEnd ? (obj.max * 3) : obj.max}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <span className="text-[9px] font-bold text-muted-foreground/30 whitespace-nowrap pt-0.5">
+                                    {obj.op} OP
+                                  </span>
+                                </div>
+                              )
+                            })}
                         </div>
                       )}
                     </div>
