@@ -90,6 +90,7 @@ function InfinityGameFlow() {
           deployment: val,
           commandTokens: val
         }
+        if (!val) next.scenario = ""
       } else if (key === 'initiation') {
         const val = !prev.initiationDoneOverride && !isInitiativeComplete
         next.initiationDoneOverride = val
@@ -118,6 +119,10 @@ function InfinityGameFlow() {
         const stateKey = key as keyof typeof prev
         const newVal = !prev[stateKey]
           ; (next as any)[stateKey] = newVal
+
+        if (key === 'scenarioPicked' && !newVal) {
+          next.scenario = ""
+        }
 
         // If any setup item is unchecked, setup override must be false
         if (!newVal && ['scenarioPicked', 'listPicked', 'classifiedsDrawn', 'initiationDoneOverride'].includes(key)) {
