@@ -158,10 +158,14 @@ function InfinityGameFlow() {
     // Determine player's role (Attacker/Defender)
     let assignedRole: string | undefined = undefined
     if (activeMission.hasRoles) {
-      const isFirst = gameStep.initiative.firstTurn !== null &&
-        ((role === 'player' && gameStep.initiative.firstTurn === 'player') ||
-          (role === 'opponent' && gameStep.initiative.firstTurn === 'opponent'))
-      assignedRole = isFirst ? 'attacker' : 'defender'
+      if (gameStep.initiative.firstTurn === null) {
+        assignedRole = undefined
+      } else {
+        const isFirst =
+          (role === 'player' && gameStep.initiative.firstTurn === 'player') ||
+          (role === 'opponent' && gameStep.initiative.firstTurn === 'opponent')
+        assignedRole = isFirst ? 'attacker' : 'defender'
+      }
     }
 
     activeMission.objectives.forEach((obj: any) => {
@@ -455,7 +459,18 @@ function InfinityGameFlow() {
                       <div className="mt-2 pt-2 border-t border-muted/30">
                         <p className="font-semibold text-primary">Role-Based Mission:</p>
                         <p className="text-muted-foreground mt-0.5">In this scenario, two distinct roles are established: Attacker and Defender. Each has different Main Objectives.</p>
-                        <p className="text-muted-foreground mt-1">The player with the first Player Turn is the <span className="font-bold text-foreground underline decoration-primary/50">Attacker</span>. The player with the second Player Turn is the <span className="font-bold text-foreground underline decoration-primary/50">Defender</span>.</p>
+                        {gameStep.initiative.firstTurn === null ? (
+                          <p className="text-muted-foreground mt-1 italic">The player with the first Player Turn is the <span className="font-bold text-foreground">Attacker</span>. The second is the <span className="font-bold text-foreground">Defender</span>.</p>
+                        ) : (
+                          <div className="mt-2 p-2 bg-primary/5 rounded border border-primary/20">
+                            <p className="text-[11px] leading-tight flex items-center gap-1.5">
+                              <span className="font-bold text-primary">You</span> are the <span className="font-bold uppercase tracking-wider">{gameStep.initiative.firstTurn === 'player' ? 'Attacker' : 'Defender'}</span>
+                            </p>
+                            <p className="text-[11px] mt-1 leading-tight flex items-center gap-1.5 opacity-80">
+                              <span className="font-bold">The Opponent</span> is the <span className="font-bold uppercase tracking-wider">{gameStep.initiative.firstTurn === 'opponent' ? 'Attacker' : 'Defender'}</span>
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -771,6 +786,15 @@ function InfinityGameFlow() {
                   <div className="text-center">VP</div>
                 </div>
 
+                {activeMission?.hasRoles && gameStep.initiative.firstTurn === null && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md flex items-start gap-2 mb-2">
+                    <ZapIcon className="size-4 text-red-500 mt-0.5 shrink-0" />
+                    <div className="text-[10px] text-red-400 font-medium">
+                      Turn order must be selected in the <strong>Initiative</strong> section before role-based scoring can be calculated.
+                    </div>
+                  </div>
+                )}
+
                 {['player', 'opponent'].map((role) => {
                   const isPlayer = role === 'player'
                   const op = isPlayer ? playerOP : opponentOP
@@ -778,10 +802,14 @@ function InfinityGameFlow() {
 
                   let assignedRole: string | undefined = undefined
                   if (activeMission?.hasRoles) {
-                    const isFirst = gameStep.initiative.firstTurn !== null &&
-                      ((isPlayer && gameStep.initiative.firstTurn === 'player') ||
-                        (!isPlayer && gameStep.initiative.firstTurn === 'opponent'))
-                    assignedRole = isFirst ? 'attacker' : 'defender'
+                    if (gameStep.initiative.firstTurn === null) {
+                      assignedRole = undefined
+                    } else {
+                      const isFirst =
+                        (isPlayer && gameStep.initiative.firstTurn === 'player') ||
+                        (!isPlayer && gameStep.initiative.firstTurn === 'opponent')
+                      assignedRole = isFirst ? 'attacker' : 'defender'
+                    }
                   }
 
                   return (
