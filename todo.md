@@ -13,9 +13,14 @@ It might be useful to track multiple sessions (maybe you're playing 3 games in a
 ## List Integration & Unit Data (In Progress - Buggy ⚠️)
 The player can input lists, but unit enrichment is currently failing to map IDs to names correctly.
 
+### Action Items
+- [ ] **Fix Unit Data Loading**: Debug why `UnitService` is returning "Unit [ID]" instead of names.
+  - *Current Status*: Data is in `public/data/factions`, fetch seems to work, but mapping fails.
+  - *Investigation*: Check if unit IDs in the parsed list match the IDs in the JSON files.
+
 ### Implementation Details
 - **Binary Parser**: Robust `ArmyParser` handles `readVarInt`, `readString`, and URI-encoded codes.
-- **Unit Enrichment (Buggy)**: `UnitService` attempts to load local faction data but units currently display as "Unit [ID]".
+- **Unit Enrichment**: `UnitService` loads local faction data.
 - **Metadata**: Factions mapped to names, parent factions, and logos using `src/data/metadata.json`.
 - **UI**: `ArmyManager` handles dual-list imports and selection.
 - **Contextual Assistance**: 
@@ -23,7 +28,7 @@ The player can input lists, but unit enrichment is currently failing to map IDs 
   - **Booty Reminder**: Displays a conditional reminder and table if units with `Booty` are present.
 - **Sync System**: `scripts/fetch-faction-data.ts` and `docs/faction-data-management.md` for data maintenance.
 
-## Order Reference (In Progress)
+## Order Reference (Completed ✅)
 
 ### Completed Tasks
 - [x] Rename "Skill Quick Reference" to "Order Reference".
