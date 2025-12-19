@@ -10,36 +10,17 @@ Currently when the page is refreshed the game state is lost, i'd like to persist
 
 It might be useful to track multiple sessions (maybe you're playing 3 games in a day for a tournament), and it could be useful to review what scoring was done by either player. Provide a way to name and store a session that can be loaded later. As in the 'Session Persistence' item above lets complete this will local storage but let's make sure to design it in a way that will be compatible with an account system in the future.
 
-## List Integration & Unit Data (Completed ✅)
-The player can input lists, and unit enrichment maps IDs to names correctly.
+## UI Overhaul
 
-### Action Items
-- [x] **Fix Unit Data Loading**: Debug why `UnitService` is returning "Unit [ID]" instead of names.
-  - *Resolution*: Fixed `UnitService` to use `import.meta.env.BASE_URL` for constructing fetch URLs, resolving 404s in subpath deployments.
+Ok, i don't like the overall UI anymore. I think we should move this to a sidebar model, so the list import, game flow and order reference are all tucked away and don't take up space. I would like to experiment with the order reference being a popup that can be opened/closed at will. Maybe from a button in the top/bottom right corner to keep it simple to reach on mobile (lets make the top/bottom and left/right choice configurable by the user via a settings item in the sidebar)?
 
-### Implementation Details
-- **Binary Parser**: Robust `ArmyParser` handles `readVarInt`, `readString`, and URI-encoded codes.
-- **Unit Enrichment**: `UnitService` loads local faction data.
-- **Metadata**: Factions mapped to names, parent factions, and logos using `src/data/metadata.json`.
-- **UI**: `ArmyManager` handles dual-list imports and selection.
-- **Contextual Assistance**: 
-  - **Deployment Summary**: Lists units with Hidden Deployment, Infiltration, or Forward Deployment.
-  - **Booty Reminder**: Displays a conditional reminder and table if units with `Booty` are present.
-- **Sync System**: `scripts/fetch-faction-data.ts` and `docs/faction-data-management.md` for data maintenance.
+Lets start with the Shadcn dashboard-01 block (`bunx --bun shadcn@latest add dashboard-01`) as a base and see where that takes us. I think from there it would be nice to break the existing components into tiles (so for the game sequence we have some tiles up the top for the scenario and army choice, and then scroll down into each component).
 
-## Order Reference (Completed ✅)
+## Application Behaviour
 
-### Completed Tasks
-- [x] Rename "Skill Quick Reference" to "Order Reference".
-- [x] **Hacking Programs**: Show a quick reference for the available hacking programs (keep the wiki link as well).
-- [x] **Add Missing Skills/Orders**:
-  - [x] [Place Deployable](https://infinitythewiki.com/Place_Deployable)
-  - [x] [Dodge](https://infinitythewiki.com/Dodge) (Add to movement section, valid as Short Skill and ARO)
-  - [x] [Idle - Infinity](https://infinitythewiki.com/Idle) (Add to 'Technical Action' for now)
-  - [x] [Intuitive Attack - Infinity](https://infinitythewiki.com/Intuitive_Attack)
-  - [x] [Reload - Infinity](https://infinitythewiki.com/Reload)
-  - [x] [Request Speedball - Infinity](https://infinitythewiki.com/Request_Speedball)
-  - [x] [Reset - Infinity](https://infinitythewiki.com/Reset) (Update to show as valid Short Skill, not just ARO)
+### Army List Import allows different sectorials.
+
+In the army list import i can import a different faction/sectorial as my second list. Can we please update the import logic to only allow importing a second list from the same sectorial with the same points value? This needs to work the same in reverse (so if a list b exists the same logic should apply when importing list a).
 
 ## Future Ideas
 - [ ] List Analysis Dashboard (Points distribution, specialist counts, etc.)
