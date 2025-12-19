@@ -70,25 +70,24 @@ function InfinityGameFlow() {
         </CardHeader>
         <CardContent className="grid gap-3">
           {steps.map((step) => (
-            <div
+            <label
               key={step.id}
-              className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+              className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer"
             >
               <Checkbox
                 id={step.id}
                 checked={step.checked}
                 onCheckedChange={() => toggleStep(step.id)}
               />
-              <label
-                htmlFor={step.id}
+              <span
                 className={cn(
-                  "text-sm font-medium leading-none transition-all cursor-pointer",
+                  "text-sm font-medium leading-none transition-all",
                   step.checked && "text-muted-foreground line-through opacity-70"
                 )}
               >
                 {step.label}
-              </label>
-            </div>
+              </span>
+            </label>
           ))}
         </CardContent>
         <CardFooter className="bg-muted/30 border-t flex items-center justify-between text-xs text-muted-foreground p-4">
