@@ -2,6 +2,8 @@
 
 A specialized utility for players of Corvus Belli's **Infinity N5**. This application provides a streamlined game sequence tracker and a quick reference for common skills and AROs, directly linked to the official wiki.
 
+**[🚀 Launch the Infinity Comlog](https://romdeau.github.io/infinity-comlog/)**
+
 ## Documentation
 
 - [User Manual](./docs/user-manual.md) - How to use the application during a game.
