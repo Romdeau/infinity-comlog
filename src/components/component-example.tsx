@@ -298,7 +298,11 @@ function InfinityGameFlow() {
                 min={0}
                 className="w-12 h-7 text-xs px-1 text-center"
                 value={gameStep.classifiedsCount}
-                onChange={(e) => setGameStep(prev => ({ ...prev, classifiedsCount: parseInt(e.target.value) || 0 }))}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setGameStep(prev => ({ ...prev, classifiedsCount: val === "" ? 0 : parseInt(val) }))
+                }}
               />
             </div>
 
@@ -440,10 +444,14 @@ function InfinityGameFlow() {
                     max={10}
                     className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
                     value={gameStep.scoring.player.op}
-                    onChange={(e) => setGameStep(prev => ({
-                      ...prev,
-                      scoring: { ...prev.scoring, player: { ...prev.scoring.player, op: parseInt(e.target.value) || 0 } }
-                    }))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGameStep(prev => ({
+                        ...prev,
+                        scoring: { ...prev.scoring, player: { ...prev.scoring.player, op: val === "" ? 0 : parseInt(val) } }
+                      }))
+                    }}
                   />
                   <Input
                     type="number"
@@ -451,10 +459,14 @@ function InfinityGameFlow() {
                     max={300}
                     className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
                     value={gameStep.scoring.player.vp}
-                    onChange={(e) => setGameStep(prev => ({
-                      ...prev,
-                      scoring: { ...prev.scoring, player: { ...prev.scoring.player, vp: parseInt(e.target.value) || 0 } }
-                    }))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGameStep(prev => ({
+                        ...prev,
+                        scoring: { ...prev.scoring, player: { ...prev.scoring.player, vp: val === "" ? 0 : parseInt(val) } }
+                      }))
+                    }}
                   />
                 </div>
 
@@ -470,10 +482,14 @@ function InfinityGameFlow() {
                     max={10}
                     className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
                     value={gameStep.scoring.opponent.op}
-                    onChange={(e) => setGameStep(prev => ({
-                      ...prev,
-                      scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, op: parseInt(e.target.value) || 0 } }
-                    }))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGameStep(prev => ({
+                        ...prev,
+                        scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, op: val === "" ? 0 : parseInt(val) } }
+                      }))
+                    }}
                   />
                   <Input
                     type="number"
@@ -481,10 +497,14 @@ function InfinityGameFlow() {
                     max={300}
                     className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
                     value={gameStep.scoring.opponent.vp}
-                    onChange={(e) => setGameStep(prev => ({
-                      ...prev,
-                      scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, vp: parseInt(e.target.value) || 0 } }
-                    }))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGameStep(prev => ({
+                        ...prev,
+                        scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, vp: val === "" ? 0 : parseInt(val) } }
+                      }))
+                    }}
                   />
                 </div>
               </div>
