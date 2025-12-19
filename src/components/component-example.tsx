@@ -77,10 +77,23 @@ function InfinityGameFlow() {
     },
     scoring: {
       doneOverride: false,
-      op: false,
-      vp: false,
+      player: { op: 0, vp: 0 },
+      opponent: { op: 0, vp: 0 },
     },
   })
+
+  // TP Calculation Logic
+  const calculateTP = (op: number, rivalOp: number) => {
+    let tp = 0
+    if (op > rivalOp) tp = 4
+    else if (op === rivalOp) tp = 2
+    else {
+      tp = 0
+      if (rivalOp - op < 2) tp += 1 // Bonus for close loss
+    }
+    if (op >= 5) tp += 1 // Bonus for 5+ OP
+    return tp
+  }
 
   // Derived state for automatic checkbox logic (Child -> Parent propagation)
   const isTacticalComplete = (t: any) => t.tokens && t.retreat && t.lol && t.count
@@ -99,7 +112,7 @@ function InfinityGameFlow() {
     gameStep.classifiedsDrawn &&
     isInitiativeComplete
 
-  const isScoringComplete = gameStep.scoring.op && gameStep.scoring.vp
+  const isScoringComplete = gameStep.scoring.player.op > 0 || gameStep.scoring.opponent.op > 0
 
   const toggleStep = (key: string, subKey?: string, tertiaryKey?: string) => {
     setGameStep(prev => {
@@ -186,20 +199,16 @@ function InfinityGameFlow() {
           })
         }
       } else if (key === 'scoring') {
-        if (subKey) {
-          next.scoring[subKey as 'op' | 'vp'] = !prev.scoring[subKey as 'op' | 'vp']
-          if (!next.scoring[subKey as 'op' | 'vp']) next.scoring.doneOverride = false
-        } else {
-          const val = !prev.scoring.doneOverride && !isScoringComplete
-          next.scoring.doneOverride = val
-          next.scoring.op = val
-          next.scoring.vp = val
+        const val = !prev.scoring.doneOverride && !isScoringComplete
+        next.scoring.doneOverride = val
+        if (!val) {
+          next.scoring.player = { op: 0, vp: 0 }
+          next.scoring.opponent = { op: 0, vp: 0 }
         }
       } else {
         const stateKey = key as keyof typeof prev
         const newVal = !(prev as any)[stateKey]
           ; (next as any)[stateKey] = newVal
-
         if (key === 'scenarioPicked' && !newVal) next.scenario = ""
         if (!newVal && ['scenarioPicked', 'listPicked', 'classifiedsDrawn', 'initiationDoneOverride'].includes(key)) {
           next.setupDoneOverride = false
@@ -407,22 +416,78 @@ function InfinityGameFlow() {
             <GameGroup
               label="Finalising Scoring"
               value="scoring"
-              info="Tabulate all Victory Points from the mission and classifieds to determine the winner."
+              info="Tabulate tournament points based on objective points and victory points."
               checked={gameStep.scoring.doneOverride || isScoringComplete}
               onCheckedChange={() => toggleStep('scoring')}
             >
-              <GameStep
-                label="Objective Points (OP)"
-                checked={gameStep.scoring.op}
-                onCheckedChange={() => toggleStep('scoring', 'op')}
-                size="sm"
-              />
-              <GameStep
-                label="Victory Points (VP)"
-                checked={gameStep.scoring.vp}
-                onCheckedChange={() => toggleStep('scoring', 'vp')}
-                size="sm"
-              />
+              <div className="space-y-3 pt-1">
+                <div className="grid grid-cols-4 gap-2 text-[10px] uppercase font-bold text-muted-foreground px-1">
+                  <div></div>
+                  <div className="text-center">TP</div>
+                  <div className="text-center">OP</div>
+                  <div className="text-center">VP</div>
+                </div>
+
+                {/* Player Row */}
+                <div className="grid grid-cols-4 gap-2 items-center">
+                  <div className="text-[11px] font-semibold">Player</div>
+                  <div className="bg-primary/10 rounded-md border border-primary/20 flex items-center justify-center h-8 text-sm font-bold text-primary">
+                    {calculateTP(gameStep.scoring.player.op, gameStep.scoring.opponent.op)}
+                  </div>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={10}
+                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                    value={gameStep.scoring.player.op}
+                    onChange={(e) => setGameStep(prev => ({
+                      ...prev,
+                      scoring: { ...prev.scoring, player: { ...prev.scoring.player, op: parseInt(e.target.value) || 0 } }
+                    }))}
+                  />
+                  <Input
+                    type="number"
+                    min={0}
+                    max={300}
+                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                    value={gameStep.scoring.player.vp}
+                    onChange={(e) => setGameStep(prev => ({
+                      ...prev,
+                      scoring: { ...prev.scoring, player: { ...prev.scoring.player, vp: parseInt(e.target.value) || 0 } }
+                    }))}
+                  />
+                </div>
+
+                {/* Opponent Row */}
+                <div className="grid grid-cols-4 gap-2 items-center">
+                  <div className="text-[11px] font-semibold text-muted-foreground">Opponent</div>
+                  <div className="bg-muted/50 rounded-md border border-border flex items-center justify-center h-8 text-sm font-bold text-muted-foreground">
+                    {calculateTP(gameStep.scoring.opponent.op, gameStep.scoring.player.op)}
+                  </div>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={10}
+                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                    value={gameStep.scoring.opponent.op}
+                    onChange={(e) => setGameStep(prev => ({
+                      ...prev,
+                      scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, op: parseInt(e.target.value) || 0 } }
+                    }))}
+                  />
+                  <Input
+                    type="number"
+                    min={0}
+                    max={300}
+                    className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
+                    value={gameStep.scoring.opponent.vp}
+                    onChange={(e) => setGameStep(prev => ({
+                      ...prev,
+                      scoring: { ...prev.scoring, opponent: { ...prev.scoring.opponent, vp: parseInt(e.target.value) || 0 } }
+                    }))}
+                  />
+                </div>
+              </div>
             </GameGroup>
           </div>
         </CardContent>
