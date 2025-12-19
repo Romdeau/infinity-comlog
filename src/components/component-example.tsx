@@ -30,6 +30,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { GameStep, GameGroup } from "@/components/game-flow-components"
 
 export function ComponentExample() {
@@ -70,6 +75,18 @@ function InfinityGameFlow() {
       deployment: false,
       commandTokens: false,
     },
+    initiative: {
+      winner: 'player' as 'player' | 'opponent',
+      choice: 'initiative' as 'initiative' | 'deployment',
+      firstPlayer: 'player' as 'player' | 'opponent',
+    },
+    deploymentDetails: {
+      hidden: false,
+      infiltration: false,
+      forward: false,
+      heldBack: 1,
+      booty: false,
+    },
     turns: {
       turn1: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
       turn2: { doneOverride: false, p1: initialPlayerTurn(), p2: initialPlayerTurn() },
@@ -99,6 +116,7 @@ function InfinityGameFlow() {
   const isTacticalComplete = (t: any) => t.tokens && t.retreat && t.lol && t.count
   const isPlayerComplete = (p: any) =>
     (p.doneOverride || (isTacticalComplete(p.tactical) && p.impetuous && p.orders && p.states && p.end))
+
   const isTurnComplete = (t: any) =>
     (t.doneOverride || (isPlayerComplete(t.p1) && isPlayerComplete(t.p2)))
 
@@ -315,19 +333,235 @@ function InfinityGameFlow() {
               onCheckedChange={() => toggleStep('initiation')}
               size="sm"
             >
-              <GameStep
-                label="Lieutenant Roll"
-                info="The winner can choose Deployment or Initiative. The player who kept Initiative chooses who goes first/second."
-                checked={gameStep.initiationSubSteps.rollOff}
-                onCheckedChange={() => toggleStep('initiationSubSteps', 'rollOff')}
-                size="sm"
-              />
-              <GameStep
-                label="Army Deployment"
-                checked={gameStep.initiationSubSteps.deployment}
-                onCheckedChange={() => toggleStep('initiationSubSteps', 'deployment')}
-                size="sm"
-              />
+              {/* Lieutenant Roll Section */}
+              <div className="space-y-3 pb-2 border-b border-muted/30">
+                <GameStep
+                  label="Lieutenant Roll"
+                  info="The winner can choose Deployment or Initiative. The player who kept Initiative chooses who goes first/second."
+                  checked={gameStep.initiationSubSteps.rollOff}
+                  onCheckedChange={() => toggleStep('initiationSubSteps', 'rollOff')}
+                  size="sm"
+                />
+
+                <div className="pl-7 space-y-3 pr-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">Roll Winner</span>
+                    <div className="flex bg-muted/50 rounded-md p-0.5">
+                      <Button
+                        variant={gameStep.initiative.winner === 'player' ? "secondary" : "ghost"}
+                        size="sm"
+                        className="h-6 text-[10px] px-2"
+                        onClick={() => setGameStep(p => ({ ...p, initiative: { ...p.initiative, winner: 'player' } }))}
+                      >
+                        Player
+                      </Button>
+                      <Button
+                        variant={gameStep.initiative.winner === 'opponent' ? "secondary" : "ghost"}
+                        size="sm"
+                        className="h-6 text-[10px] px-2"
+                        onClick={() => setGameStep(p => ({ ...p, initiative: { ...p.initiative, winner: 'opponent' } }))}
+                      >
+                        Opponent
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">Winner Choice</span>
+                    <div className="flex bg-muted/50 rounded-md p-0.5">
+                      <Button
+                        variant={gameStep.initiative.choice === 'initiative' ? "secondary" : "ghost"}
+                        size="sm"
+                        className="h-6 text-[10px] px-2"
+                        onClick={() => setGameStep(p => ({ ...p, initiative: { ...p.initiative, choice: 'initiative' } }))}
+                      >
+                        Initiative
+                      </Button>
+                      <Button
+                        variant={gameStep.initiative.choice === 'deployment' ? "secondary" : "ghost"}
+                        size="sm"
+                        className="h-6 text-[10px] px-2"
+                        onClick={() => setGameStep(p => ({ ...p, initiative: { ...p.initiative, choice: 'deployment' } }))}
+                      >
+                        Deployment
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-md bg-muted/30 p-2 text-[11px] leading-relaxed border border-border/50">
+                    The <span className="font-bold text-primary">{gameStep.initiative.winner}</span> has won the lieutenant roll and has chosen to keep <span className="font-bold text-primary">{gameStep.initiative.choice}</span>.
+                  </div>
+
+                  {/* Dependent choices */}
+                  <div className="space-y-2 pt-1 border-t border-muted/30">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-muted-foreground">
+                        {gameStep.initiative.choice === 'deployment' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player')} has <span className="font-semibold">deployment</span> and deploys:
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-[10px] px-2 border border-border hover:bg-muted"
+                        onClick={() => {
+                          // This logic isn't strictly requested to be tracked but is shown in text
+                        }}
+                      >
+                        First/Second
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-muted-foreground">
+                        {gameStep.initiative.choice === 'initiative' ? gameStep.initiative.winner : (gameStep.initiative.winner === 'player' ? 'opponent' : 'player')} has <span className="font-semibold">initiative</span> and plays:
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 text-[10px] px-2 font-bold"
+                        onClick={() => {
+                          const nextFirst = gameStep.initiative.firstPlayer === 'player' ? 'opponent' : 'player'
+                          setGameStep(p => ({ ...p, initiative: { ...p.initiative, firstPlayer: nextFirst } }))
+                        }}
+                      >
+                        {gameStep.initiative.firstPlayer === 'player' ? "Player First" : "Opponent First"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Deployment Section */}
+              <div className="space-y-1 py-1 border-b border-muted/30">
+                <GameStep
+                  label="Army Deployment"
+                  checked={gameStep.initiationSubSteps.deployment}
+                  onCheckedChange={() => toggleStep('initiationSubSteps', 'deployment')}
+                  size="sm"
+                />
+
+                <div className="pl-7 space-y-1 pb-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <GameStep
+                      label="Hidden Deployment"
+                      size="sm"
+                      className="p-1 border-none hover:bg-transparent"
+                      checked={gameStep.deploymentDetails.hidden}
+                      onCheckedChange={(val) => setGameStep(p => ({ ...p, deploymentDetails: { ...p.deploymentDetails, hidden: val } }))}
+                      info="Trooper is not placed on the table. Record its position."
+                    />
+                    <GameStep
+                      label="Infiltration"
+                      size="sm"
+                      className="p-1 border-none hover:bg-transparent"
+                      checked={gameStep.deploymentDetails.infiltration}
+                      onCheckedChange={(val) => setGameStep(p => ({ ...p, deploymentDetails: { ...p.deploymentDetails, infiltration: val } }))}
+                      info="Deploy outside Deployment Zone (requires PH roll for some)."
+                    />
+                    <GameStep
+                      label="Forward Deployment"
+                      size="sm"
+                      className="p-1 border-none hover:bg-transparent"
+                      checked={gameStep.deploymentDetails.forward}
+                      onCheckedChange={(val) => setGameStep(p => ({ ...p, deploymentDetails: { ...p.deploymentDetails, forward: val } }))}
+                      info="Deploy 4 or 8 inches further than standard."
+                    />
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[10px] text-muted-foreground uppercase font-semibold">Held Back</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        className="w-8 h-5 text-[10px] px-0.5 text-center"
+                        value={gameStep.deploymentDetails.heldBack}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => setGameStep(prev => ({ ...prev, deploymentDetails: { ...prev.deploymentDetails, heldBack: parseInt(e.target.value) || 0 } }))}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Booty Reminder (if applicable/manual toggle for now) */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-md p-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2Icon className="size-3.5 text-primary" />
+                        <span className="text-[11px] font-bold">Booty Roll Reminder!</span>
+                      </div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-background">View Table</Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0 overflow-hidden">
+                          <div className="bg-primary text-primary-foreground text-[10px] font-bold p-2 text-center uppercase tracking-widest">
+                            Booty Table
+                          </div>
+                          <div className="p-0 text-[10px]">
+                            <table className="w-full border-collapse">
+                              <thead>
+                                <tr className="bg-muted text-muted-foreground border-b border-border">
+                                  <th className="p-1 text-center border-r border-border">Roll</th>
+                                  <th className="p-1 text-left border-r border-border">Item</th>
+                                  <th className="p-1 text-center border-r border-border">Roll</th>
+                                  <th className="p-1 text-left">Item</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr className="border-b border-border">
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">1-2</td>
+                                  <td className="p-1 border-r border-border">+1 ARM</td>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">13</td>
+                                  <td className="p-1">Panzerfaust</td>
+                                </tr>
+                                <tr className="border-b border-border">
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">3-4</td>
+                                  <td className="p-1 border-r border-border">Light Flamethrower</td>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">14</td>
+                                  <td className="p-1">Monofilament CCW</td>
+                                </tr>
+                                <tr className="border-b border-border">
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">5-6</td>
+                                  <td className="p-1 border-r border-border">Grenades</td>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">15</td>
+                                  <td className="p-1">MOV 8-4</td>
+                                </tr>
+                                <tr className="border-b border-border">
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">7-8</td>
+                                  <td className="p-1 border-r border-border">DA CCW</td>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">16</td>
+                                  <td className="p-1">Shock/MULTI Rifle</td>
+                                </tr>
+                                <tr className="border-b border-border">
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">9</td>
+                                  <td className="p-1 border-r border-border">MSV L1</td>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">17</td>
+                                  <td className="p-1">MULTI Sniper</td>
+                                </tr>
+                                <tr className="border-b border-border">
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">10</td>
+                                  <td className="p-1 border-r border-border">EXP CCW</td>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">18</td>
+                                  <td className="p-1">Immune(ARM)/+4 ARM</td>
+                                </tr>
+                                <tr className="border-b border-border">
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">11</td>
+                                  <td className="p-1 border-r border-border">Adhesive L.</td>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">19</td>
+                                  <td className="p-1">Mimetism (-6)</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">12</td>
+                                  <td className="p-1 border-r border-border">Immune(AP)/+2 ARM</td>
+                                  <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">20</td>
+                                  <td className="p-1">B+1/HMG</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <GameStep
                 label="Strategic Cmd Tokens"
                 checked={gameStep.initiationSubSteps.commandTokens}
@@ -338,85 +572,95 @@ function InfinityGameFlow() {
           </GameGroup>
 
           <div className="px-4 pb-4 mt-4 space-y-3">
-            {(['turn1', 'turn2', 'turn3'] as const).map((turnKey, idx) => (
-              <GameGroup
-                key={turnKey}
-                label={`Turn ${idx + 1}`}
-                value={turnKey}
-                info={`Round ${idx + 1} of tactical actions and combat.`}
-                checked={isTurnComplete(gameStep.turns[turnKey])}
-                onCheckedChange={() => toggleStep(turnKey)}
-              >
-                {(['p1', 'p2'] as const).map((pKey) => (
-                  <GameGroup
-                    key={pKey}
-                    label={pKey === 'p1' ? "Player 1 Turn" : "Player 2 Turn"}
-                    value={`${turnKey}-${pKey}`}
-                    checked={isPlayerComplete(gameStep.turns[turnKey][pKey])}
-                    onCheckedChange={() => toggleStep(turnKey, pKey)}
-                    size="sm"
-                  >
-                    <GameGroup
-                      label="Start of the Turn: Tactical Phase"
-                      value={`${turnKey}-${pKey}-tactical`}
-                      checked={isTacticalComplete(gameStep.turns[turnKey][pKey].tactical)}
-                      onCheckedChange={() => toggleStep(turnKey, pKey, 'tactical')}
-                      size="sm"
-                    >
-                      <GameStep
-                        label="Executive Use of Command Tokens"
-                        checked={gameStep.turns[turnKey][pKey].tactical.tokens}
-                        onCheckedChange={() => toggleStep(turnKey, pKey, 'tokens')}
-                        size="sm"
-                      />
-                      <GameStep
-                        label="Retreat! Check"
-                        checked={gameStep.turns[turnKey][pKey].tactical.retreat}
-                        onCheckedChange={() => toggleStep(turnKey, pKey, 'retreat')}
-                        size="sm"
-                      />
-                      <GameStep
-                        label="Loss of Lieutenant check"
-                        checked={gameStep.turns[turnKey][pKey].tactical.lol}
-                        onCheckedChange={() => toggleStep(turnKey, pKey, 'lol')}
-                        size="sm"
-                      />
-                      <GameStep
-                        label="Order count"
-                        checked={gameStep.turns[turnKey][pKey].tactical.count}
-                        onCheckedChange={() => toggleStep(turnKey, pKey, 'count')}
-                        size="sm"
-                      />
-                    </GameGroup>
+            {(['turn1', 'turn2', 'turn3'] as const).map((turnKey, idx) => {
+              const turn = gameStep.turns[turnKey]
+              const isPlayerFirst = gameStep.initiative.firstPlayer === 'player'
+              return (
+                <GameGroup
+                  key={turnKey}
+                  label={`Turn ${idx + 1}`}
+                  value={turnKey}
+                  info={`Round ${idx + 1} of tactical actions and combat.`}
+                  checked={isTurnComplete(turn)}
+                  onCheckedChange={() => toggleStep(turnKey)}
+                >
+                  {(['p1', 'p2'] as const).map((pKey) => {
+                    const isFirst = pKey === 'p1'
+                    const isUser = isFirst ? isPlayerFirst : !isPlayerFirst
+                    const label = isUser ? "Your Turn" : "Opponent Turn"
 
-                    <GameStep
-                      label="Impetuous Phase"
-                      checked={gameStep.turns[turnKey][pKey].impetuous}
-                      onCheckedChange={() => toggleStep(turnKey, pKey, 'impetuous')}
-                      size="sm"
-                    />
-                    <GameStep
-                      label="Orders Phase"
-                      checked={gameStep.turns[turnKey][pKey].orders}
-                      onCheckedChange={() => toggleStep(turnKey, pKey, 'orders')}
-                      size="sm"
-                    />
-                    <GameStep
-                      label="States Phase"
-                      checked={gameStep.turns[turnKey][pKey].states}
-                      onCheckedChange={() => toggleStep(turnKey, pKey, 'states')}
-                      size="sm"
-                    />
-                    <GameStep
-                      label="End of the Turn"
-                      checked={gameStep.turns[turnKey][pKey].end}
-                      onCheckedChange={() => toggleStep(turnKey, pKey, 'end')}
-                      size="sm"
-                    />
-                  </GameGroup>
-                ))}
-              </GameGroup>
-            ))}
+                    return (
+                      <GameGroup
+                        key={pKey}
+                        label={label}
+                        value={`${turnKey}-${pKey}`}
+                        checked={isPlayerComplete(turn[pKey])}
+                        onCheckedChange={() => toggleStep(turnKey, pKey)}
+                        size="sm"
+                      >
+                        <GameGroup
+                          label="Start of the Turn: Tactical Phase"
+                          value={`${turnKey}-${pKey}-tactical`}
+                          checked={isTacticalComplete(turn[pKey].tactical)}
+                          onCheckedChange={() => toggleStep(turnKey, pKey, 'tactical')}
+                          size="sm"
+                        >
+                          <GameStep
+                            label="Executive Use of Command Tokens"
+                            checked={turn[pKey].tactical.tokens}
+                            onCheckedChange={() => toggleStep(turnKey, pKey, 'tokens')}
+                            size="sm"
+                          />
+                          <GameStep
+                            label="Retreat! Check"
+                            checked={turn[pKey].tactical.retreat}
+                            onCheckedChange={() => toggleStep(turnKey, pKey, 'retreat')}
+                            size="sm"
+                          />
+                          <GameStep
+                            label="Loss of Lieutenant check"
+                            checked={turn[pKey].tactical.lol}
+                            onCheckedChange={() => toggleStep(turnKey, pKey, 'lol')}
+                            size="sm"
+                          />
+                          <GameStep
+                            label="Order count"
+                            checked={turn[pKey].tactical.count}
+                            onCheckedChange={() => toggleStep(turnKey, pKey, 'count')}
+                            size="sm"
+                          />
+                        </GameGroup>
+
+                        <GameStep
+                          label="Impetuous Phase"
+                          checked={turn[pKey].impetuous}
+                          onCheckedChange={() => toggleStep(turnKey, pKey, 'impetuous')}
+                          size="sm"
+                        />
+                        <GameStep
+                          label="Orders Phase"
+                          checked={turn[pKey].orders}
+                          onCheckedChange={() => toggleStep(turnKey, pKey, 'orders')}
+                          size="sm"
+                        />
+                        <GameStep
+                          label="States Phase"
+                          checked={turn[pKey].states}
+                          onCheckedChange={() => toggleStep(turnKey, pKey, 'states')}
+                          size="sm"
+                        />
+                        <GameStep
+                          label="End of the Turn"
+                          checked={turn[pKey].end}
+                          onCheckedChange={() => toggleStep(turnKey, pKey, 'end')}
+                          size="sm"
+                        />
+                      </GameGroup>
+                    )
+                  })}
+                </GameGroup>
+              )
+            })}
 
             <GameGroup
               label="Finalising Scoring"
