@@ -1,5 +1,4 @@
 import * as React from "react"
-import { cn } from "@/lib/utils"
 import {
   Example,
   ExampleWrapper,
@@ -46,10 +45,11 @@ function InfinityGameFlow() {
   const [gameStep, setGameStep] = React.useState({
     scenario: "",
     classifiedsCount: 1,
-    setupDone: false,
+    scenarioPicked: false,
     listPicked: false,
     classifiedsDrawn: false,
-    initiationDone: false,
+    initiationDoneOverride: false,
+    setupDoneOverride: false,
     initiationSubSteps: {
       rollOff: false,
       deployment: false,
@@ -63,34 +63,74 @@ function InfinityGameFlow() {
     scoring: false,
   })
 
-  const toggleState = (key: string, subKey?: string) => {
-    if (subKey) {
-      setGameStep(prev => ({
-        ...prev,
-        [key]: {
-          ...prev[key as keyof typeof prev] as object,
-          [subKey]: !(prev[key as keyof typeof prev] as any)[subKey]
-        }
-      }))
-    } else {
-      setGameStep(prev => ({
-        ...prev,
-        [key]: !prev[key as keyof typeof prev]
-      }))
-    }
-  }
-
+  // Derived state for automatic checkbox logic (Child -> Parent propagation)
   const isInitiativeComplete = gameStep.initiationSubSteps.rollOff &&
     gameStep.initiationSubSteps.deployment &&
     gameStep.initiationSubSteps.commandTokens
 
   const isSetupComplete = !!gameStep.scenario &&
+    gameStep.scenarioPicked &&
     gameStep.listPicked &&
     gameStep.classifiedsDrawn &&
     isInitiativeComplete
 
+  const toggleStep = (key: string, subKey?: string) => {
+    setGameStep(prev => {
+      const next = { ...prev }
+
+      if (key === 'setup') {
+        const val = !prev.setupDoneOverride && !isSetupComplete
+        next.setupDoneOverride = val
+        next.scenarioPicked = val
+        next.listPicked = val
+        next.classifiedsDrawn = val
+        next.initiationDoneOverride = val
+        next.initiationSubSteps = {
+          rollOff: val,
+          deployment: val,
+          commandTokens: val
+        }
+      } else if (key === 'initiation') {
+        const val = !prev.initiationDoneOverride && !isInitiativeComplete
+        next.initiationDoneOverride = val
+        next.initiationSubSteps = {
+          rollOff: val,
+          deployment: val,
+          commandTokens: val
+        }
+        // If unchecking initiation, we must also uncheck setup override
+        if (!val) next.setupDoneOverride = false
+      } else if (subKey) {
+        // Individual item update
+        if (key === 'initiationSubSteps') {
+          next.initiationSubSteps = {
+            ...prev.initiationSubSteps,
+            [subKey]: !(prev.initiationSubSteps as any)[subKey]
+          }
+          if (!(next.initiationSubSteps as any)[subKey]) next.initiationDoneOverride = false
+        } else if (key === 'turns') {
+          next.turns = {
+            ...prev.turns,
+            [subKey]: !(prev.turns as any)[subKey]
+          }
+        }
+      } else {
+        const stateKey = key as keyof typeof prev
+        const newVal = !prev[stateKey]
+          ; (next as any)[stateKey] = newVal
+
+        // If any setup item is unchecked, setup override must be false
+        if (!newVal && ['scenarioPicked', 'listPicked', 'classifiedsDrawn', 'initiationDoneOverride'].includes(key)) {
+          next.setupDoneOverride = false
+        }
+      }
+
+      return next
+    })
+  }
+
   const completedCount = [
-    (gameStep.setupDone || isSetupComplete),
+    (gameStep.setupDoneOverride || isSetupComplete),
     gameStep.turns.turn1,
     gameStep.turns.turn2,
     gameStep.turns.turn3,
@@ -116,34 +156,40 @@ function InfinityGameFlow() {
             label="Game Setup"
             value="setup"
             info="Initial phase to prepare the battlefield and armies."
-            checked={gameStep.setupDone || isSetupComplete}
-            onCheckedChange={() => toggleState('setupDone')}
+            checked={gameStep.setupDoneOverride || isSetupComplete}
+            onCheckedChange={() => toggleStep('setup')}
             className="px-4"
           >
             {/* Pick Scenario */}
-            <div className="space-y-2 pr-4">
-              <span className="text-xs font-medium uppercase text-muted-foreground tracking-wider flex items-center gap-1">
-                Pick Scenario
-              </span>
-              <Select
-                value={gameStep.scenario}
-                onValueChange={(val) => setGameStep(prev => ({ ...prev, scenario: val }))}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Select a scenario" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="axial">Akial Interference</SelectItem>
-                  <SelectItem value="bpong">B-Pong</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-1">
+              <GameStep
+                label="Pick Scenario"
+                info="Select the mission for the match. Usually decided by the TO or rolled for."
+                checked={gameStep.scenarioPicked}
+                onCheckedChange={() => toggleStep('scenarioPicked')}
+                size="sm"
+              />
+              <div className="pl-7 pr-4">
+                <Select
+                  value={gameStep.scenario}
+                  onValueChange={(val) => setGameStep(prev => ({ ...prev, scenario: val }))}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select a scenario" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="axial">Akial Interference</SelectItem>
+                    <SelectItem value="bpong">B-Pong</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <GameStep
               label="Choose List"
               info="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction."
               checked={gameStep.listPicked}
-              onCheckedChange={() => toggleState('listPicked')}
+              onCheckedChange={() => toggleStep('listPicked')}
               size="sm"
             />
 
@@ -152,7 +198,7 @@ function InfinityGameFlow() {
                 label="Draw Classifieds"
                 info="Secondary objectives that provide additional Victory Points."
                 checked={gameStep.classifiedsDrawn}
-                onCheckedChange={() => toggleState('classifiedsDrawn')}
+                onCheckedChange={() => toggleStep('classifiedsDrawn')}
                 size="sm"
               />
               <Input
@@ -169,25 +215,25 @@ function InfinityGameFlow() {
               value="initiative"
               defaultOpen
               info="Phase where players determine turn order and deploy their models."
-              checked={gameStep.initiationDone || isInitiativeComplete}
-              onCheckedChange={() => toggleState('initiationDone')}
+              checked={gameStep.initiationDoneOverride || isInitiativeComplete}
+              onCheckedChange={() => toggleStep('initiation')}
             >
               <GameStep
                 label="Face-to-Face Roll Off"
                 checked={gameStep.initiationSubSteps.rollOff}
-                onCheckedChange={() => toggleState('initiationSubSteps', 'rollOff')}
+                onCheckedChange={() => toggleStep('initiationSubSteps', 'rollOff')}
                 size="sm"
               />
               <GameStep
                 label="Army Deployment"
                 checked={gameStep.initiationSubSteps.deployment}
-                onCheckedChange={() => toggleState('initiationSubSteps', 'deployment')}
+                onCheckedChange={() => toggleStep('initiationSubSteps', 'deployment')}
                 size="sm"
               />
               <GameStep
                 label="Strategic Cmd Tokens"
                 checked={gameStep.initiationSubSteps.commandTokens}
-                onCheckedChange={() => toggleState('initiationSubSteps', 'commandTokens')}
+                onCheckedChange={() => toggleStep('initiationSubSteps', 'commandTokens')}
                 size="sm"
               />
             </GameGroup>
@@ -198,25 +244,25 @@ function InfinityGameFlow() {
               label="Turn 1"
               info="First round of tactical actions and combat."
               checked={gameStep.turns.turn1}
-              onCheckedChange={() => toggleState('turns', 'turn1')}
+              onCheckedChange={() => toggleStep('turns', 'turn1')}
             />
             <GameStep
               label="Turn 2"
               info="Mid-game maneuvering and objective capturing."
               checked={gameStep.turns.turn2}
-              onCheckedChange={() => toggleState('turns', 'turn2')}
+              onCheckedChange={() => toggleStep('turns', 'turn2')}
             />
             <GameStep
               label="Turn 3"
               info="Final round to secure victory points."
               checked={gameStep.turns.turn3}
-              onCheckedChange={() => toggleState('turns', 'turn3')}
+              onCheckedChange={() => toggleStep('turns', 'turn3')}
             />
             <GameStep
               label="Finalising Scoring"
               info="Tabulate all Victory Points from the mission and classifieds to determine the winner."
               checked={gameStep.scoring}
-              onCheckedChange={() => toggleState('scoring')}
+              onCheckedChange={() => toggleStep('scoring')}
             />
           </div>
         </CardContent>
