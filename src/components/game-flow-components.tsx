@@ -95,12 +95,12 @@ export function GameGroup({
       className={cn("w-full", className)}
     >
       <AccordionItem value={value} className="border-none">
-        <div className="flex items-center gap-3 py-3">
+        <div className="flex items-center gap-3 py-2 px-1.5">
           <Checkbox
             checked={checked}
             onCheckedChange={onCheckedChange}
           />
-          <AccordionTrigger className="flex-1 py-0 hover:no-underline font-semibold text-sm">
+          <AccordionTrigger className="flex-1 py-1 hover:no-underline font-semibold text-sm">
             <div className="flex items-center gap-2">
               <span className={cn(
                 "transition-all",
@@ -124,7 +124,7 @@ export function GameGroup({
             </div>
           </AccordionTrigger>
         </div>
-        <AccordionContent className="pl-7 pr-0 space-y-4 pt-1 pb-4 border-l ml-2 border-muted/50">
+        <AccordionContent className="pl-7 pr-0 space-y-4 pt-1 pb-2 border-l ml-3 border-muted/50">
           {children}
         </AccordionContent>
       </AccordionItem>
