@@ -3,11 +3,11 @@ import { GameTracker } from "@/components/game-tracker";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArmyManager } from "@/components/army-manager";
-import { type ArmyList } from "@/lib/army-parser";
+import { type EnrichedArmyList } from "@/lib/unit-service";
 import { AppLayout } from "@/components/layout-containers";
 
 export function App() {
-  const [lists, setLists] = React.useState<{ listA: ArmyList | null; listB: ArmyList | null }>({
+  const [lists, setLists] = React.useState<{ listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }>({
     listA: null,
     listB: null
   });

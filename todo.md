@@ -10,42 +10,32 @@ Currently when the page is refreshed the game state is lost, i'd like to persist
 
 It might be useful to track multiple sessions (maybe you're playing 3 games in a day for a tournament), and it could be useful to review what scoring was done by either player. Provide a way to name and store a session that can be loaded later. As in the 'Session Persistence' item above lets complete this will local storage but let's make sure to design it in a way that will be compatible with an account system in the future.
 
-## List Integration (Completed ✅)
-The player can now input two tournament lists. 
+## List Integration & Unit Data (In Progress - Buggy ⚠️)
+The player can input lists, but unit enrichment is currently failing to map IDs to names correctly.
 
 ### Implementation Details
 - **Binary Parser**: Robust `ArmyParser` handles `readVarInt`, `readString`, and URI-encoded codes.
-- **Metadata Integration**: Factions are automatically mapped to names, parent factions (e.g., JSA -> Yu Jing), and official logos using `src/data/metadata.json`.
-- **UI**: Added `ArmyManager` for dual-list management with clear/switch logic.
-- **Game Selection**: Integrated list choice directly into the "Choose List" step of the game flow.
+- **Unit Enrichment (Buggy)**: `UnitService` attempts to load local faction data but units currently display as "Unit [ID]".
+- **Metadata**: Factions mapped to names, parent factions, and logos using `src/data/metadata.json`.
+- **UI**: `ArmyManager` handles dual-list imports and selection.
+- **Contextual Assistance**: 
+  - **Deployment Summary**: Lists units with Hidden Deployment, Infiltration, or Forward Deployment.
+  - **Booty Reminder**: Displays a conditional reminder and table if units with `Booty` are present.
+- **Sync System**: `scripts/fetch-faction-data.ts` and `docs/faction-data-management.md` for data maintenance.
 
-### Next Step: Unit Data Enrichment
-The parser currently extracts `Unit ID`s, but these need to be mapped to full profiles to enable contextual assistance.
-- [ ] **Unit Database**: Map `Unit ID` to profile data (Skills, Weapons, Armor, etc.).
-- [ ] **Contextual Assistance**: Use unit skills to auto-populate reminders for:
-  - Hidden Deployment
-  - Infiltration
-  - Forward Deployment
-  - Booty rolls (only if a unit has the 'Booty' skill)
+## Order Reference (In Progress)
 
-### Game Sequence Integration
+### Completed Tasks
+- [x] Rename "Skill Quick Reference" to "Order Reference".
+- [x] **Hacking Programs**: Show a quick reference for the available hacking programs (keep the wiki link as well).
+- [x] **Add Missing Skills/Orders**:
+  - [x] [Place Deployable](https://infinitythewiki.com/Place_Deployable)
+  - [x] [Dodge](https://infinitythewiki.com/Dodge) (Add to movement section, valid as Short Skill and ARO)
+  - [x] [Idle - Infinity](https://infinitythewiki.com/Idle) (Add to 'Technical Action' for now)
+  - [x] [Intuitive Attack - Infinity](https://infinitythewiki.com/Intuitive_Attack)
+  - [x] [Reload - Infinity](https://infinitythewiki.com/Reload)
+  - [x] [Request Speedball - Infinity](https://infinitythewiki.com/Request_Speedball)
+  - [x] [Reset - Infinity](https://infinitythewiki.com/Reset) (Update to show as valid Short Skill, not just ARO)
 
-Update the game sequence to include contextual assistance for the player. Provide a summary of units with special rules that impact deployment, such as hidden deployment, infiltration, forward deployment. Some units have multiple of these, so specifically highlight each unit and then list each of the special rules that they have for deployment. Additionally after this provide a 'Booty Reminder' item that prompts the player to roll their booty checks (which should only appear if the player has units with the 'Booty' special rule).
-
-## Order Reference
-
-The order reference is currently called the 'Skill Quick Reference", which should be updated to 'Order Reference'.
-
-### Hacking Programs
-
-I'd like to have this initiall show a quick reference for the available hacking programs (while also having the current link via a button or something?).
-
-### Missing Orders
-
-The [Place Deployable](https://infinitythewiki.com/Place_Deployable) order is missing. 
-The [Dodge](https://infinitythewiki.com/Dodge) order is missing from the movement section, its a valid short skill as well an ARO.
-The [Idle - Infinity](https://infinitythewiki.com/Idle) order is missing. It's neither a movement action, combat action, ARO or 'technical action', though i think we'll bundle it into 'technical action' for the moment until i decide otherwise.
-The [Intuitive Attack - Infinity](https://infinitythewiki.com/Intuitive_Attack) order is missing.
-The [Reload - Infinity](https://infinitythewiki.com/Reload) order is missing.
-The [Request Speedball - Infinity](https://infinitythewiki.com/Request_Speedball) order is missing.
-The [Reset - Infinity](https://infinitythewiki.com/Reset) order is only listed as an ARO, it's also a valid short skill.
+## Future Ideas
+- [ ] List Analysis Dashboard (Points distribution, specialist counts, etc.)

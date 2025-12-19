@@ -3,22 +3,41 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArmyListImporter } from "./army-list-importer"
 import { type ArmyList } from "@/lib/army-parser"
-import { LayersIcon, Trash2, ShieldCheck, Sword } from "lucide-react"
+import { type EnrichedArmyList, unitService } from "@/lib/unit-service"
+import { LayersIcon, Trash2, ShieldCheck, Sword, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SectionWrapper } from "@/components/layout-containers"
 
 interface ArmyManagerProps {
-  onListsChanged: (lists: { listA: ArmyList | null; listB: ArmyList | null }) => void
+  onListsChanged: (lists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }) => void
   containerClassName?: string
 }
 
 export function ArmyManager({ onListsChanged, containerClassName }: ArmyManagerProps) {
-  const [listA, setListA] = React.useState<ArmyList | null>(null)
-  const [listB, setListB] = React.useState<ArmyList | null>(null)
+  const [listA, setListA] = React.useState<EnrichedArmyList | null>(null)
+  const [listB, setListB] = React.useState<EnrichedArmyList | null>(null)
+  const [loading, setLoading] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     onListsChanged({ listA, listB })
   }, [listA, listB, onListsChanged])
+
+  const handleListParsed = async (list: ArmyList | null, key: 'listA' | 'listB') => {
+    if (!list) {
+      if (key === 'listA') setListA(null)
+      else setListB(null)
+      return
+    }
+
+    setLoading(key)
+    try {
+      const enriched = await unitService.enrichArmyList(list)
+      if (key === 'listA') setListA(enriched)
+      else setListB(enriched)
+    } finally {
+      setLoading(null)
+    }
+  }
 
   return (
     <SectionWrapper
@@ -45,11 +64,13 @@ export function ArmyManager({ onListsChanged, containerClassName }: ArmyManagerP
                 <ShieldCheck className="size-3.5" />
                 List A
                 {listA && <div className="size-1.5 rounded-full bg-green-500 animate-pulse ml-1" />}
+                {loading === 'listA' && <Loader2 className="size-3 animate-spin ml-1" />}
               </TabsTrigger>
               <TabsTrigger value="listB" className="flex-1 rounded-none data-[state=active]:bg-background transition-all text-xs gap-1.5">
                 <Sword className="size-3.5" />
                 List B
                 {listB && <div className="size-1.5 rounded-full bg-green-500 animate-pulse ml-1" />}
+                {loading === 'listB' && <Loader2 className="size-3 animate-spin ml-1" />}
               </TabsTrigger>
             </TabsList>
 
@@ -60,7 +81,7 @@ export function ArmyManager({ onListsChanged, containerClassName }: ArmyManagerP
                 </div>
               ) : (
                 <div className="animate-in fade-in duration-300">
-                  <ArmyListImporter onListParsed={setListA} />
+                  <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listA')} />
                 </div>
               )}
             </TabsContent>
@@ -72,7 +93,7 @@ export function ArmyManager({ onListsChanged, containerClassName }: ArmyManagerP
                 </div>
               ) : (
                 <div className="animate-in fade-in duration-300">
-                  <ArmyListImporter onListParsed={setListB} />
+                  <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listB')} />
                 </div>
               )}
             </TabsContent>
@@ -83,7 +104,7 @@ export function ArmyManager({ onListsChanged, containerClassName }: ArmyManagerP
   )
 }
 
-function ArmyListDisplay({ list, onClear }: { list: ArmyList; onClear: () => void }) {
+function ArmyListDisplay({ list, onClear }: { list: EnrichedArmyList; onClear: () => void }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">

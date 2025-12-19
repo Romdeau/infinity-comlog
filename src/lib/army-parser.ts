@@ -20,14 +20,10 @@ export interface ArmyList {
   logo?: string;
 }
 
-// Map of unit IDs to names (to be imported)
-import unitsData from '../data/units.json';
 import metadata from '../data/metadata.json';
 
 const getUnitName = (id: number): string => {
-  const data = unitsData as any[];
-  const unit = data.find(u => u.id === id);
-  return unit ? unit.name : `Unknown Unit (${id})`;
+  return `Unit ${id}`;
 };
 
 const getFactionInfo = (id: number) => {
