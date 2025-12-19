@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   ExternalLinkIcon,
   SwordIcon,
@@ -22,14 +21,8 @@ import {
   ShieldCheckIcon,
   ZapIcon,
   CheckCircle2Icon,
-  LayersIcon,
-  InfoIcon
+  LayersIcon
 } from "lucide-react"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -38,12 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
+import { GameStep, GameGroup } from "@/components/game-flow-components"
 
 export function ComponentExample() {
   return (
@@ -51,22 +39,6 @@ export function ComponentExample() {
       <InfinityGameFlow />
       <TurnReference />
     </ExampleWrapper>
-  )
-}
-
-function InfoTip({ content }: { content: string }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="text-muted-foreground hover:text-primary transition-colors focus:outline-none ml-1">
-          <InfoIcon className="size-3.5" />
-          <span className="sr-only">Help</span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="text-xs">
-        {content}
-      </PopoverContent>
-    </Popover>
   )
 }
 
@@ -108,15 +80,17 @@ function InfinityGameFlow() {
     }
   }
 
-  const isSetupComplete = !!gameStep.scenario &&
-    gameStep.listPicked &&
-    gameStep.classifiedsDrawn &&
-    gameStep.initiationSubSteps.rollOff &&
+  const isInitiativeComplete = gameStep.initiationSubSteps.rollOff &&
     gameStep.initiationSubSteps.deployment &&
     gameStep.initiationSubSteps.commandTokens
 
+  const isSetupComplete = !!gameStep.scenario &&
+    gameStep.listPicked &&
+    gameStep.classifiedsDrawn &&
+    isInitiativeComplete
+
   const completedCount = [
-    isSetupComplete,
+    (gameStep.setupDone || isSetupComplete),
     gameStep.turns.turn1,
     gameStep.turns.turn2,
     gameStep.turns.turn3,
@@ -138,201 +112,112 @@ function InfinityGameFlow() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="setup" className="border-none px-4">
-              <div className="flex items-center gap-3 py-3">
-                <Checkbox
-                  checked={gameStep.setupDone || isSetupComplete}
-                  onCheckedChange={() => toggleState('setupDone')}
-                />
-                <AccordionTrigger className="flex-1 py-0 hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-sm font-semibold transition-all",
-                      (gameStep.setupDone || isSetupComplete) && "text-muted-foreground line-through opacity-70"
-                    )}>
-                      Game Setup
-                    </span>
-                    <InfoTip content="Initial phase to prepare the battlefield and armies." />
-                  </div>
-                </AccordionTrigger>
-              </div>
-              <AccordionContent className="pl-7 pr-0 space-y-4 pt-1 pb-6">
-                {/* Pick Scenario */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium uppercase text-muted-foreground tracking-wider">Pick Scenario</span>
-                    <InfoTip content="Select the mission for the match. Usually decided by the TO or rolled for." />
-                  </div>
-                  <Select
-                    value={gameStep.scenario}
-                    onValueChange={(val) => setGameStep(prev => ({ ...prev, scenario: val }))}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select a scenario" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="axial">Akial Interference</SelectItem>
-                      <SelectItem value="bpong">B-Pong</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          <GameGroup
+            label="Game Setup"
+            value="setup"
+            info="Initial phase to prepare the battlefield and armies."
+            checked={gameStep.setupDone || isSetupComplete}
+            onCheckedChange={() => toggleState('setupDone')}
+            className="px-4"
+          >
+            {/* Pick Scenario */}
+            <div className="space-y-2 pr-4">
+              <span className="text-xs font-medium uppercase text-muted-foreground tracking-wider flex items-center gap-1">
+                Pick Scenario
+              </span>
+              <Select
+                value={gameStep.scenario}
+                onValueChange={(val) => setGameStep(prev => ({ ...prev, scenario: val }))}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select a scenario" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="axial">Akial Interference</SelectItem>
+                  <SelectItem value="bpong">B-Pong</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-                {/* Choose List */}
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <Checkbox
-                    checked={gameStep.listPicked}
-                    onCheckedChange={() => toggleState('listPicked')}
-                  />
-                  <div className="flex items-center gap-1">
-                    <span className={cn(
-                      "text-xs font-medium",
-                      gameStep.listPicked && "text-muted-foreground line-through opacity-70"
-                    )}>
-                      Choose List
-                    </span>
-                    <InfoTip content="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction." />
-                  </div>
-                </label>
+            <GameStep
+              label="Choose List"
+              info="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction."
+              checked={gameStep.listPicked}
+              onCheckedChange={() => toggleState('listPicked')}
+              size="sm"
+            />
 
-                {/* Draw Classifieds */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between pr-4">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <Checkbox
-                        checked={gameStep.classifiedsDrawn}
-                        onCheckedChange={() => toggleState('classifiedsDrawn')}
-                      />
-                      <div className="flex items-center gap-1">
-                        <span className={cn(
-                          "text-xs font-medium",
-                          gameStep.classifiedsDrawn && "text-muted-foreground line-through opacity-70"
-                        )}>
-                          Draw Classifieds
-                        </span>
-                        <InfoTip content="Secondary objectives that provide additional Victory Points. The number depends on the scenario." />
-                      </div>
-                    </label>
-                    <Input
-                      type="number"
-                      min={0}
-                      className="w-12 h-7 text-xs px-1 text-center"
-                      value={gameStep.classifiedsCount}
-                      onChange={(e) => setGameStep(prev => ({ ...prev, classifiedsCount: parseInt(e.target.value) || 0 }))}
-                    />
-                  </div>
-                </div>
+            <div className="flex items-center justify-between pr-4">
+              <GameStep
+                label="Draw Classifieds"
+                info="Secondary objectives that provide additional Victory Points."
+                checked={gameStep.classifiedsDrawn}
+                onCheckedChange={() => toggleState('classifiedsDrawn')}
+                size="sm"
+              />
+              <Input
+                type="number"
+                min={0}
+                className="w-12 h-7 text-xs px-1 text-center"
+                value={gameStep.classifiedsCount}
+                onChange={(e) => setGameStep(prev => ({ ...prev, classifiedsCount: parseInt(e.target.value) || 0 }))}
+              />
+            </div>
 
-                {/* Initiative & Deployment Sub-Group */}
-                <div className="space-y-3 pt-2 border-l-2 ml-1.5 pl-4 border-muted">
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={gameStep.initiationDone || (gameStep.initiationSubSteps.rollOff && gameStep.initiationSubSteps.deployment && gameStep.initiationSubSteps.commandTokens)}
-                      onCheckedChange={() => toggleState('initiationDone')}
-                    />
-                    <div className="flex items-center gap-1">
-                      <span className={cn(
-                        "text-xs font-semibold text-muted-foreground/80",
-                        (gameStep.initiationDone || (gameStep.initiationSubSteps.rollOff && gameStep.initiationSubSteps.deployment && gameStep.initiationSubSteps.commandTokens)) && "line-through opacity-70"
-                      )}>
-                        Initiative & Deployment
-                      </span>
-                      <InfoTip content="Phase where players determine turn order and deploy their models." />
-                    </div>
-                  </div>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <Checkbox
-                      checked={gameStep.initiationSubSteps.rollOff}
-                      onCheckedChange={() => toggleState('initiationSubSteps', 'rollOff')}
-                    />
-                    <span className={cn("text-xs transition-all", gameStep.initiationSubSteps.rollOff && "text-muted-foreground line-through opacity-70")}>
-                      Face-to-Face Roll Off
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <Checkbox
-                      checked={gameStep.initiationSubSteps.deployment}
-                      onCheckedChange={() => toggleState('initiationSubSteps', 'deployment')}
-                    />
-                    <span className={cn("text-xs transition-all", gameStep.initiationSubSteps.deployment && "text-muted-foreground line-through opacity-70")}>
-                      Army Deployment
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <Checkbox
-                      checked={gameStep.initiationSubSteps.commandTokens}
-                      onCheckedChange={() => toggleState('initiationSubSteps', 'commandTokens')}
-                    />
-                    <span className={cn("text-xs transition-all", gameStep.initiationSubSteps.commandTokens && "text-muted-foreground line-through opacity-70")}>
-                      Strategic Cmd Tokens
-                    </span>
-                  </label>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+            <GameGroup
+              label="Initiative & Deployment"
+              value="initiative"
+              defaultOpen
+              info="Phase where players determine turn order and deploy their models."
+              checked={gameStep.initiationDone || isInitiativeComplete}
+              onCheckedChange={() => toggleState('initiationDone')}
+            >
+              <GameStep
+                label="Face-to-Face Roll Off"
+                checked={gameStep.initiationSubSteps.rollOff}
+                onCheckedChange={() => toggleState('initiationSubSteps', 'rollOff')}
+                size="sm"
+              />
+              <GameStep
+                label="Army Deployment"
+                checked={gameStep.initiationSubSteps.deployment}
+                onCheckedChange={() => toggleState('initiationSubSteps', 'deployment')}
+                size="sm"
+              />
+              <GameStep
+                label="Strategic Cmd Tokens"
+                checked={gameStep.initiationSubSteps.commandTokens}
+                onCheckedChange={() => toggleState('initiationSubSteps', 'commandTokens')}
+                size="sm"
+              />
+            </GameGroup>
+          </GameGroup>
 
-          <div className="px-4 pb-4 space-y-3">
-            <label className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer">
-              <Checkbox
-                checked={gameStep.turns.turn1}
-                onCheckedChange={() => toggleState('turns', 'turn1')}
-              />
-              <div className="flex items-center gap-1">
-                <span className={cn(
-                  "text-sm font-medium leading-none transition-all",
-                  gameStep.turns.turn1 && "text-muted-foreground line-through opacity-70"
-                )}>
-                  Turn 1
-                </span>
-                <InfoTip content="First round of tactical actions and combat." />
-              </div>
-            </label>
-            <label className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer">
-              <Checkbox
-                checked={gameStep.turns.turn2}
-                onCheckedChange={() => toggleState('turns', 'turn2')}
-              />
-              <div className="flex items-center gap-1">
-                <span className={cn(
-                  "text-sm font-medium leading-none transition-all",
-                  gameStep.turns.turn2 && "text-muted-foreground line-through opacity-70"
-                )}>
-                  Turn 2
-                </span>
-                <InfoTip content="Mid-game maneuvering and objective capturing." />
-              </div>
-            </label>
-            <label className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer">
-              <Checkbox
-                checked={gameStep.turns.turn3}
-                onCheckedChange={() => toggleState('turns', 'turn3')}
-              />
-              <div className="flex items-center gap-1">
-                <span className={cn(
-                  "text-sm font-medium leading-none transition-all",
-                  gameStep.turns.turn3 && "text-muted-foreground line-through opacity-70"
-                )}>
-                  Turn 3
-                </span>
-                <InfoTip content="Final round to secure victory points." />
-              </div>
-            </label>
-            <label className="group flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer">
-              <Checkbox
-                checked={gameStep.scoring}
-                onCheckedChange={() => toggleState('scoring')}
-              />
-              <div className="flex items-center gap-1">
-                <span className={cn(
-                  "text-sm font-medium leading-none transition-all",
-                  gameStep.scoring && "text-muted-foreground line-through opacity-70"
-                )}>
-                  Finalising Scoring
-                </span>
-                <InfoTip content="Tabulate all Victory Points from the mission and classifieds to determine the winner." />
-              </div>
-            </label>
+          <div className="px-4 pb-4 mt-4 space-y-3">
+            <GameStep
+              label="Turn 1"
+              info="First round of tactical actions and combat."
+              checked={gameStep.turns.turn1}
+              onCheckedChange={() => toggleState('turns', 'turn1')}
+            />
+            <GameStep
+              label="Turn 2"
+              info="Mid-game maneuvering and objective capturing."
+              checked={gameStep.turns.turn2}
+              onCheckedChange={() => toggleState('turns', 'turn2')}
+            />
+            <GameStep
+              label="Turn 3"
+              info="Final round to secure victory points."
+              checked={gameStep.turns.turn3}
+              onCheckedChange={() => toggleState('turns', 'turn3')}
+            />
+            <GameStep
+              label="Finalising Scoring"
+              info="Tabulate all Victory Points from the mission and classifieds to determine the winner."
+              checked={gameStep.scoring}
+              onCheckedChange={() => toggleState('scoring')}
+            />
           </div>
         </CardContent>
         <CardFooter className="bg-muted/30 border-t flex items-center justify-between text-xs text-muted-foreground p-4">
