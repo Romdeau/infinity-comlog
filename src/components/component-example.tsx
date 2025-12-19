@@ -56,11 +56,15 @@ function InfinityGameFlow() {
       commandTokens: false,
     },
     turns: {
-      turn1: false,
-      turn2: false,
-      turn3: false,
+      turn1: { doneOverride: false, p1: false, p2: false },
+      turn2: { doneOverride: false, p1: false, p2: false },
+      turn3: { doneOverride: false, p1: false, p2: false },
     },
-    scoring: false,
+    scoring: {
+      doneOverride: false,
+      op: false,
+      vp: false,
+    },
   })
 
   // Derived state for automatic checkbox logic (Child -> Parent propagation)
@@ -74,9 +78,14 @@ function InfinityGameFlow() {
     gameStep.classifiedsDrawn &&
     isInitiativeComplete
 
+  const isTurnComplete = (turnKey: 'turn1' | 'turn2' | 'turn3') =>
+    gameStep.turns[turnKey].p1 && gameStep.turns[turnKey].p2
+
+  const isScoringComplete = gameStep.scoring.op && gameStep.scoring.vp
+
   const toggleStep = (key: string, subKey?: string) => {
     setGameStep(prev => {
-      const next = { ...prev }
+      const next = JSON.parse(JSON.stringify(prev)) // Deep clone for complex nested updates
 
       if (key === 'setup') {
         const val = !prev.setupDoneOverride && !isSetupComplete
@@ -85,46 +94,40 @@ function InfinityGameFlow() {
         next.listPicked = val
         next.classifiedsDrawn = val
         next.initiationDoneOverride = val
-        next.initiationSubSteps = {
-          rollOff: val,
-          deployment: val,
-          commandTokens: val
-        }
+        next.initiationSubSteps = { rollOff: val, deployment: val, commandTokens: val }
         if (!val) next.scenario = ""
       } else if (key === 'initiation') {
         const val = !prev.initiationDoneOverride && !isInitiativeComplete
         next.initiationDoneOverride = val
-        next.initiationSubSteps = {
-          rollOff: val,
-          deployment: val,
-          commandTokens: val
-        }
-        // If unchecking initiation, we must also uncheck setup override
+        next.initiationSubSteps = { rollOff: val, deployment: val, commandTokens: val }
         if (!val) next.setupDoneOverride = false
-      } else if (subKey) {
-        // Individual item update
-        if (key === 'initiationSubSteps') {
-          next.initiationSubSteps = {
-            ...prev.initiationSubSteps,
-            [subKey]: !(prev.initiationSubSteps as any)[subKey]
-          }
-          if (!(next.initiationSubSteps as any)[subKey]) next.initiationDoneOverride = false
-        } else if (key === 'turns') {
-          next.turns = {
-            ...prev.turns,
-            [subKey]: !(prev.turns as any)[subKey]
-          }
+      } else if (key.startsWith('turn')) {
+        const turnKey = key as 'turn1' | 'turn2' | 'turn3'
+        if (subKey) {
+          next.turns[turnKey][subKey as 'p1' | 'p2'] = !prev.turns[turnKey][subKey as 'p1' | 'p2']
+          if (!next.turns[turnKey][subKey as 'p1' | 'p2']) next.turns[turnKey].doneOverride = false
+        } else {
+          const val = !prev.turns[turnKey].doneOverride && !isTurnComplete(turnKey)
+          next.turns[turnKey].doneOverride = val
+          next.turns[turnKey].p1 = val
+          next.turns[turnKey].p2 = val
+        }
+      } else if (key === 'scoring') {
+        if (subKey) {
+          next.scoring[subKey as 'op' | 'vp'] = !prev.scoring[subKey as 'op' | 'vp']
+          if (!next.scoring[subKey as 'op' | 'vp']) next.scoring.doneOverride = false
+        } else {
+          const val = !prev.scoring.doneOverride && !isScoringComplete
+          next.scoring.doneOverride = val
+          next.scoring.op = val
+          next.scoring.vp = val
         }
       } else {
         const stateKey = key as keyof typeof prev
-        const newVal = !prev[stateKey]
+        const newVal = !(prev as any)[stateKey]
           ; (next as any)[stateKey] = newVal
 
-        if (key === 'scenarioPicked' && !newVal) {
-          next.scenario = ""
-        }
-
-        // If any setup item is unchecked, setup override must be false
+        if (key === 'scenarioPicked' && !newVal) next.scenario = ""
         if (!newVal && ['scenarioPicked', 'listPicked', 'classifiedsDrawn', 'initiationDoneOverride'].includes(key)) {
           next.setupDoneOverride = false
         }
@@ -136,10 +139,10 @@ function InfinityGameFlow() {
 
   const completedCount = [
     (gameStep.setupDoneOverride || isSetupComplete),
-    gameStep.turns.turn1,
-    gameStep.turns.turn2,
-    gameStep.turns.turn3,
-    gameStep.scoring
+    (gameStep.turns.turn1.doneOverride || isTurnComplete('turn1')),
+    (gameStep.turns.turn2.doneOverride || isTurnComplete('turn2')),
+    (gameStep.turns.turn3.doneOverride || isTurnComplete('turn3')),
+    (gameStep.scoring.doneOverride || isScoringComplete)
   ].filter(Boolean).length
 
   return (
@@ -248,30 +251,50 @@ function InfinityGameFlow() {
           </GameGroup>
 
           <div className="px-4 pb-4 mt-4 space-y-3">
-            <GameStep
-              label="Turn 1"
-              info="First round of tactical actions and combat."
-              checked={gameStep.turns.turn1}
-              onCheckedChange={() => toggleStep('turns', 'turn1')}
-            />
-            <GameStep
-              label="Turn 2"
-              info="Mid-game maneuvering and objective capturing."
-              checked={gameStep.turns.turn2}
-              onCheckedChange={() => toggleStep('turns', 'turn2')}
-            />
-            <GameStep
-              label="Turn 3"
-              info="Final round to secure victory points."
-              checked={gameStep.turns.turn3}
-              onCheckedChange={() => toggleStep('turns', 'turn3')}
-            />
-            <GameStep
+            {(['turn1', 'turn2', 'turn3'] as const).map((turnKey, idx) => (
+              <GameGroup
+                key={turnKey}
+                label={`Turn ${idx + 1}`}
+                value={turnKey}
+                info={`Round ${idx + 1} of tactical actions and combat.`}
+                checked={gameStep.turns[turnKey].doneOverride || isTurnComplete(turnKey)}
+                onCheckedChange={() => toggleStep(turnKey)}
+              >
+                <GameStep
+                  label="Player 1 Turn"
+                  checked={gameStep.turns[turnKey].p1}
+                  onCheckedChange={() => toggleStep(turnKey, 'p1')}
+                  size="sm"
+                />
+                <GameStep
+                  label="Player 2 Turn"
+                  checked={gameStep.turns[turnKey].p2}
+                  onCheckedChange={() => toggleStep(turnKey, 'p2')}
+                  size="sm"
+                />
+              </GameGroup>
+            ))}
+
+            <GameGroup
               label="Finalising Scoring"
+              value="scoring"
               info="Tabulate all Victory Points from the mission and classifieds to determine the winner."
-              checked={gameStep.scoring}
+              checked={gameStep.scoring.doneOverride || isScoringComplete}
               onCheckedChange={() => toggleStep('scoring')}
-            />
+            >
+              <GameStep
+                label="Objective Points (OP)"
+                checked={gameStep.scoring.op}
+                onCheckedChange={() => toggleStep('scoring', 'op')}
+                size="sm"
+              />
+              <GameStep
+                label="Victory Points (VP)"
+                checked={gameStep.scoring.vp}
+                onCheckedChange={() => toggleStep('scoring', 'vp')}
+                size="sm"
+              />
+            </GameGroup>
           </div>
         </CardContent>
         <CardFooter className="bg-muted/30 border-t flex items-center justify-between text-xs text-muted-foreground p-4">
