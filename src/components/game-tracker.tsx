@@ -37,6 +37,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { GameStep, GameGroup } from "@/components/game-flow-components"
+import { ArmyListImporter } from "@/components/army-list-importer"
 import missions from "@/data/missions.json"
 
 export function GameTracker() {
@@ -376,13 +377,20 @@ function InfinityGameFlow() {
               </div>
             </div>
 
-            <GameStep
-              label="Choose List"
-              info="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction."
-              checked={gameStep.listPicked}
-              onCheckedChange={() => toggleStep('listPicked')}
-              size="sm"
-            />
+            <div className="space-y-2">
+              <GameStep
+                label="Choose List"
+                info="In tournament games, you bring two army lists and choose one after seeing the scenario and opponent's faction."
+                checked={gameStep.listPicked}
+                onCheckedChange={() => toggleStep('listPicked')}
+                size="sm"
+              />
+              <div className="pl-7 pr-4 pb-2">
+                <ArmyListImporter onListParsed={(list) => {
+                  if (list && !gameStep.listPicked) toggleStep('listPicked')
+                }} />
+              </div>
+            </div>
 
             <div className="flex items-center justify-between pr-4">
               <GameStep
