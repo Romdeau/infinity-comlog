@@ -316,7 +316,7 @@ function InfinityGameFlow() {
               size="sm"
             >
               <GameStep
-                label="Face-to-Face Roll Off"
+                label="Lieutenant Roll"
                 checked={gameStep.initiationSubSteps.rollOff}
                 onCheckedChange={() => toggleStep('initiationSubSteps', 'rollOff')}
                 size="sm"
