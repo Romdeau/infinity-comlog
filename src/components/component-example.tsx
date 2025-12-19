@@ -317,6 +317,7 @@ function InfinityGameFlow() {
             >
               <GameStep
                 label="Lieutenant Roll"
+                info="The winner can choose Deployment or Initiative. The player who kept Initiative chooses who goes first/second."
                 checked={gameStep.initiationSubSteps.rollOff}
                 onCheckedChange={() => toggleStep('initiationSubSteps', 'rollOff')}
                 size="sm"
