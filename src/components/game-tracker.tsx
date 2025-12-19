@@ -392,17 +392,9 @@ function InfinityGameFlow() {
                 onCheckedChange={() => toggleStep('classifiedsDrawn')}
                 size="sm"
               />
-              <Input
-                type="number"
-                min={0}
-                className="w-12 h-7 text-xs px-1 text-center"
-                value={gameStep.classifiedsCount}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => {
-                  const val = e.target.value
-                  setGameStep(prev => ({ ...prev, classifiedsCount: val === "" ? 0 : parseInt(val) }))
-                }}
-              />
+              <div className="w-12 h-7 rounded-md border border-input bg-muted/50 flex items-center justify-center text-xs font-bold text-primary/80">
+                {gameStep.classifiedsCount}
+              </div>
             </div>
 
             <GameGroup
