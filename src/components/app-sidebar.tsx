@@ -2,7 +2,6 @@ import {
   LayersIcon,
   SwordIcon,
   BookOpenIcon,
-  Package2,
   InfoIcon,
   MoreVertical,
 } from "lucide-react"
@@ -38,7 +37,7 @@ import {
 const user = {
   name: "Example User",
   email: "example.user@example.tld",
-  avatar: "/avatars/example.jpg",
+  avatar: `${import.meta.env.BASE_URL}avatars/example.jpg`,
 }
 
 const navItems = [
@@ -75,8 +74,8 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link to="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Package2 className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Logo" className="size-6" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">Infinity Comlog</span>
