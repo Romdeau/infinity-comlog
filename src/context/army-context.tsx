@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
-import { type EnrichedArmyList } from "@/lib/unit-service"
+import { type EnrichedArmyList, unitService } from "@/lib/unit-service"
+import { ArmyParser } from "@/lib/army-parser"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { ArmyContext, type ArmyContextType, useArmy } from "./army-context-core"
 
@@ -10,6 +11,38 @@ export type { ArmyContextType }
 export function ArmyProvider({ children }: { children: React.ReactNode }) {
   const [storedLists, setStoredLists] = useLocalStorage<Record<string, EnrichedArmyList>>("comlog_stored_lists", {})
   const [activePairIds, setActivePairIds] = useLocalStorage<{ a: string | null; b: string | null }>("comlog_active_pair", { a: null, b: null })
+
+  // Auto-migration/Re-enrichment for stale lists
+  React.useEffect(() => {
+    const migrate = async () => {
+      let changed = false;
+      const newStored = { ...storedLists };
+
+      for (const [id, list] of Object.entries(storedLists)) {
+        // If list is missing version or has old version, and we have the raw code
+        // Version 1 introduced the 'profiles' array structure
+        if ((!list.version || list.version < 1) && list.rawCode) {
+          try {
+            const parser = new ArmyParser(list.rawCode);
+            const rawList = parser.parse();
+            const enriched = await unitService.enrichArmyList(rawList);
+            newStored[id] = enriched;
+            changed = true;
+          } catch (e) {
+            console.error(`Failed to auto-migrate list ${id}:`, e);
+          }
+        }
+      }
+
+      if (changed) {
+        setStoredLists(newStored);
+      }
+    };
+
+    migrate();
+    // We only want to run this once on mount or when storedLists changes from external source
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const lists = React.useMemo(() => ({
     listA: activePairIds.a ? storedLists[activePairIds.a] || null : null,

@@ -23,16 +23,17 @@ Key structural patterns:
 - **Pull Requests**: Once a feature is complete and approved, a Pull Request will be used to merge into the `main` branch. Always provide PR descriptions in raw markdown format (wrapped in a code block) to make it easy to copy-paste into GitHub.
 - **Git Hooks**: Husky is configured to run `lint-staged` on pre-commit and `bun run build` on pre-push. Ensure all changes pass these checks before committing/pushing.
 
-## Development Workflow (Windows + WSL Setup)
-- **Environment**: This project is developed on Windows using WSL (Ubuntu-24.04).
+## Development Workflow (Cross-Platform)
+- **Environment**: This project is developed on Windows (via WSL Ubuntu-24.04) and macOS.
 - **Runtime & Package Manager**: Always use `bun` for all tasks. Never use `node`, `npm`, or `yarn`.
-- **Bun Command Execution**: All `bun` commands MUST be executed via WSL.
-- **WSL Path**: When running commands in WSL, always `cd /mnt/c/Users/Thoma/git/infinity-comlog` first.
-- **General Commands**: For non-bun tasks (e.g., `git`, `ls`, `mkdir`, `rm`), prefer using PowerShell directly in the Windows terminal.
-- **Dev Server**: `bun run dev` (via WSL).
-- **Build**: `bun run build` (via WSL).
-- **Lint**: `bun run lint` (via WSL).
-- **Preview**: `bun run preview` (via WSL).
+- **Command Execution**:
+  - **Windows**: All `bun` commands MUST be executed via WSL (`wsl -d Ubuntu-24.04`). Use PowerShell for `git` operations.
+  - **macOS**: Run all commands (`bun`, `git`, etc.) directly in the native terminal (zsh).
+- **WSL Path (Windows only)**: When running commands in WSL, always `cd /mnt/c/Users/Thoma/git/infinity-comlog` first.
+- **Dev Server**: `bun run dev`.
+- **Build**: `bun run build`.
+- **Lint**: `bun run lint`.
+- **Preview**: `bun run preview`.
 
 ## Component Patterns
 - **Styling Utilities**: Use `cn()` from `@/lib/utils` for conditional Tailwind classes (clsx + tailwind-merge).

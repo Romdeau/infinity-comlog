@@ -3,6 +3,7 @@ import {
   SwordIcon,
   BookOpenIcon,
   InfoIcon,
+  BarChart3Icon,
   MoreVertical,
 } from "lucide-react"
 import {
@@ -45,6 +46,18 @@ const navItems = [
     title: "Army Lists",
     url: "/army-lists",
     icon: LayersIcon,
+  },
+  {
+    title: "List View",
+    url: "/army-list-view",
+    icon: InfoIcon,
+    isAlpha: true,
+  },
+  {
+    title: "List Analysis",
+    url: "/list-analysis",
+    icon: BarChart3Icon,
+    isAlpha: true,
   },
   {
     title: "Game Sequence",
@@ -100,7 +113,14 @@ export function AppSidebar() {
                   >
                     <Link to={item.url}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span>{item.title}</span>
+                        {item.isAlpha && (
+                          <span className="text-[10px] font-black text-orange-500 uppercase tracking-tighter">
+                            (Alpha)
+                          </span>
+                        )}
+                      </div>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -111,9 +131,9 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-2 px-2 py-2">
+          <SidebarMenuItem className="flex items-center justify-center group-data-[collapsible=icon]:px-0 px-2 py-2">
             <ThemeToggle />
-            <span className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+            <span className="ml-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
               Toggle Theme
             </span>
           </SidebarMenuItem>
