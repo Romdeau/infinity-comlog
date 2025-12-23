@@ -2,8 +2,9 @@
 
 ## CRITICAL CONSTRAINTS
 - **NO AUTOMATIC GIT OPERATIONS**: Never execute `git commit` or `git push` unless the user explicitly asks for it in the current turn.
-- **WSL FOR BUN**: All `bun` commands must run inside WSL (`wsl -d Ubuntu-24.04`).
-- **POWERSHELL FOR GIT**: All `git` commands should be run via PowerShell (Windows) unless specifically required otherwise.
+- **WSL FOR BUN**: All `bun` commands must run inside WSL (`wsl -d Ubuntu-24.04`). If `bun` is not found in the path, use the absolute path `/home/thomas/.bun/bin/bun`.
+- **POWERSHELL FOR GIT**: All `git` commands should be run via PowerShell (Windows) unless specifically required otherwise. Use `git fetch --prune` regularly to clean up stale remote references.
+- **SUBPATH DEPLOYMENT**: This app is deployed to a subpath (`/infinity-comlog/`). Always use `import.meta.env.BASE_URL` when referencing assets in the `public/` folder (e.g., `${import.meta.env.BASE_URL}favicon.svg`).
 
 ## Architecture Overview
 This is a React 19 + TypeScript + Vite application using shadcn/ui components with Tailwind CSS v4. We're using `bun` and not `npm` as the package manager.
@@ -18,6 +19,7 @@ Key structural patterns:
 - **Feature Branches**: All new work should be done in a feature branch (e.g., `feat/name`).
 - **Conventional Commits**: Commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification (e.g., `feat: ...`, `fix: ...`, `chore: ...`).
 - **Manual Operations**: Strictly follow the **NO AUTOMATIC GIT OPERATIONS** rule in the Critical Constraints section. Do not commit or push without explicit permission.
+- **Merge Conflicts**: When resolving conflicts that involve deleting or replacing files (e.g., `game-tracker.tsx` vs `infinity-game-flow.tsx`), always verify that all features from the incoming branch have been ported to the new file before finalizing the deletion.
 - **Pull Requests**: Once a feature is complete and approved, a Pull Request will be used to merge into the `main` branch. Always provide PR descriptions in raw markdown format (wrapped in a code block) to make it easy to copy-paste into GitHub.
 - **Git Hooks**: Husky is configured to run `lint-staged` on pre-commit and `bun run build` on pre-push. Ensure all changes pass these checks before committing/pushing.
 
