@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArmyListImporter } from "./army-list-importer"
 import { type ArmyList } from "@/lib/army-parser"
 import { type EnrichedArmyList, unitService } from "@/lib/unit-service"
-import { LayersIcon, Trash2, ShieldCheck, Sword, Loader2 } from "lucide-react"
+import { LayersIcon, Trash2, ShieldCheck, Sword, Loader2, LibraryIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useArmy } from "@/context/army-context"
@@ -14,16 +14,16 @@ interface ArmyManagerProps {
 }
 
 export function ArmyManager({ containerClassName }: ArmyManagerProps) {
-  const { lists, setLists } = useArmy()
+  const { lists, setLists, storedLists, deleteList } = useArmy()
   const { listA, listB } = lists
   const [loading, setLoading] = React.useState<string | null>(null)
 
   const setListA = (list: EnrichedArmyList | null) => {
-    setLists(prev => ({ ...prev, listA: list }))
+    setLists({ ...lists, listA: list })
   }
 
   const setListB = (list: EnrichedArmyList | null) => {
-    setLists(prev => ({ ...prev, listB: list }))
+    setLists({ ...lists, listB: list })
   }
 
   const handleListParsed = async (list: ArmyList | null, key: 'listA' | 'listB') => {
@@ -86,6 +86,10 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
               {listB && <div className="size-1.5 rounded-full bg-green-500 animate-pulse ml-1" />}
               {loading === 'listB' && <Loader2 className="size-3 animate-spin ml-1" />}
             </TabsTrigger>
+            <TabsTrigger value="library" className="flex-1 rounded-none data-[state=active]:bg-background transition-all text-xs gap-1.5">
+              <LibraryIcon className="size-3.5" />
+              Library
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="listA" className="p-4 m-0 space-y-4">
@@ -110,6 +114,61 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
                 <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listB')} />
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="library" className="p-4 m-0 space-y-4">
+            <div className="space-y-4">
+              {Object.keys(storedLists).length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <LibraryIcon className="size-8 mx-auto mb-2 opacity-20" />
+                  <p className="text-xs">No lists in your library yet.</p>
+                  <p className="text-[10px]">Import a list to save it here.</p>
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  {Object.entries(storedLists).map(([id, list]) => (
+                    <div key={id} className="flex items-center justify-between p-2 rounded-md border border-border/50 bg-muted/20">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {list.logo && <img src={list.logo} alt="" className="size-4 object-contain" />}
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold truncate">{list.armyName || "Unnamed"}</div>
+                          <div className="text-[10px] text-muted-foreground">{list.sectoralName} • {list.points}pt</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn("size-7", (listA?.armyName === list.armyName && listA?.sectoralId === list.sectoralId) && "text-green-500")}
+                          onClick={() => setListA(list)}
+                          title="Set as List A"
+                        >
+                          <ShieldCheck className="size-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn("size-7", (listB?.armyName === list.armyName && listB?.sectoralId === list.sectoralId) && "text-green-500")}
+                          onClick={() => setListB(list)}
+                          title="Set as List B"
+                        >
+                          <Sword className="size-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 text-destructive hover:bg-destructive/10"
+                          onClick={() => deleteList(id)}
+                          title="Delete from Library"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>
