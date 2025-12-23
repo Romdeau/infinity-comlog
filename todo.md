@@ -16,6 +16,14 @@ It might be useful to track multiple sessions (maybe you're playing 3 games in a
 
 In the army list import i can import a different faction/sectorial as my second list. Can we please update the import logic to only allow importing a second list from the same sectorial with the same points value? This needs to work the same in reverse (so if a list b exists the same logic should apply when importing list a).
 
+## Feature Extensions
+
+### Deployment options
+
+- [x] I'm missing the skills 'Combat Drop', 'Parachutist' and 'Strategic Deployment' for skills i want to track as part of army deployment.
+
+- [x] Additionally none of the sub items in army deployment need a checkbox, however we should provide a checkbox per unit highlighted in the 'Deployment Assistance' section.
+
 ## Future Ideas
 
 - [ ] List Analysis Dashboard (Points distribution, specialist counts, etc.)
