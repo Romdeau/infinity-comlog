@@ -33,6 +33,21 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
       return
     }
 
+    // Validation: Check against existing list
+    const otherKey = key === 'listA' ? 'listB' : 'listA'
+    const otherList = lists[otherKey]
+
+    if (otherList) {
+      if (otherList.sectoralId !== list.sectoralId) {
+        alert(`Sectoral mismatch! Both lists must be from the same sectoral (${otherList.sectoralName}).`)
+        return
+      }
+      if (otherList.points !== list.points) {
+        alert(`Points mismatch! Both lists must have the same points value (${otherList.points}).`)
+        return
+      }
+    }
+
     setLoading(key)
     try {
       const enriched = await unitService.enrichArmyList(list)
