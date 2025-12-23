@@ -6,21 +6,25 @@ import { type ArmyList } from "@/lib/army-parser"
 import { type EnrichedArmyList, unitService } from "@/lib/unit-service"
 import { LayersIcon, Trash2, ShieldCheck, Sword, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SectionWrapper } from "@/components/layout-containers"
+import { cn } from "@/lib/utils"
+import { useArmy } from "@/context/army-context"
 
 interface ArmyManagerProps {
-  onListsChanged: (lists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }) => void
   containerClassName?: string
 }
 
-export function ArmyManager({ onListsChanged, containerClassName }: ArmyManagerProps) {
-  const [listA, setListA] = React.useState<EnrichedArmyList | null>(null)
-  const [listB, setListB] = React.useState<EnrichedArmyList | null>(null)
+export function ArmyManager({ containerClassName }: ArmyManagerProps) {
+  const { lists, setLists } = useArmy()
+  const { listA, listB } = lists
   const [loading, setLoading] = React.useState<string | null>(null)
 
-  React.useEffect(() => {
-    onListsChanged({ listA, listB })
-  }, [listA, listB, onListsChanged])
+  const setListA = (list: EnrichedArmyList | null) => {
+    setLists(prev => ({ ...prev, listA: list }))
+  }
+
+  const setListB = (list: EnrichedArmyList | null) => {
+    setLists(prev => ({ ...prev, listB: list }))
+  }
 
   const handleListParsed = async (list: ArmyList | null, key: 'listA' | 'listB') => {
     if (!list) {
@@ -40,67 +44,61 @@ export function ArmyManager({ onListsChanged, containerClassName }: ArmyManagerP
   }
 
   return (
-    <SectionWrapper
-      title="Army List Integration"
-      className="items-start justify-center"
-      containerClassName={containerClassName}
-    >
-      <Card className="w-full overflow-hidden">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary/10 rounded-lg p-2">
-              <LayersIcon className="text-primary size-5" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">Army Lists</CardTitle>
-              <CardDescription className="text-xs">Manage your tournament lists</CardDescription>
-            </div>
+    <Card className={cn("w-full overflow-hidden", containerClassName)}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary/10 rounded-lg p-2">
+            <LayersIcon className="text-primary size-5" />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Tabs defaultValue="listA" className="w-full">
-            <TabsList className="w-full rounded-none h-10 bg-muted/30 border-b border-border/50">
-              <TabsTrigger value="listA" className="flex-1 rounded-none data-[state=active]:bg-background transition-all text-xs gap-1.5">
-                <ShieldCheck className="size-3.5" />
-                List A
-                {listA && <div className="size-1.5 rounded-full bg-green-500 animate-pulse ml-1" />}
-                {loading === 'listA' && <Loader2 className="size-3 animate-spin ml-1" />}
-              </TabsTrigger>
-              <TabsTrigger value="listB" className="flex-1 rounded-none data-[state=active]:bg-background transition-all text-xs gap-1.5">
-                <Sword className="size-3.5" />
-                List B
-                {listB && <div className="size-1.5 rounded-full bg-green-500 animate-pulse ml-1" />}
-                {loading === 'listB' && <Loader2 className="size-3 animate-spin ml-1" />}
-              </TabsTrigger>
-            </TabsList>
+          <div>
+            <CardTitle className="text-lg">Army Lists</CardTitle>
+            <CardDescription className="text-xs">Manage your tournament lists</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Tabs defaultValue="listA" className="w-full">
+          <TabsList className="w-full rounded-none h-10 bg-muted/30 border-b border-border/50">
+            <TabsTrigger value="listA" className="flex-1 rounded-none data-[state=active]:bg-background transition-all text-xs gap-1.5">
+              <ShieldCheck className="size-3.5" />
+              List A
+              {listA && <div className="size-1.5 rounded-full bg-green-500 animate-pulse ml-1" />}
+              {loading === 'listA' && <Loader2 className="size-3 animate-spin ml-1" />}
+            </TabsTrigger>
+            <TabsTrigger value="listB" className="flex-1 rounded-none data-[state=active]:bg-background transition-all text-xs gap-1.5">
+              <Sword className="size-3.5" />
+              List B
+              {listB && <div className="size-1.5 rounded-full bg-green-500 animate-pulse ml-1" />}
+              {loading === 'listB' && <Loader2 className="size-3 animate-spin ml-1" />}
+            </TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="listA" className="p-4 m-0 space-y-4">
-              {listA ? (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <ArmyListDisplay list={listA} onClear={() => setListA(null)} />
-                </div>
-              ) : (
-                <div className="animate-in fade-in duration-300">
-                  <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listA')} />
-                </div>
-              )}
-            </TabsContent>
+          <TabsContent value="listA" className="p-4 m-0 space-y-4">
+            {listA ? (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <ArmyListDisplay list={listA} onClear={() => setListA(null)} />
+              </div>
+            ) : (
+              <div className="animate-in fade-in duration-300">
+                <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listA')} />
+              </div>
+            )}
+          </TabsContent>
 
-            <TabsContent value="listB" className="p-4 m-0 space-y-4">
-              {listB ? (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <ArmyListDisplay list={listB} onClear={() => setListB(null)} />
-                </div>
-              ) : (
-                <div className="animate-in fade-in duration-300">
-                  <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listB')} />
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </SectionWrapper>
+          <TabsContent value="listB" className="p-4 m-0 space-y-4">
+            {listB ? (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <ArmyListDisplay list={listB} onClear={() => setListB(null)} />
+              </div>
+            ) : (
+              <div className="animate-in fade-in duration-300">
+                <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listB')} />
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   )
 }
 
