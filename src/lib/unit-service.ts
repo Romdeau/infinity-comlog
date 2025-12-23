@@ -47,15 +47,11 @@ class UnitService {
   }
 
   async enrichArmyList(list: ArmyList): Promise<EnrichedArmyList> {
-    console.log(`Enriching list for faction ${list.sectoralId}...`);
     const factionData = await this.getFactionData(list.sectoralId);
 
     if (!factionData) {
-      console.warn(`No faction data found for ${list.sectoralId}, returning original list.`);
       return list as any;
     }
-
-    console.log(`Loaded faction data for ${list.sectoralId}, units count: ${factionData.units?.length}`);
 
     const enrichedGroups = list.combatGroups.map(group => ({
       ...group,
@@ -69,23 +65,53 @@ class UnitService {
   }
 
   private enrichTrooper(trooper: Trooper, factionData: UnitData): EnrichedTrooper {
-    const unit = factionData.units.find(u => u.id === trooper.id);
+    // Corvus Belli army codes use idArmy to identify units within a specific faction/sectoral.
+    // We must match against idArmy to ensure we get the correct sectoral-specific unit options.
+    const unit = factionData.units.find(u => u.idArmy === trooper.id);
+
     if (!unit) {
-      return { ...trooper, name: trooper.name || `Unknown (${trooper.id})`, isc: '', skills: [], weapons: [], equip: [] };
+      return {
+        ...trooper,
+        name: trooper.name || `Unknown (${trooper.id})`,
+        isc: '',
+        skills: [],
+        weapons: [],
+        equip: []
+      };
     }
 
-    // groupChoice is 1-indexed index into profileGroups
-    const profileGroup = unit.profileGroups[trooper.groupId - 1] || unit.profileGroups[0];
-    const profile = profileGroup.profiles[0]; // Usually just one profile
+    // Find profile group by ID, fallback to index-based if not found
+    let profileGroup = unit.profileGroups.find(pg => pg.id === trooper.groupId);
+    if (!profileGroup) {
+      profileGroup = unit.profileGroups[trooper.groupId - 1] || unit.profileGroups[0];
+    }
 
-    // optionChoice is 1-indexed index into options
-    const option = profileGroup.options[trooper.optionId - 1] || profileGroup.options[0];
+    // Profiles are usually just one per group in N5
+    const profile = profileGroup.profiles[0] || { skills: [], weapons: [], equip: [] };
+
+    // Find option by ID, fallback to index-based if not found
+    let option = profileGroup.options.find(o => o.id === trooper.optionId);
+    if (!option) {
+      option = profileGroup.options[trooper.optionId - 1] || profileGroup.options[0];
+    }
+
+    if (!option) {
+      return {
+        ...trooper,
+        name: unit.name,
+        isc: unit.isc,
+        logo: unit.logo,
+        skills: profile.skills || [],
+        weapons: profile.weapons || [],
+        equip: profile.equip || []
+      };
+    }
 
     return {
       ...trooper,
       name: option.name || unit.name,
       isc: unit.isc,
-      logo: profile.logo || unit.logo,
+      logo: profile.logo || unit.logo || option.logo,
       skills: [...(profile.skills || []), ...(option.skills || [])],
       weapons: [...(profile.weapons || []), ...(option.weapons || [])],
       equip: [...(profile.equip || []), ...(option.equip || [])],

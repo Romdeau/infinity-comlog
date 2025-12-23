@@ -1,30 +1,87 @@
 import * as React from "react"
 import { type EnrichedArmyList } from "@/lib/unit-service"
+import { useLocalStorage } from "@/hooks/use-local-storage"
+import { ArmyContext, type ArmyContextType, useArmy } from "./army-context-core"
 
-interface ArmyContextType {
-  lists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }
-  setLists: React.Dispatch<React.SetStateAction<{ listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }>>
-}
-
-const ArmyContext = React.createContext<ArmyContextType | undefined>(undefined)
+export { useArmy }
+export type { ArmyContextType }
 
 export function ArmyProvider({ children }: { children: React.ReactNode }) {
-  const [lists, setLists] = React.useState<{ listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }>({
-    listA: null,
-    listB: null
-  })
+  const [storedLists, setStoredLists] = useLocalStorage<Record<string, EnrichedArmyList>>("comlog_stored_lists", {})
+  const [activePairIds, setActivePairIds] = useLocalStorage<{ a: string | null; b: string | null }>("comlog_active_pair", { a: null, b: null })
+
+  const lists = React.useMemo(() => ({
+    listA: activePairIds.a ? storedLists[activePairIds.a] || null : null,
+    listB: activePairIds.b ? storedLists[activePairIds.b] || null : null
+  }), [activePairIds, storedLists])
+
+  const setLists = (newLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }) => {
+    // When setting active lists, we ensure they are in the store first
+    const newStored = { ...storedLists }
+    let aId = activePairIds.a
+    let bId = activePairIds.b
+
+    if (newLists.listA) {
+      // Check if this exact list object (by reference or content) is already in storedLists
+      // For now, we'll just generate a new ID if it's not already one of our active ones
+      const existingId = Object.entries(storedLists).find(([_, l]) =>
+        l.armyName === newLists.listA?.armyName &&
+        l.sectoralId === newLists.listA?.sectoralId &&
+        JSON.stringify(l.combatGroups) === JSON.stringify(newLists.listA?.combatGroups)
+      )?.[0]
+
+      if (existingId) {
+        aId = existingId
+      } else {
+        const id = crypto.randomUUID()
+        newStored[id] = newLists.listA
+        aId = id
+      }
+    } else {
+      aId = null
+    }
+
+    if (newLists.listB) {
+      const existingId = Object.entries(storedLists).find(([_, l]) =>
+        l.armyName === newLists.listB?.armyName &&
+        l.sectoralId === newLists.listB?.sectoralId &&
+        JSON.stringify(l.combatGroups) === JSON.stringify(newLists.listB?.combatGroups)
+      )?.[0]
+
+      if (existingId) {
+        bId = existingId
+      } else {
+        const id = crypto.randomUUID()
+        newStored[id] = newLists.listB
+        bId = id
+      }
+    } else {
+      bId = null
+    }
+
+    setStoredLists(newStored)
+    setActivePairIds({ a: aId, b: bId })
+  }
+
+  const saveList = (list: EnrichedArmyList) => {
+    const id = crypto.randomUUID()
+    setStoredLists(prev => ({ ...prev, [id]: list }))
+  }
+
+  const deleteList = (listId: string) => {
+    setStoredLists(prev => {
+      const next = { ...prev }
+      delete next[listId]
+      return next
+    })
+    // If it was active, clear it
+    if (activePairIds.a === listId) setActivePairIds(p => ({ ...p, a: null }))
+    if (activePairIds.b === listId) setActivePairIds(p => ({ ...p, b: null }))
+  }
 
   return (
-    <ArmyContext.Provider value={{ lists, setLists }}>
+    <ArmyContext.Provider value={{ lists, setLists, storedLists, saveList, deleteList }}>
       {children}
     </ArmyContext.Provider>
   )
-}
-
-export function useArmy() {
-  const context = React.useContext(ArmyContext)
-  if (context === undefined) {
-    throw new Error("useArmy must be used within an ArmyProvider")
-  }
-  return context
 }

@@ -21,6 +21,7 @@ interface StepProps {
   onCheckedChange: (checked: boolean) => void
   className?: string
   size?: "sm" | "md"
+  children?: React.ReactNode
 }
 
 export function GameStep({
@@ -29,40 +30,48 @@ export function GameStep({
   checked,
   onCheckedChange,
   className,
-  size = "md"
+  size = "md",
+  children
 }: StepProps) {
   const labelSize = size === "sm" ? "text-xs" : "text-sm"
   const padding = size === "sm" ? "p-1.5" : "p-3 border rounded-lg hover:bg-muted/50 transition-colors"
 
   return (
-    <label className={cn("group flex items-center space-x-3 cursor-pointer", padding, className)}>
-      <Checkbox
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-      />
-      <div className="flex items-center gap-1">
-        <span className={cn(
-          labelSize,
-          "font-medium leading-none transition-all",
-          checked && "text-muted-foreground line-through opacity-70"
-        )}>
-          {label}
-        </span>
-        {info && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="text-muted-foreground hover:text-primary transition-colors focus:outline-none ml-1">
-                <InfoIcon className="size-3.5" />
-                <span className="sr-only">Help</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="text-xs">
-              {info}
-            </PopoverContent>
-          </Popover>
-        )}
-      </div>
-    </label>
+    <div className={cn("space-y-2", className)}>
+      <label className={cn("group flex items-center space-x-3 cursor-pointer", padding)}>
+        <Checkbox
+          checked={checked}
+          onCheckedChange={onCheckedChange}
+        />
+        <div className="flex items-center gap-1">
+          <span className={cn(
+            labelSize,
+            "font-medium leading-none transition-all",
+            checked && "text-muted-foreground line-through opacity-70"
+          )}>
+            {label}
+          </span>
+          {info && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="text-muted-foreground hover:text-primary transition-colors focus:outline-none ml-1">
+                  <InfoIcon className="size-3.5" />
+                  <span className="sr-only">Help</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="text-xs">
+                {info}
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+      </label>
+      {children && (
+        <div className="pl-8 pr-2">
+          {children}
+        </div>
+      )}
+    </div>
   )
 }
 
