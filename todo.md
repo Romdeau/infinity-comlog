@@ -22,7 +22,13 @@ In the army list import i can import a different faction/sectorial as my second 
 
 - [x] I'm missing the skills 'Combat Drop', 'Parachutist' and 'Strategic Deployment' for skills i want to track as part of army deployment.
 
-- [x] Additionally none of the sub items in army deployment need a checkbox, however we should provide a checkbox per unit highlighted in the 'Deployment Assistance' section.
+- [x] Additionally none of the sub items in army deployment need a checkbox, however we should provide a checkbox per unit highlighted in the 'Deployment Assistance' section.'
+
+## Look and Feel
+
+### Icon
+
+The pink application icon in the top left should be replaced by the SVG I use as my favicon.
 
 ## Future Ideas
 
