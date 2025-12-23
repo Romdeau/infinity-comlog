@@ -47,6 +47,11 @@ const navItems = [
     icon: LayersIcon,
   },
   {
+    title: "List View",
+    url: "/army-list-view",
+    icon: InfoIcon,
+  },
+  {
     title: "Game Sequence",
     url: "/game-sequence",
     icon: SwordIcon,

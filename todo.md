@@ -4,7 +4,17 @@ Things I want to implement.
 
 ## List View
 
-Add a new page called "List View'. This page will display each unit from your chosen list with their full stats, equipment and skills. See the screenshot for an exmaple, but style this per to match this application. I'm not worried about images and icons for the moment, but if they're trivial to implement go for it. If not just use placeholders for the moment
+- [x] Create feature branch `feat/army-list-view`
+- [x] Update `UnitService` to enrich trooper data with full stats (MOV, CC, BS, PH, WIP, ARM, BTS, W, S)
+- [x] Implement unit type mapping (LI, MI, HI, TAG, REM, SK, WB)
+- [x] Create `ArmyListView` page with card-based layout
+- [x] Register route and add sidebar navigation
+- [x] Extract comprehensive ID-to-Name mappings for Skills, Weapons, and Equipment from `metadata.json`
+- [x] Update UI to display human-readable names for all unit attributes
+- [ ] Refine UI styling to match reference screenshot (colors, spacing, typography)
+- [ ] Add unit logos/icons (using faction/unit metadata)
+- [ ] Implement "Print" or "Export to PDF" functionality
+- [ ] Handle complex unit profiles (multiple profiles, pilots, etc.)
 
 ## Future Ideas
 

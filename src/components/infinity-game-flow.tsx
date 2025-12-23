@@ -35,19 +35,7 @@ import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
 import { useGame, type GameSession, type PlayerTurnState } from "@/context/game-context"
-
-const SKILL_MAP: Record<number, string> = {
-  238: "Hidden Deployment",
-  47: "Infiltration",
-  46: "Infiltration", // Inferior
-  48: "Infiltration", // Superior
-  161: "Forward Deployment",
-  25: "Booty",
-  35: "Combat Jump",
-  33: "Parachutist",
-  251: "Strategic Deployment",
-  28: "Camouflage"
-}
+import { SKILL_MAP } from "@/lib/constants"
 
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()

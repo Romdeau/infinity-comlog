@@ -24,6 +24,17 @@ export interface EnrichedTrooper extends Trooper {
   weapons: any[];
   equip: any[];
   logo?: string;
+  // Stats
+  mov: string;
+  cc: number;
+  bs: number;
+  ph: number;
+  wip: number;
+  arm: number;
+  bts: number;
+  w: number;
+  s: number;
+  type: string;
 }
 
 export interface EnrichedCombatGroup extends Omit<CombatGroup, 'members'> {
@@ -129,7 +140,17 @@ class UnitService {
         logo: unit.logo,
         skills: profile.skills || [],
         weapons: profile.weapons || [],
-        equip: profile.equip || []
+        equip: profile.equip || [],
+        mov: this.formatMove(profile.move),
+        cc: profile.cc,
+        bs: profile.bs,
+        ph: profile.ph,
+        wip: profile.wip,
+        arm: profile.arm,
+        bts: profile.bts,
+        w: profile.w,
+        s: profile.s,
+        type: this.formatType(profile.type)
       };
     }
 
@@ -141,7 +162,39 @@ class UnitService {
       skills: [...(profile.skills || []), ...(option.skills || [])],
       weapons: [...(profile.weapons || []), ...(option.weapons || [])],
       equip: [...(profile.equip || []), ...(option.equip || [])],
+      mov: this.formatMove(profile.move),
+      cc: profile.cc,
+      bs: profile.bs,
+      ph: profile.ph,
+      wip: profile.wip,
+      arm: profile.arm,
+      bts: profile.bts,
+      w: profile.w,
+      s: profile.s,
+      type: this.formatType(profile.type)
     };
+  }
+
+  private formatMove(move: number[]): string {
+    if (!move || move.length < 2) return "0-0";
+    // Convert cm to inches (approximate: 2.5cm = 1 inch)
+    // 10cm = 4", 15cm = 6", 5cm = 2"
+    const m1 = Math.round(move[0] / 2.5);
+    const m2 = Math.round(move[1] / 2.5);
+    return `${m1}-${m2}`;
+  }
+
+  private formatType(typeId: number): string {
+    const types: Record<number, string> = {
+      1: 'LI',
+      2: 'MI',
+      3: 'HI',
+      4: 'TAG',
+      5: 'REM',
+      6: 'SK',
+      7: 'WB'
+    };
+    return types[typeId] || `Type ${typeId}`;
   }
 }
 
