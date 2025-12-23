@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom"
+import { Suspense } from "react"
 import {
   Search,
 } from "lucide-react"
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { AppSidebar } from "./app-sidebar"
 
 export function DashboardLayout() {
@@ -79,7 +81,18 @@ export function DashboardLayout() {
           </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-          <Outlet />
+          <Suspense fallback={
+            <div className="flex flex-col gap-4">
+              <Skeleton className="h-8 w-[200px]" />
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-[200px] rounded-xl" />
+                <Skeleton className="h-[200px] rounded-xl" />
+                <Skeleton className="h-[200px] rounded-xl" />
+              </div>
+            </div>
+          }>
+            <Outlet />
+          </Suspense>
         </main>
       </SidebarInset>
     </SidebarProvider>

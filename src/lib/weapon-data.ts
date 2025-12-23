@@ -8,11 +8,12 @@ export interface WeaponMode {
   savingNum: string;
   traits: string[];
   distance: {
-    short: { max: number; mod: string };
-    med: { max: number; mod: string };
-    long: { max: number; mod: string };
-    max: { max: number; mod: string };
-  };
+    short?: { max: number; mod: string } | null;
+    med?: { max: number; mod: string } | null;
+    long?: { max: number; mod: string } | null;
+    xlong?: { max: number; mod: string } | null;
+    max?: { max: number; mod: string } | null;
+  } | null;
 }
 
 export const WEAPON_DATA: Record<number, WeaponMode[]> = {

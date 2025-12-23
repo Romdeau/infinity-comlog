@@ -5,23 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { PrinterIcon, InfoIcon, Maximize2Icon, BarChart3Icon, PieChartIcon, ActivityIcon } from "lucide-react"
+import { PrinterIcon, InfoIcon, Maximize2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SKILL_MAP, WEAPON_MAP, EQUIP_MAP } from "@/lib/constants";
 import { WEAPON_DATA } from "@/lib/weapon-data";
-import type { WeaponMode } from "@/lib/weapon-data";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
-} from "recharts";
 import {
   Dialog,
   DialogContent,

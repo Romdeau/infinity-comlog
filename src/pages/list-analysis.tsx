@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as React from "react"
 import { useArmy } from "@/context/army-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { SKILL_MAP, EQUIP_MAP } from "@/lib/constants";
 import {
   BarChart,
@@ -149,8 +147,8 @@ function ListAnalysis({ list }: { list: any }) {
     'Specialist Operative': 0,
   };
 
-  unitSpecialists.forEach(specs => {
-    specs.forEach(s => {
+  unitSpecialists.forEach((specs: string[]) => {
+    specs.forEach((s: string) => {
       finalSpecialists[s]++;
     });
   });
@@ -236,7 +234,7 @@ function ListAnalysis({ list }: { list: any }) {
                 cursor={{ fill: 'rgba(0,0,0,0.05)' }}
               />
               <Bar dataKey="points" radius={[4, 4, 0, 0]}>
-                {typeData.map((entry, index) => (
+                {typeData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Bar>

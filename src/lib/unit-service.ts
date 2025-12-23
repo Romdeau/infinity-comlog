@@ -89,9 +89,11 @@ class UnitService {
             ...member,
             name: member.name || `Unit ${member.id}`,
             isc: '',
-            skills: [],
-            weapons: [],
-            equip: []
+            type: '',
+            training: '',
+            points: 0,
+            swc: '0',
+            profiles: []
           }))
         }))
       };
