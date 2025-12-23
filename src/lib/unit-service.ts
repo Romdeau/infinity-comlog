@@ -1,8 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ArmyList, type Trooper, type CombatGroup } from './army-parser';
 
 export interface UnitData {
   units: any[];
   version: string;
+}
+
+interface ProfileGroup {
+  id: number;
+  profiles: any[];
+  options: any[];
+}
+
+interface Unit {
+  idArmy: number;
+  profileGroups: ProfileGroup[];
 }
 
 export interface EnrichedTrooper extends Trooper {
@@ -50,7 +62,21 @@ class UnitService {
     const factionData = await this.getFactionData(list.sectoralId);
 
     if (!factionData) {
-      return list as any;
+      // Return a partially enriched list if data is missing
+      return {
+        ...list,
+        combatGroups: list.combatGroups.map(group => ({
+          ...group,
+          members: group.members.map(member => ({
+            ...member,
+            name: member.name || `Unit ${member.id}`,
+            isc: '',
+            skills: [],
+            weapons: [],
+            equip: []
+          }))
+        }))
+      };
     }
 
     const enrichedGroups = list.combatGroups.map(group => ({
@@ -67,7 +93,7 @@ class UnitService {
   private enrichTrooper(trooper: Trooper, factionData: UnitData): EnrichedTrooper {
     // Corvus Belli army codes use idArmy to identify units within a specific faction/sectoral.
     // We must match against idArmy to ensure we get the correct sectoral-specific unit options.
-    const unit = factionData.units.find(u => u.idArmy === trooper.id);
+    const unit = factionData.units.find((u: Unit) => u.idArmy === trooper.id);
 
     if (!unit) {
       return {
@@ -81,7 +107,7 @@ class UnitService {
     }
 
     // Find profile group by ID, fallback to index-based if not found
-    let profileGroup = unit.profileGroups.find(pg => pg.id === trooper.groupId);
+    let profileGroup = unit.profileGroups.find((pg: ProfileGroup) => pg.id === trooper.groupId);
     if (!profileGroup) {
       profileGroup = unit.profileGroups[trooper.groupId - 1] || unit.profileGroups[0];
     }
@@ -90,7 +116,7 @@ class UnitService {
     const profile = profileGroup.profiles[0] || { skills: [], weapons: [], equip: [] };
 
     // Find option by ID, fallback to index-based if not found
-    let option = profileGroup.options.find(o => o.id === trooper.optionId);
+    let option = profileGroup.options.find((o: any) => o.id === trooper.optionId);
     if (!option) {
       option = profileGroup.options[trooper.optionId - 1] || profileGroup.options[0];
     }

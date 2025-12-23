@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import {
   Card,
@@ -33,7 +34,7 @@ import { GameStep, GameGroup } from "@/components/game-flow-components"
 import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
-import { useGame, type GameSession } from "@/context/game-context"
+import { useGame, type GameSession, type PlayerTurnState } from "@/context/game-context"
 
 const SKILL_MAP: Record<number, string> = {
   238: "Hidden Deployment",
@@ -51,37 +52,9 @@ const SKILL_MAP: Record<number, string> = {
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()
 
-  if (!activeSession) {
-    return (
-      <Card className="w-full border-dashed">
-        <CardHeader className="text-center">
-          <CardTitle>No Active Session</CardTitle>
-          <CardDescription>Start a new game session to track your progress</CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center pb-6">
-          <Button onClick={() => createSession(`Game ${new Date().toLocaleDateString()}`)}>
-            <ZapIcon className="mr-2 size-4" />
-            Start New Game
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const gameStep = activeSession.state
-  const setGameStep = (updater: GameSession['state'] | ((prev: GameSession['state']) => GameSession['state'])) => {
-    updateActiveSession((prev: GameSession['state']) => {
-      if (typeof updater === 'function') {
-        return updater(prev)
-      }
-      return updater
-    })
-  }
-
-  // Helper to get active mission details
-  const activeMission = missions.find(m => m.id === gameStep.scenario)
-
   const assistance = React.useMemo(() => {
+    if (!activeSession) return [];
+    const gameStep = activeSession.state;
     if (gameStep.selectedList === 'none') return [];
     const list = armyLists[gameStep.selectedList];
     if (!list) return [];
@@ -114,7 +87,37 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
     });
 
     return items;
-  }, [armyLists, gameStep.selectedList]);
+  }, [armyLists, activeSession]);
+
+  if (!activeSession) {
+    return (
+      <Card className="w-full border-dashed">
+        <CardHeader className="text-center">
+          <CardTitle>No Active Session</CardTitle>
+          <CardDescription>Start a new game session to track your progress</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center pb-6">
+          <Button onClick={() => createSession(`Game ${new Date().toLocaleDateString()}`)}>
+            <ZapIcon className="mr-2 size-4" />
+            Start New Game
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const gameStep = activeSession.state
+  const setGameStep = (updater: GameSession['state'] | ((prev: GameSession['state']) => GameSession['state'])) => {
+    updateActiveSession((prev: GameSession['state']) => {
+      if (typeof updater === 'function') {
+        return updater(prev)
+      }
+      return updater
+    })
+  }
+
+  // Helper to get active mission details
+  const activeMission = missions.find(m => m.id === gameStep.scenario)
 
   // TP Calculation Logic
   const calculateTP = (op: number, rivalOp: number) => {
@@ -130,11 +133,11 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
   }
 
   // Derived state for automatic checkbox logic (Child -> Parent propagation)
-  const isTacticalComplete = (t: any) => t.tokens && t.retreat && t.lol && t.count
-  const isPlayerComplete = (p: any) =>
+  const isTacticalComplete = (t: PlayerTurnState['tactical']) => t.tokens && t.retreat && t.lol && t.count
+  const isPlayerComplete = (p: PlayerTurnState) =>
     (p.doneOverride || (isTacticalComplete(p.tactical) && p.impetuous && p.orders && p.states && p.end))
 
-  const isTurnComplete = (t: any) =>
+  const isTurnComplete = (t: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState }) =>
     (t.doneOverride || (isPlayerComplete(t.p1) && isPlayerComplete(t.p2)))
 
   const isInitiativeComplete = gameStep.initiationSubSteps.rollOff &&
@@ -168,11 +171,11 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
       }
     }
 
-    activeMission.objectives.forEach((obj: any) => {
+    activeMission.objectives.forEach((obj: { id: string; type: string; op: number; role?: string }) => {
       if (obj.role && obj.role !== assignedRole) return
 
       if (obj.type === 'manual') {
-        total += (objProgress[obj.id] || 0) * obj.op
+        total += ((objProgress[obj.id] as number) || 0) * obj.op
       } else if (obj.type === 'boolean') {
         if (objProgress[obj.id]) total += obj.op
       } else if (obj.type === 'round-end-boolean' || obj.type === 'round-end-manual') {
@@ -260,7 +263,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                   <div className="flex items-center gap-2">
                     <Select
                       value={gameStep.selectedList}
-                      onValueChange={(val) => setGameStep(prev => ({ ...prev, selectedList: val as any, listPicked: val !== 'none' }))}
+                      onValueChange={(val) => setGameStep(prev => ({ ...prev, selectedList: val as "none" | "listA" | "listB", listPicked: val !== 'none' }))}
                     >
                       <SelectTrigger className="h-9 text-xs flex-1">
                         <SelectValue placeholder="Select List..." />
@@ -788,7 +791,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                                       setGameStep(prev => {
                                         const objectives = { ...prev.scoring[role as 'player' | 'opponent'].objectives }
                                         if (obj.type === 'manual') {
-                                          const current = objectives[obj.id] || 0
+                                          const current = (objectives[obj.id] as number) || 0
                                           objectives[obj.id] = current >= (obj.max || 1) ? 0 : current + 1
                                         } else {
                                           objectives[obj.id] = !objectives[obj.id]

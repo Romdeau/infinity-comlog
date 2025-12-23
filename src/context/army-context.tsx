@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { type EnrichedArmyList } from "@/lib/unit-service"
 import { useLocalStorage } from "@/hooks/use-local-storage"
@@ -24,7 +25,7 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
     if (newLists.listA) {
       // Check if this exact list object (by reference or content) is already in storedLists
       // For now, we'll just generate a new ID if it's not already one of our active ones
-      const existingId = Object.entries(storedLists).find(([_, l]) =>
+      const existingId = Object.entries(storedLists).find(([, l]) =>
         l.armyName === newLists.listA?.armyName &&
         l.sectoralId === newLists.listA?.sectoralId &&
         JSON.stringify(l.combatGroups) === JSON.stringify(newLists.listA?.combatGroups)
@@ -42,7 +43,7 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (newLists.listB) {
-      const existingId = Object.entries(storedLists).find(([_, l]) =>
+      const existingId = Object.entries(storedLists).find(([, l]) =>
         l.armyName === newLists.listB?.armyName &&
         l.sectoralId === newLists.listB?.sectoralId &&
         JSON.stringify(l.combatGroups) === JSON.stringify(newLists.listB?.combatGroups)

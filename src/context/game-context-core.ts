@@ -48,14 +48,14 @@ export interface GameSession {
       deployedUnits: Record<string, boolean>
     }
     turns: {
-      turn1: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState; objectives: Record<string, any> }
-      turn2: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState; objectives: Record<string, any> }
-      turn3: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState; objectives: Record<string, any> }
+      turn1: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState; objectives: { player: Record<string, number | boolean>; opponent: Record<string, number | boolean> } }
+      turn2: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState; objectives: { player: Record<string, number | boolean>; opponent: Record<string, number | boolean> } }
+      turn3: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState; objectives: { player: Record<string, number | boolean>; opponent: Record<string, number | boolean> } }
     }
     scoring: {
       doneOverride: boolean
-      player: { op: number; vp: number; objectives: Record<string, any> }
-      opponent: { op: number; vp: number; objectives: Record<string, any> }
+      player: { op: number; vp: number; objectives: Record<string, number | boolean> }
+      opponent: { op: number; vp: number; objectives: Record<string, number | boolean> }
     }
     selectedList: "none" | "listA" | "listB"
   }

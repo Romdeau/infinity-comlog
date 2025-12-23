@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { GameContext, type GameContextType, type GameSession, type PlayerTurnState, useGame } from "./game-context-core"
