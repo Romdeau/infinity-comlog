@@ -19,6 +19,7 @@ export interface ArmyList {
   combatGroups: CombatGroup[];
   parentName?: string;
   logo?: string;
+  rawCode?: string;
 }
 
 import metadata from '../data/metadata.json';
@@ -42,8 +43,10 @@ const getFactionInfo = (id: number) => {
 export class ArmyParser {
   private buffer: Uint8Array;
   private offset: number = 0;
+  private rawCode: string;
 
   constructor(base64: string) {
+    this.rawCode = base64;
     try {
       // Decode URI components (e.g. %3D -> =) and handle URL-safe chars if necessary
       const decoded = decodeURIComponent(base64);
@@ -129,6 +132,7 @@ export class ArmyParser {
       armyName,
       points,
       combatGroups,
+      rawCode: this.rawCode,
       ...factionInfo
     };
   }

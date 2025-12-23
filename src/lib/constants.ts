@@ -112,6 +112,35 @@ export const SKILL_MAP: Record<number, string> = {
   1000: "Hacker"
 };
 
+export const DEPLOYMENT_RELEVANT_SKILLS = [
+  25,  // Booty
+  29,  // Camouflage
+  33,  // Parachutist
+  35,  // Combat Jump
+  46,  // Inferior Infiltration
+  47,  // Infiltration
+  48,  // Superior Infiltration
+  56,  // Minelayer
+  66,  // Seed-Embryo
+  69,  // Strategos L1
+  70,  // Strategos L2
+  71,  // Strategos L3
+  89,  // Sapper
+  161, // Forward Deployment
+  215, // Decoy
+  238, // Hidden Deployment
+  249, // Impersonation
+  251, // Strategic Deployment
+  265, // Aerial
+];
+
+export const DEPLOYMENT_RELEVANT_EQUIP = [
+  24,  // Holomask
+  104, // Holoprojector
+  107, // Motorcycle
+  205, // AI Motorcycle
+];
+
 export const WEAPON_MAP: Record<number, string> = {
   1: "Akrylat-Kanone",
   2: "Heavy Machine Gun",

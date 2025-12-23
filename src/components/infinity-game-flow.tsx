@@ -35,7 +35,7 @@ import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
 import { useGame, type GameSession, type PlayerTurnState } from "@/context/game-context"
-import { SKILL_MAP } from "@/lib/constants"
+import { SKILL_MAP, EQUIP_MAP, DEPLOYMENT_RELEVANT_SKILLS, DEPLOYMENT_RELEVANT_EQUIP } from "@/lib/constants"
 
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()
@@ -53,15 +53,26 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
       group.members.forEach((member, mIdx) => {
         const relevantSkills = new Set<string>();
 
-        const check = (s: { id: number }) => {
-          const skillName = SKILL_MAP[s.id];
-          if (skillName) {
-            relevantSkills.add(skillName);
+        // Check all profiles for relevant skills/equip
+        member.profiles?.forEach((profile: any) => {
+          if (profile.skills) {
+            profile.skills.forEach((s: { id: number }) => {
+              if (DEPLOYMENT_RELEVANT_SKILLS.includes(s.id)) {
+                const name = SKILL_MAP[s.id];
+                if (name) relevantSkills.add(name);
+              }
+            });
           }
-        };
 
-        if (member.skills) member.skills.forEach(check);
-        if (member.equip) member.equip.forEach(check);
+          if (profile.equip) {
+            profile.equip.forEach((e: { id: number }) => {
+              if (DEPLOYMENT_RELEVANT_EQUIP.includes(e.id)) {
+                const name = EQUIP_MAP[e.id];
+                if (name) relevantSkills.add(name);
+              }
+            });
+          }
+        });
 
         if (relevantSkills.size > 0) {
           items.push({

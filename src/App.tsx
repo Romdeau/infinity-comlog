@@ -5,6 +5,7 @@ import { GameProvider } from "@/context/game-context";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import ArmyListsPage from "@/pages/army-lists";
 import ArmyListViewPage from "@/pages/army-list-view";
+import ListAnalysisPage from "@/pages/list-analysis";
 import GameSequencePage from "@/pages/game-sequence";
 import OrderReferencePage from "@/pages/order-reference";
 
@@ -20,6 +21,7 @@ export function App() {
                   <Route index element={<Navigate to="army-lists" replace />} />
                   <Route path="army-lists" element={<ArmyListsPage />} />
                   <Route path="army-list-view" element={<ArmyListViewPage />} />
+                  <Route path="list-analysis" element={<ListAnalysisPage />} />
                   <Route path="game-sequence" element={<GameSequencePage />} />
                   <Route path="order-reference" element={<OrderReferencePage />} />
                   <Route path="*" element={<Navigate to="army-lists" replace />} />

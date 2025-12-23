@@ -26,9 +26,21 @@ export function DashboardLayout() {
   const getBreadcrumb = () => {
     const path = location.pathname
     if (path === "/army-lists") return "Army Lists"
+    if (path === "/army-list-view") return (
+      <div className="flex items-center gap-1.5">
+        <span>List View</span>
+        <span className="text-[10px] font-black text-orange-500 uppercase tracking-tighter">(Alpha)</span>
+      </div>
+    )
+    if (path === "/list-analysis") return (
+      <div className="flex items-center gap-1.5">
+        <span>List Analysis</span>
+        <span className="text-[10px] font-black text-orange-500 uppercase tracking-tighter">(Alpha)</span>
+      </div>
+    )
     if (path === "/game-sequence") return "Game Sequence"
     if (path === "/order-reference") return "Order Reference"
-    return "Dashboard"
+    return "Infinity Comlog"
   }
 
   return (
