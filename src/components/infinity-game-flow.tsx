@@ -34,7 +34,7 @@ import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
 import { useGame, type GameSession } from "@/context/game-context"
-import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete } from "@/lib/game-flow-helpers"
+import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete, getPlayerByTurnOrder } from "@/lib/game-flow-helpers"
 import { getRelevantSkillsForPhase, type GamePhase, type ContextualHint } from "@/lib/army-context-mapping"
 
 export function ContextualHints({ hints, phase, onToggle, checkedMap }: { 
