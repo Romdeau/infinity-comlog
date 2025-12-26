@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect } from "bun:test";
 import { isTacticalComplete, calculateTP, isInitiativeComplete, isSetupComplete, isPlayerComplete } from "./game-flow-helpers";
 

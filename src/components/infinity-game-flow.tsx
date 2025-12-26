@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as React from "react"
 import {
   Card,
   CardContent,
@@ -35,7 +34,6 @@ import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
 import { useGame, type GameSession } from "@/context/game-context"
-import { SKILL_MAP, EQUIP_MAP } from "@/lib/constants"
 import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete } from "@/lib/game-flow-helpers"
 import { getRelevantSkillsForPhase, type GamePhase, type ContextualHint } from "@/lib/army-context-mapping"
 

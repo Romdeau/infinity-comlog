@@ -1,4 +1,5 @@
 import { SKILL_MAP, EQUIP_MAP } from "./constants";
+import { type EnrichedTrooper } from "./unit-service";
 
 export type GamePhase = "setup" | "tactical" | "impetuous" | "orders" | "states" | "end";
 
@@ -78,7 +79,7 @@ export interface ContextualHint {
 }
 
 export function getRelevantSkillsForPhase(
-  unitsWithIds: { id: string, unit: any }[], 
+  unitsWithIds: { id: string, unit: EnrichedTrooper }[], 
   phase: GamePhase
 ): ContextualHint[] {
   const relevantSkillIds = PHASE_SKILL_IDS[phase] || [];
@@ -87,7 +88,7 @@ export function getRelevantSkillsForPhase(
   return unitsWithIds.map(({ id, unit }) => {
     const skills = new Set<string>();
 
-    unit.profiles?.forEach((profile: any) => {
+    unit.profiles?.forEach((profile) => {
       profile.skills?.forEach((skill: { id: number }) => {
         if (relevantSkillIds.includes(skill.id)) {
           const name = SKILL_MAP[skill.id];
