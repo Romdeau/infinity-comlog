@@ -343,6 +343,13 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                     onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, deployment: !!val } }))}
                   />
 
+                  <GameStep
+                    label="Strategic Use"
+                    size="sm"
+                    checked={gameStep.initiationSubSteps.strategicUse}
+                    onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, strategicUse: !!val } }))}
+                  />
+
                   {assistance.length > 0 && (
                     <div className="border border-fuchsia-500/20 rounded-lg bg-fuchsia-500/5 p-3 space-y-3">
                       <div className="flex items-center gap-2 text-fuchsia-500 font-bold text-[11px] uppercase tracking-wider">
@@ -577,11 +584,11 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                           <GameStep
                             label="Orders Phase"
                             size="sm"
-                            checked={player.orders}
+                            checked={player.orders.done}
                             onCheckedChange={(val) => setGameStep(prev => {
                               const newTurns = { ...prev.turns }
                               const t = (newTurns as any)[tKey]
-                              t[pKey].orders = !!val
+                              t[pKey].orders.done = !!val
                               return { ...prev, turns: newTurns }
                             })}
                           />
