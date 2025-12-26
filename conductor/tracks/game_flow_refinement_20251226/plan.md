@@ -8,7 +8,7 @@
 - [x] Task: Conductor - User Manual Verification 'Persistence Layer & Core State' (Protocol in workflow.md) 177562e
 
 ## Phase 2: Complete N5 Sequence Implementation
-- [ ] Task: Write Tests for Missing N5 Sequence Phases (Audit against rules)
+- [x] Task: Write Tests for Missing N5 Sequence Phases (Audit against rules) 30f6ed3
 - [ ] Task: Implement Missing N5 Sequence Phases in UI
 - [ ] Task: Write Tests for Scoring Logic Persistence
 - [ ] Task: Implement Scoring Tracker Refinement
