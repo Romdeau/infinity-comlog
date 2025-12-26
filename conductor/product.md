@@ -15,5 +15,6 @@ The Infinity Comlog is designed as a mobile-first, quick-reference companion for
 # Key Features
 - **Interactive Game Sequence Checklist:** A step-by-step guide through Setup, individual Player Turns, and End-of-Game scoring.
 - **Army Code Integration:** Ability to import official Infinity army codes to display unit-specific data and contextual phase-relevant hints.
+- **Strategic Use Tracking:** Compliance with N5 rules for First and Second Player procedural and logistical uses of Command Tokens, including dynamic labeling and contextual tactical hints.
 - **Wiki Integration:** Direct links to the official Infinity Wiki for instant verification of skills and AROs.
 - **Mobile-First Design:** Optimized for small screens and one-handed use at the gaming table.
