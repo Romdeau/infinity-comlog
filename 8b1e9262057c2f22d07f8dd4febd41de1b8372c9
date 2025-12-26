@@ -1,0 +1,1 @@
+Task: Phase 2 Task 2 & 3 - Core UI Refactoring\nSummary: Relocated P1 procedural option and refactored the Strategic Use step for Second Player and Logistical options.\nFiles:\n- src/components/infinity-game-flow.tsx: Refactored UI components.\nWhy: To align with N5 rules and provide a better UX with dynamic labeling.
