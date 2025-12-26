@@ -39,7 +39,7 @@ import { SKILL_MAP, EQUIP_MAP } from "@/lib/constants"
 import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete } from "@/lib/game-flow-helpers"
 import { getRelevantSkillsForPhase, type GamePhase, type ContextualHint } from "@/lib/army-context-mapping"
 
-function ContextualHints({ hints, phase, onToggle, checkedMap }: { 
+export function ContextualHints({ hints, phase, onToggle, checkedMap }: { 
   hints: ContextualHint[], 
   phase: GamePhase, 
   onToggle?: (id: string, val: boolean) => void,
