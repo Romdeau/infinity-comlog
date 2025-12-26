@@ -1,0 +1,5 @@
+Fixes:
+- Merged 'Command Tokens' into 'Strategic Use' step in Initiation.
+- Moved 'Deployment Assistance' to correct position.
+- Fixed calculateOP to handle game-end objective types as booleans.
+- Added classifieds scoring (state + UI + logic).
