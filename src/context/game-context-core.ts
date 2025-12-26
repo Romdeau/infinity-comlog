@@ -10,7 +10,9 @@ export interface PlayerTurnState {
     count: boolean
   }
   impetuous: boolean
-  orders: boolean
+  orders: {
+    done: boolean
+  }
   states: boolean
   end: boolean
 }
@@ -31,7 +33,7 @@ export interface GameSession {
     initiationSubSteps: {
       rollOff: boolean
       deployment: boolean
-      commandTokens: boolean
+      strategicUse: boolean
     }
     initiative: {
       winner: 'player' | 'opponent'
@@ -54,8 +56,8 @@ export interface GameSession {
     }
     scoring: {
       doneOverride: boolean
-      player: { op: number; vp: number; objectives: Record<string, number | boolean> }
-      opponent: { op: number; vp: number; objectives: Record<string, number | boolean> }
+      player: { op: number; vp: number; classifieds: number; objectives: Record<string, number | boolean> }
+      opponent: { op: number; vp: number; classifieds: number; objectives: Record<string, number | boolean> }
     }
     selectedList: "none" | "listA" | "listB"
   }

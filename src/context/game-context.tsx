@@ -16,7 +16,9 @@ const createInitialPlayerTurn = (): PlayerTurnState => ({
     count: false,
   },
   impetuous: false,
-  orders: false,
+  orders: {
+    done: false,
+  },
   states: false,
   end: false,
 })
@@ -32,7 +34,7 @@ const createInitialGameState = (): GameSession['state'] => ({
   initiationSubSteps: {
     rollOff: false,
     deployment: false,
-    commandTokens: false,
+    strategicUse: false,
   },
   initiative: {
     winner: 'player',
@@ -55,8 +57,8 @@ const createInitialGameState = (): GameSession['state'] => ({
   },
   scoring: {
     doneOverride: false,
-    player: { op: 0, vp: 0, objectives: {} },
-    opponent: { op: 0, vp: 0, objectives: {} },
+    player: { op: 0, vp: 0, classifieds: 0, objectives: {} },
+    opponent: { op: 0, vp: 0, classifieds: 0, objectives: {} },
   },
   selectedList: "none"
 })

@@ -1,0 +1,22 @@
+# Plan: Refine Game Sequence Flow & Persistence
+
+## Phase 1: Persistence Layer & Core State [checkpoint: 177562e]
+- [x] Task: Write Tests for Game State Persistence (LocalStorage) bd4aeb7
+- [x] Task: Implement Game State Persistence Logic 70c7bc1
+- [x] Task: Write Tests for Game Sequence State Machine (Transitions) 8667cc4
+- [x] Task: Refactor Game Sequence State to Support Deep Persistence cc5b884
+- [x] Task: Conductor - User Manual Verification 'Persistence Layer & Core State' (Protocol in workflow.md) 177562e
+
+## Phase 2: Complete N5 Sequence Implementation [checkpoint: 6d036a4]
+- [x] Task: Write Tests for Missing N5 Sequence Phases (Audit against rules) 30f6ed3
+- [x] Task: Implement Missing N5 Sequence Phases in UI 18f383e
+- [x] Task: Write Tests for Scoring Logic Persistence f077987
+- [x] Task: Implement Scoring Tracker Refinement a831f9d
+- [x] Task: Conductor - User Manual Verification 'Complete N5 Sequence Implementation' (Protocol in workflow.md) 6d036a4
+
+## Phase 3: Army Context Integration [checkpoint: eab5bce]
+- [x] Task: Write Tests for Skill-to-Phase Mapping Logic b16d85f
+- [x] Task: Implement Skill-to-Phase Mapping (linking army units to tracker phases) 7ed603f
+- [x] Task: Write Tests for Contextual UI Hints in Tracker c4edc70
+- [x] Task: Implement Contextual UI Hints for Imported Army Units 7ed603f
+- [x] Task: Conductor - User Manual Verification 'Army Context Integration' (Protocol in workflow.md) eab5bce
