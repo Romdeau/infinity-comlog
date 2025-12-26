@@ -2,12 +2,12 @@
 
 Refactor the "Strategic Use of Command Tokens" implementation to support N5 rules, dynamic labeling, and contextual hints.
 
-## Phase 1: Data Model & State Update
+## Phase 1: Data Model & State Update [checkpoint: 80afaed]
 Update the `GameSession` state to track the specific strategic options selected by each player.
 
 - [x] Task: Update `GameSession` interface in `src/context/game-context-core.ts` to include `strategicOptions`. 2f5c1a1
 - [x] Task: Initialize default `strategicOptions` in `src/context/game-context.tsx`. 2f5c1a1
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Data Model' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Data Model' (Protocol in workflow.md) 80afaed
 
 ## Phase 2: Core UI Refactoring
 Refactor `src/components/infinity-game-flow.tsx` to use the new state and dynamically label players.
