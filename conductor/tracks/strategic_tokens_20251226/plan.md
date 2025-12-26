@@ -9,14 +9,14 @@ Update the `GameSession` state to track the specific strategic options selected 
 - [x] Task: Initialize default `strategicOptions` in `src/context/game-context.tsx`. 2f5c1a1
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Data Model' (Protocol in workflow.md) 80afaed
 
-## Phase 2: Core UI Refactoring
+## Phase 2: Core UI Refactoring [checkpoint: e2073ff]
 Refactor `src/components/infinity-game-flow.tsx` to use the new state and dynamically label players.
 
 - [x] Task: Implement helper logic to determine "First Player" and "Second Player" identities (You vs Opponent). 7a84ffe
 - [x] Task: Relocate First Player Procedural (Reserve Trooper) option above the Deployment section. 8b1e926
 - [x] Task: Refactor the "Strategic Use" step to display Second Player Procedural options and Logistical (Speedball) options with clear separation. 8b1e926
 - [x] Task: Update the `isInitiativeComplete` helper in `src/lib/game-flow-helpers.ts` if needed to reflect the new state. 8b1e926
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Core UI' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Core UI' (Protocol in workflow.md) e2073ff
 
 ## Phase 3: Contextual Hints & Integration
 Inject dynamic hints into the setup and tactical phases based on strategic choices.
