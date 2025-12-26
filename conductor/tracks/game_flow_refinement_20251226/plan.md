@@ -17,6 +17,6 @@
 ## Phase 3: Army Context Integration
 - [x] Task: Write Tests for Skill-to-Phase Mapping Logic b16d85f
 - [x] Task: Implement Skill-to-Phase Mapping (linking army units to tracker phases) 7ed603f
-- [ ] Task: Write Tests for Contextual UI Hints in Tracker
+- [x] Task: Write Tests for Contextual UI Hints in Tracker c4edc70
 - [ ] Task: Implement Contextual UI Hints for Imported Army Units
 - [ ] Task: Conductor - User Manual Verification 'Army Context Integration' (Protocol in workflow.md)
