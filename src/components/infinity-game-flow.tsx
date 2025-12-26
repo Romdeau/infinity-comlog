@@ -34,8 +34,9 @@ import { GameStep, GameGroup } from "@/components/game-flow-components"
 import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
-import { useGame, type GameSession, type PlayerTurnState } from "@/context/game-context"
+import { useGame, type GameSession } from "@/context/game-context"
 import { SKILL_MAP, EQUIP_MAP, DEPLOYMENT_RELEVANT_SKILLS, DEPLOYMENT_RELEVANT_EQUIP } from "@/lib/constants"
+import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete } from "@/lib/game-flow-helpers"
 
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()
@@ -118,26 +119,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
   // Helper to get active mission details
   const activeMission = missions.find(m => m.id === gameStep.scenario)
 
-  // TP Calculation Logic
-  const calculateTP = (op: number, rivalOp: number) => {
-    let tp = 0
-    if (op > rivalOp) tp = 4
-    else if (op === rivalOp) tp = 2
-    else {
-      tp = 0
-      if (rivalOp - op < 2) tp += 1 // Bonus for close loss
-    }
-    if (op >= 5) tp += 1 // Bonus for 5+ OP
-    return tp
-  }
 
-  // Derived state for automatic checkbox logic (Child -> Parent propagation)
-  const isTacticalComplete = (t: PlayerTurnState['tactical']) => t.tokens && t.retreat && t.lol && t.count
-  const isPlayerComplete = (p: PlayerTurnState) =>
-    (p.doneOverride || (isTacticalComplete(p.tactical) && p.impetuous && p.orders && p.states && p.end))
-
-  const isTurnComplete = (t: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState }) =>
-    (t.doneOverride || (isPlayerComplete(t.p1) && isPlayerComplete(t.p2)))
 
   const isInitiativeComplete = gameStep.initiationSubSteps.rollOff &&
     gameStep.initiationSubSteps.deployment &&

@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 import { render, screen, act } from "@testing-library/react";
 import { GameProvider, useGame } from "./game-context";
-import * as React from "react";
 
 // Mock component to interact with the context
 const TestComponent = () => {
