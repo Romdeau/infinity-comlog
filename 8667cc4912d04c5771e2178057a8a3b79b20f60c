@@ -1,0 +1,8 @@
+Task: Write Tests for Game Sequence State Machine (Transitions)
+
+Summary:
+- Extracted pure logic helpers into src/lib/game-flow-helpers.ts
+- Added src/lib/game-flow-helpers.test.ts to verify transition logic
+- Helper functions: isTacticalComplete, isPlayerComplete, isTurnComplete, calculateTP
+
+Why: To ensure game flow transitions are correct and testable outside the UI component.
