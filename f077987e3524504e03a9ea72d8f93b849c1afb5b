@@ -1,0 +1,8 @@
+Task: Write Tests for Scoring Logic Persistence
+
+Summary:
+- Updated TestComponent in game-context.test.tsx to include scoring updates
+- Added test case to verify scoring persistence in comlog_sessions
+- Verified tests pass with existing implementation
+
+Why: To ensure that mission scoring progress is reliably saved and survives session restarts.
