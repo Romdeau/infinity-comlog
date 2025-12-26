@@ -169,21 +169,50 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()
 
-  const getHints = (phase: GamePhase) => {
+  const getHints = (phase: GamePhase, isOpponent: boolean = false) => {
     if (!activeSession) return [];
     const gameStep = activeSession.state;
     if (gameStep.selectedList === 'none') return [];
-    const list = armyLists[gameStep.selectedList];
-    if (!list) return [];
+    
+    // Only show unit-specific hints for the user
+    let hints: ContextualHint[] = [];
+    if (!isOpponent) {
+      const list = armyLists[gameStep.selectedList];
+      if (list) {
+        const unitsWithIds = list.combatGroups.flatMap((group, gIdx) => 
+          group.members.map((member, mIdx) => ({
+            id: `${gameStep.selectedList}-${gIdx}-${mIdx}-${member.id}`,
+            unit: member
+          }))
+        );
+        hints = getRelevantSkillsForPhase(unitsWithIds, phase);
+      }
+    }
 
-    const unitsWithIds = list.combatGroups.flatMap((group, gIdx) => 
-      group.members.map((member, mIdx) => ({
-        id: `${gameStep.selectedList}-${gIdx}-${mIdx}-${member.id}`,
-        unit: member
-      }))
-    );
+    // Add strategic hints
+    if (phase === "setup" && !isOpponent) {
+      if (gameStep.initiative.firstTurn === "player" && gameStep.strategicOptions.p1Reserve) {
+        hints.push({
+          id: "strat-reserve",
+          unitName: "Strategic Use",
+          skills: ["You have an extra unit in reserve."]
+        });
+      }
+    }
 
-    return getRelevantSkillsForPhase(unitsWithIds, phase);
+    if (phase === "tactical" && isOpponent) {
+      // If user is P2 and selected Order Reduction
+      const isUserP2 = gameStep.initiative.firstTurn === "opponent";
+      if (isUserP2 && gameStep.strategicOptions.p2OrderReduction) {
+        hints.push({
+          id: "strat-order-reduction",
+          unitName: "Strategic Use",
+          skills: ["Opponent's Order Pool reduced by 2 Regular Orders."]
+        });
+      }
+    }
+
+    return hints;
   };
 
   if (!activeSession) {
@@ -636,7 +665,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                   {['p1', 'p2'].map((pKey) => {
                     const player = (turn as any)[pKey]
                     const label = pKey === 'p1' ? "First Player" : "Second Player"
-                    const playerName = (pKey === 'p1' && gameStep.initiative.firstTurn === 'player') || (pKey === 'p2' && gameStep.initiative.firstTurn === 'player') ? "You" : "Opponent"
+                    const playerName = getPlayerByTurnOrder(gameStep.initiative, pKey === 'p1' ? 1 : 2) === 'player' ? "You" : "Opponent"
 
                     return (
                       <div key={pKey} className="space-y-2">
@@ -703,7 +732,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                                 })}
                               />
                             </div>
-                            {playerName === "You" && <ContextualHints phase="tactical" hints={getHints('tactical')} />}
+                            <ContextualHints phase="tactical" hints={getHints('tactical', playerName === "Opponent")} />
                           </GameGroup>
                           <GameStep
                             label="Impetuous Phase"
