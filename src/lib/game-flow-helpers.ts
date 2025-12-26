@@ -12,7 +12,6 @@ export const isInitiativeComplete = (subSteps: GameSession['state']['initiationS
     subSteps.rollOff &&
     subSteps.deployment &&
     subSteps.strategicUse &&
-    subSteps.commandTokens &&
     initiative.firstTurn !== null &&
     initiative.firstDeployment !== null;
 

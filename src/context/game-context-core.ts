@@ -34,7 +34,6 @@ export interface GameSession {
       rollOff: boolean
       deployment: boolean
       strategicUse: boolean
-      commandTokens: boolean
     }
     initiative: {
       winner: 'player' | 'opponent'
@@ -57,8 +56,8 @@ export interface GameSession {
     }
     scoring: {
       doneOverride: boolean
-      player: { op: number; vp: number; objectives: Record<string, number | boolean> }
-      opponent: { op: number; vp: number; objectives: Record<string, number | boolean> }
+      player: { op: number; vp: number; classifieds: number; objectives: Record<string, number | boolean> }
+      opponent: { op: number; vp: number; classifieds: number; objectives: Record<string, number | boolean> }
     }
     selectedList: "none" | "listA" | "listB"
   }

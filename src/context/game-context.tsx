@@ -35,7 +35,6 @@ const createInitialGameState = (): GameSession['state'] => ({
     rollOff: false,
     deployment: false,
     strategicUse: false,
-    commandTokens: false,
   },
   initiative: {
     winner: 'player',
@@ -58,8 +57,8 @@ const createInitialGameState = (): GameSession['state'] => ({
   },
   scoring: {
     doneOverride: false,
-    player: { op: 0, vp: 0, objectives: {} },
-    opponent: { op: 0, vp: 0, objectives: {} },
+    player: { op: 0, vp: 0, classifieds: 0, objectives: {} },
+    opponent: { op: 0, vp: 0, classifieds: 0, objectives: {} },
   },
   selectedList: "none"
 })

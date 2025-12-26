@@ -36,7 +36,7 @@ import missions from "@/data/missions.json"
 
 import { useGame, type GameSession } from "@/context/game-context"
 import { SKILL_MAP, EQUIP_MAP, DEPLOYMENT_RELEVANT_SKILLS, DEPLOYMENT_RELEVANT_EQUIP } from "@/lib/constants"
-import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete } from "@/lib/game-flow-helpers"
+import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete } from "@/lib/game-flow-helpers"
 
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()
@@ -121,17 +121,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
 
 
 
-  const isInitiativeComplete = gameStep.initiationSubSteps.rollOff &&
-    gameStep.initiationSubSteps.deployment &&
-    gameStep.initiationSubSteps.commandTokens &&
-    gameStep.initiative.firstTurn !== null &&
-    gameStep.initiative.firstDeployment !== null
 
-  const isSetupComplete = !!gameStep.scenario &&
-    gameStep.scenarioPicked &&
-    gameStep.listPicked &&
-    gameStep.classifiedsDrawn &&
-    isInitiativeComplete
 
   // Calculate OP based on objectives
   const calculateOP = (role: 'player' | 'opponent') => {
@@ -152,12 +142,15 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
       }
     }
 
+    // Add classifieds points
+    total += gameStep.scoring[role].classifieds || 0
+
     activeMission.objectives.forEach((obj: { id: string; type: string; op: number; role?: string }) => {
       if (obj.role && obj.role !== assignedRole) return
 
       if (obj.type === 'manual') {
         total += ((objProgress[obj.id] as number) || 0) * obj.op
-      } else if (obj.type === 'boolean') {
+      } else if (obj.type === 'boolean' || obj.type === 'game-end') {
         if (objProgress[obj.id]) total += obj.op
       } else if (obj.type === 'round-end-boolean' || obj.type === 'round-end-manual') {
         // Sum from turns
@@ -175,7 +168,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
   const opponentOP = calculateOP('opponent')
 
   const completedCount = [
-    isSetupComplete,
+    isSetupComplete(gameStep),
     isTurnComplete(gameStep.turns.turn1),
     isTurnComplete(gameStep.turns.turn2),
     isTurnComplete(gameStep.turns.turn3),
@@ -201,7 +194,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
           <GameGroup
             label="1. Setup & Initiative"
             value="setup"
-            checked={isSetupComplete || gameStep.setupDoneOverride}
+            checked={isSetupComplete(gameStep) || gameStep.setupDoneOverride}
             onCheckedChange={(val) => setGameStep(prev => ({ ...prev, setupDoneOverride: !!val }))}
             defaultOpen={true}
           >
@@ -343,13 +336,6 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                     onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, deployment: !!val } }))}
                   />
 
-                  <GameStep
-                    label="Strategic Use"
-                    size="sm"
-                    checked={gameStep.initiationSubSteps.strategicUse}
-                    onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, strategicUse: !!val } }))}
-                  />
-
                   {assistance.length > 0 && (
                     <div className="border border-fuchsia-500/20 rounded-lg bg-fuchsia-500/5 p-3 space-y-3">
                       <div className="flex items-center gap-2 text-fuchsia-500 font-bold text-[11px] uppercase tracking-wider">
@@ -472,11 +458,20 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                   )}
 
                   <GameStep
-                    label="Command Tokens"
+                    label="Strategic Use of Command Tokens"
                     size="sm"
-                    checked={gameStep.initiationSubSteps.commandTokens}
-                    onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, commandTokens: !!val } }))}
-                  />
+                    checked={gameStep.initiationSubSteps.strategicUse}
+                    onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, strategicUse: !!val } }))}
+                  >
+                     <div className="pl-6 pt-1 text-[10px] text-muted-foreground space-y-1">
+                        <div>Opponent can use 1 Command Token to:</div>
+                        <ul className="list-disc pl-3 space-y-0.5">
+                            <li>Limit your Command Token use to 1 per turn.</li>
+                            <li>Remove 2 Regular Orders from your Order Pool.</li>
+                            <li>Prevent one trooper from using Impetuous Order.</li>
+                        </ul>
+                     </div>
+                  </GameStep>
                 </div>
               </div>
             </div>
@@ -744,6 +739,29 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                           }))
                         }}
                       />
+                    </div>
+
+                    {/* Classifieds Input */}
+                    <div className="flex items-center justify-between px-1 py-1 border-b border-border/50 ml-2 border-l-2 border-muted/30 pl-4">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Classified Points</span>
+                        <Input
+                            type="number"
+                            min={0}
+                            max={10}
+                            className="h-6 w-12 text-center text-[10px] px-1 bg-muted/30 focus:bg-background"
+                            value={gameStep.scoring[role as 'player' | 'opponent'].classifieds}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => {
+                                const val = e.target.value
+                                setGameStep(prev => ({
+                                    ...prev,
+                                    scoring: {
+                                        ...prev.scoring,
+                                        [role]: { ...prev.scoring[role as 'player' | 'opponent'], classifieds: val === "" ? 0 : parseInt(val) }
+                                    }
+                                }))
+                            }}
+                        />
                     </div>
 
                     {/* Objective Checklist for this player */}

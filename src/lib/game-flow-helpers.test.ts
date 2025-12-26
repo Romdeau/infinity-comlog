@@ -75,7 +75,6 @@ describe("Game Flow Helpers", () => {
         rollOff: true,
         deployment: true,
         strategicUse: true,
-        commandTokens: true,
       };
       const initiative = {
         winner: 'player' as const,
@@ -91,7 +90,6 @@ describe("Game Flow Helpers", () => {
         rollOff: true,
         deployment: false, // missing
         strategicUse: true,
-        commandTokens: true,
       };
       const initiative = {
         winner: 'player' as const,
