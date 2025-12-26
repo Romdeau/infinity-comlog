@@ -1,8 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect } from "bun:test";
-import { isTacticalComplete, calculateTP, isInitiativeComplete, isSetupComplete, isPlayerComplete } from "./game-flow-helpers";
+import { isTacticalComplete, calculateTP, isInitiativeComplete, isSetupComplete, isPlayerComplete, getPlayerByTurnOrder } from "./game-flow-helpers";
 
 describe("Game Flow Helpers", () => {
+  describe("getPlayerByTurnOrder", () => {
+    it("identifies player and opponent correctly when player is first", () => {
+      const initiative = { firstTurn: 'player' as const };
+      expect(getPlayerByTurnOrder(initiative, 1)).toBe('player');
+      expect(getPlayerByTurnOrder(initiative, 2)).toBe('opponent');
+    });
+
+    it("identifies player and opponent correctly when opponent is first", () => {
+      const initiative = { firstTurn: 'opponent' as const };
+      expect(getPlayerByTurnOrder(initiative, 1)).toBe('opponent');
+      expect(getPlayerByTurnOrder(initiative, 2)).toBe('player');
+    });
+
+    it("returns null if firstTurn is not set", () => {
+      const initiative = { firstTurn: null };
+      expect(getPlayerByTurnOrder(initiative, 1)).toBeNull();
+    });
+  });
+
   describe("isTacticalComplete", () => {
     it("returns true when all tactical substeps are done", () => {
       const tactical = {
