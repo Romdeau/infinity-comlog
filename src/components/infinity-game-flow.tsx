@@ -35,59 +35,158 @@ import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
 import { useGame, type GameSession } from "@/context/game-context"
-import { SKILL_MAP, EQUIP_MAP, DEPLOYMENT_RELEVANT_SKILLS, DEPLOYMENT_RELEVANT_EQUIP } from "@/lib/constants"
+import { SKILL_MAP, EQUIP_MAP } from "@/lib/constants"
 import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete } from "@/lib/game-flow-helpers"
+import { getRelevantSkillsForPhase, type GamePhase, type ContextualHint } from "@/lib/army-context-mapping"
+
+function ContextualHints({ hints, phase, onToggle, checkedMap }: { 
+  hints: ContextualHint[], 
+  phase: GamePhase, 
+  onToggle?: (id: string, val: boolean) => void,
+  checkedMap?: Record<string, boolean>
+}) {
+  if (hints.length === 0) return null;
+
+  return (
+    <div className={cn(
+      "border rounded-lg p-3 space-y-3",
+      phase === "setup" ? "border-fuchsia-500/20 bg-fuchsia-500/5" : "border-primary/10 bg-primary/5"
+    )}>
+      <div className={cn(
+        "flex items-center gap-2 font-bold text-[11px] uppercase tracking-wider",
+        phase === "setup" ? "text-fuchsia-500" : "text-primary"
+      )}>
+        <LayersIcon className="size-3.5" />
+        {phase === "setup" ? "Deployment Assistance" : "Phase Hints"}
+      </div>
+      <div className="grid gap-2">
+        {hints.map((item) => (
+          <label key={item.id} className="flex items-center justify-between bg-background/40 p-2 rounded border border-border/40 cursor-pointer hover:bg-background/60 transition-colors">
+            <div className="flex items-center gap-3">
+              {onToggle && (
+                <Checkbox
+                  checked={checkedMap?.[item.id] || false}
+                  onCheckedChange={(val) => onToggle(item.id, !!val)}
+                />
+              )}
+              <span className={cn(
+                "text-[10px] font-bold uppercase tracking-tight",
+                checkedMap?.[item.id] && "text-muted-foreground line-through opacity-70"
+              )}>{item.unitName}</span>
+            </div>
+            <div className="flex flex-wrap gap-1 justify-end">
+              {item.skills.map((skill, i) => (
+                <div key={i} className={cn(
+                  "text-[9px] px-2 py-0.5 rounded-md border flex items-center gap-1",
+                  skill === "Booty"
+                    ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                    : "bg-muted/50 text-muted-foreground border-border"
+                )}>
+                  {skill === "Booty" ? (
+                    <Popover>
+                      <PopoverTrigger className="hover:underline cursor-pointer flex items-center gap-1">
+                        Booty <CheckCircle2Icon className="size-2.5" />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0 overflow-hidden" align="end">
+                        <div className="bg-primary text-primary-foreground text-[10px] font-bold p-2 text-center uppercase tracking-widest">
+                          Booty Table
+                        </div>
+                        <div className="p-0 text-[10px]">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="bg-muted text-muted-foreground border-b border-border">
+                                <th className="p-1 text-center border-r border-border">Roll</th>
+                                <th className="p-1 text-left border-r border-border">Item</th>
+                                <th className="p-1 text-center border-r border-border">Roll</th>
+                                <th className="p-1 text-left">Item</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-b border-border">
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">1-2</td>
+                                <td className="p-1 border-r border-border">+1 ARM</td>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">13</td>
+                                <td className="p-1">Panzerfaust</td>
+                              </tr>
+                              <tr className="border-b border-border">
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">3-4</td>
+                                <td className="p-1 border-r border-border">Light Flamethrower</td>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">14</td>
+                                <td className="p-1">Monofilament CCW</td>
+                              </tr>
+                              <tr className="border-b border-border">
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">5-6</td>
+                                <td className="p-1 border-r border-border">Grenades</td>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">15</td>
+                                <td className="p-1">MOV 8-4</td>
+                              </tr>
+                              <tr className="border-b border-border">
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">7-8</td>
+                                <td className="p-1 border-r border-border">DA CCW</td>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">16</td>
+                                <td className="p-1">Shock/MULTI Rifle</td>
+                              </tr>
+                              <tr className="border-b border-border">
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">9</td>
+                                <td className="p-1 border-r border-border">MSV L1</td>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">17</td>
+                                <td className="p-1">MULTI Sniper</td>
+                              </tr>
+                              <tr className="border-b border-border">
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">10</td>
+                                <td className="p-1 border-r border-border">EXP CCW</td>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">18</td>
+                                <td className="p-1">Immune(ARM)/+4 ARM</td>
+                              </tr>
+                              <tr className="border-b border-border">
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">11</td>
+                                <td className="p-1 border-r border-border">Adhesive L.</td>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">19</td>
+                                <td className="p-1">Mimetism (-6)</td>
+                              </tr>
+                              <tr>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">12</td>
+                                <td className="p-1 border-r border-border">Immune(AP)/+2 ARM</td>
+                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">20</td>
+                                <td className="p-1">B+1/HMG</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    skill
+                  )}
+                </div>
+              ))}
+            </div>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()
 
-  const assistance = React.useMemo(() => {
+  const getHints = (phase: GamePhase) => {
     if (!activeSession) return [];
     const gameStep = activeSession.state;
     if (gameStep.selectedList === 'none') return [];
     const list = armyLists[gameStep.selectedList];
     if (!list) return [];
 
-    const items: { id: string; unitName: string; skills: string[] }[] = [];
+    const unitsWithIds = list.combatGroups.flatMap((group, gIdx) => 
+      group.members.map((member, mIdx) => ({
+        id: `${gameStep.selectedList}-${gIdx}-${mIdx}-${member.id}`,
+        unit: member
+      }))
+    );
 
-    list.combatGroups.forEach((group, gIdx) => {
-      group.members.forEach((member, mIdx) => {
-        const relevantSkills = new Set<string>();
-
-        // Check all profiles for relevant skills/equip
-        member.profiles?.forEach((profile: any) => {
-          if (profile.skills) {
-            profile.skills.forEach((s: { id: number }) => {
-              if (DEPLOYMENT_RELEVANT_SKILLS.includes(s.id)) {
-                const name = SKILL_MAP[s.id];
-                if (name) relevantSkills.add(name);
-              }
-            });
-          }
-
-          if (profile.equip) {
-            profile.equip.forEach((e: { id: number }) => {
-              if (DEPLOYMENT_RELEVANT_EQUIP.includes(e.id)) {
-                const name = EQUIP_MAP[e.id];
-                if (name) relevantSkills.add(name);
-              }
-            });
-          }
-        });
-
-        if (relevantSkills.size > 0) {
-          items.push({
-            // Use a stable ID based on position in the list
-            id: `${gameStep.selectedList}-${gIdx}-${mIdx}-${member.id}`,
-            unitName: member.name || `Unit ${member.id}`,
-            skills: Array.from(relevantSkills)
-          });
-        }
-      });
-    });
-
-    return items;
-  }, [armyLists, activeSession]);
+    return getRelevantSkillsForPhase(unitsWithIds, phase);
+  };
 
   if (!activeSession) {
     return (
@@ -336,126 +435,21 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                     onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, deployment: !!val } }))}
                   />
 
-                  {assistance.length > 0 && (
-                    <div className="border border-fuchsia-500/20 rounded-lg bg-fuchsia-500/5 p-3 space-y-3">
-                      <div className="flex items-center gap-2 text-fuchsia-500 font-bold text-[11px] uppercase tracking-wider">
-                        <LayersIcon className="size-3.5" />
-                        Deployment Assistance
-                      </div>
-                      <div className="grid gap-2">
-                        {assistance.map((item) => (
-                          <label key={item.id} className="flex items-center justify-between bg-background/40 p-2 rounded border border-border/40 cursor-pointer hover:bg-background/60 transition-colors">
-                            <div className="flex items-center gap-3">
-                              <Checkbox
-                                checked={gameStep.deploymentDetails.deployedUnits[item.id] || false}
-                                onCheckedChange={(val) => setGameStep(p => ({
-                                  ...p,
-                                  deploymentDetails: {
-                                    ...p.deploymentDetails,
-                                    deployedUnits: {
-                                      ...p.deploymentDetails.deployedUnits,
-                                      [item.id]: val as boolean
-                                    }
-                                  }
-                                }))}
-                              />
-                              <span className={cn(
-                                "text-[10px] font-bold uppercase tracking-tight",
-                                gameStep.deploymentDetails.deployedUnits[item.id] && "text-muted-foreground line-through opacity-70"
-                              )}>{item.unitName}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1 justify-end">
-                              {item.skills.map((skill, i) => (
-                                <div key={i} className={cn(
-                                  "text-[9px] px-2 py-0.5 rounded-md border flex items-center gap-1",
-                                  skill === "Booty"
-                                    ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                                    : "bg-muted/50 text-muted-foreground border-border"
-                                )}>
-                                  {skill === "Booty" ? (
-                                    <Popover>
-                                      <PopoverTrigger className="hover:underline cursor-pointer flex items-center gap-1">
-                                        Booty <CheckCircle2Icon className="size-2.5" />
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-80 p-0 overflow-hidden" align="end">
-                                        <div className="bg-primary text-primary-foreground text-[10px] font-bold p-2 text-center uppercase tracking-widest">
-                                          Booty Table
-                                        </div>
-                                        <div className="p-0 text-[10px]">
-                                          <table className="w-full border-collapse">
-                                            <thead>
-                                              <tr className="bg-muted text-muted-foreground border-b border-border">
-                                                <th className="p-1 text-center border-r border-border">Roll</th>
-                                                <th className="p-1 text-left border-r border-border">Item</th>
-                                                <th className="p-1 text-center border-r border-border">Roll</th>
-                                                <th className="p-1 text-left">Item</th>
-                                              </tr>
-                                            </thead>
-                                            <tbody>
-                                              <tr className="border-b border-border">
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">1-2</td>
-                                                <td className="p-1 border-r border-border">+1 ARM</td>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">13</td>
-                                                <td className="p-1">Panzerfaust</td>
-                                              </tr>
-                                              <tr className="border-b border-border">
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">3-4</td>
-                                                <td className="p-1 border-r border-border">Light Flamethrower</td>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">14</td>
-                                                <td className="p-1">Monofilament CCW</td>
-                                              </tr>
-                                              <tr className="border-b border-border">
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">5-6</td>
-                                                <td className="p-1 border-r border-border">Grenades</td>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">15</td>
-                                                <td className="p-1">MOV 8-4</td>
-                                              </tr>
-                                              <tr className="border-b border-border">
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">7-8</td>
-                                                <td className="p-1 border-r border-border">DA CCW</td>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">16</td>
-                                                <td className="p-1">Shock/MULTI Rifle</td>
-                                              </tr>
-                                              <tr className="border-b border-border">
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">9</td>
-                                                <td className="p-1 border-r border-border">MSV L1</td>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">17</td>
-                                                <td className="p-1">MULTI Sniper</td>
-                                              </tr>
-                                              <tr className="border-b border-border">
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">10</td>
-                                                <td className="p-1 border-r border-border">EXP CCW</td>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">18</td>
-                                                <td className="p-1">Immune(ARM)/+4 ARM</td>
-                                              </tr>
-                                              <tr className="border-b border-border">
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">11</td>
-                                                <td className="p-1 border-r border-border">Adhesive L.</td>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">19</td>
-                                                <td className="p-1">Mimetism (-6)</td>
-                                              </tr>
-                                              <tr>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">12</td>
-                                                <td className="p-1 border-r border-border">Immune(AP)/+2 ARM</td>
-                                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">20</td>
-                                                <td className="p-1">B+1/HMG</td>
-                                              </tr>
-                                            </tbody>
-                                          </table>
-                                        </div>
-                                      </PopoverContent>
-                                    </Popover>
-                                  ) : (
-                                    skill
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <ContextualHints 
+                    phase="setup" 
+                    hints={getHints('setup')} 
+                    checkedMap={gameStep.deploymentDetails.deployedUnits}
+                    onToggle={(id, val) => setGameStep(p => ({
+                      ...p,
+                      deploymentDetails: {
+                        ...p.deploymentDetails,
+                        deployedUnits: {
+                          ...p.deploymentDetails.deployedUnits,
+                          [id]: val
+                        }
+                      }
+                    }))}
+                  />
 
                   <GameStep
                     label="Strategic Use of Command Tokens"
@@ -567,6 +561,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                                 })}
                               />
                             </div>
+                            {playerName === "You" && <ContextualHints phase="tactical" hints={getHints('tactical')} />}
                           </GameGroup>
                           <GameStep
                             label="Impetuous Phase"
@@ -578,7 +573,9 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                               t[pKey].impetuous = !!val
                               return { ...prev, turns: newTurns }
                             })}
-                          />
+                          >
+                            {playerName === "You" && <ContextualHints phase="impetuous" hints={getHints('impetuous')} />}
+                          </GameStep>
                           <GameStep
                             label="Orders Phase"
                             size="sm"
@@ -589,7 +586,9 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                               t[pKey].orders.done = !!val
                               return { ...prev, turns: newTurns }
                             })}
-                          />
+                          >
+                             {playerName === "You" && <ContextualHints phase="orders" hints={getHints('orders')} />}
+                          </GameStep>
                           <GameStep
                             label="States Phase"
                             size="sm"
@@ -600,7 +599,9 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                               t[pKey].states = !!val
                               return { ...prev, turns: newTurns }
                             })}
-                          />
+                          >
+                            {playerName === "You" && <ContextualHints phase="states" hints={getHints('states')} />}
+                          </GameStep>
                           <GameStep
                             label="End of Turn"
                             size="sm"

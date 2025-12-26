@@ -71,11 +71,20 @@ const PHASE_EQUIP_IDS: Record<string, number[]> = {
   ]
 };
 
-export function getRelevantSkillsForPhase(units: any[], phase: GamePhase): { unitName: string; skills: string[] }[] {
+export interface ContextualHint {
+  id: string;
+  unitName: string;
+  skills: string[];
+}
+
+export function getRelevantSkillsForPhase(
+  unitsWithIds: { id: string, unit: any }[], 
+  phase: GamePhase
+): ContextualHint[] {
   const relevantSkillIds = PHASE_SKILL_IDS[phase] || [];
   const relevantEquipIds = PHASE_EQUIP_IDS[phase] || [];
   
-  return units.map(unit => {
+  return unitsWithIds.map(({ id, unit }) => {
     const skills = new Set<string>();
 
     unit.profiles?.forEach((profile: any) => {
@@ -97,8 +106,9 @@ export function getRelevantSkillsForPhase(units: any[], phase: GamePhase): { uni
     if (skills.size === 0) return null;
 
     return {
+      id,
       unitName: unit.name,
       skills: Array.from(skills)
     };
-  }).filter((res): res is { unitName: string; skills: string[] } => res !== null);
+  }).filter((res): res is ContextualHint => res !== null);
 }
