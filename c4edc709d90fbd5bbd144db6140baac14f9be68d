@@ -1,0 +1,3 @@
+Task: Write Tests for Contextual UI Hints in Tracker
+Summary: Created unit tests for the ContextualHints component to verify it correctly displays unit skills and equipment based on the game phase. Verified both the generalized 'Phase Hints' and the specialized 'Deployment Assistance' (with checkboxes).
+Files: src/components/infinity-game-flow.test.tsx
