@@ -7,12 +7,12 @@
 - [x] Task: Refactor Game Sequence State to Support Deep Persistence cc5b884
 - [x] Task: Conductor - User Manual Verification 'Persistence Layer & Core State' (Protocol in workflow.md) 177562e
 
-## Phase 2: Complete N5 Sequence Implementation
+## Phase 2: Complete N5 Sequence Implementation [checkpoint: 6d036a4]
 - [x] Task: Write Tests for Missing N5 Sequence Phases (Audit against rules) 30f6ed3
 - [x] Task: Implement Missing N5 Sequence Phases in UI 18f383e
 - [x] Task: Write Tests for Scoring Logic Persistence f077987
 - [x] Task: Implement Scoring Tracker Refinement a831f9d
-- [ ] Task: Conductor - User Manual Verification 'Complete N5 Sequence Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Complete N5 Sequence Implementation' (Protocol in workflow.md) 6d036a4
 
 ## Phase 3: Army Context Integration
 - [~] Task: Write Tests for Skill-to-Phase Mapping Logic
