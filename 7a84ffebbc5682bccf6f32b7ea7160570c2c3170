@@ -1,0 +1,1 @@
+Task: Phase 2 Task 1 - Implement helper logic for player identities\nSummary: Implemented getPlayerByTurnOrder helper and added unit tests.\nFiles:\n- src/lib/game-flow-helpers.ts: Added helper function.\n- src/lib/game-flow-helpers.test.ts: Added tests for the helper.\nWhy: Necessary for dynamic 'You'/'Opponent' labeling in the UI.
