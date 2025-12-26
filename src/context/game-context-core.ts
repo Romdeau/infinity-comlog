@@ -41,6 +41,14 @@ export interface GameSession {
       firstTurn: 'player' | 'opponent' | null
       firstDeployment: 'player' | 'opponent' | null
     }
+    strategicOptions: {
+      p1Reserve: boolean
+      p1Speedball: boolean
+      p2OrderReduction: boolean
+      p2CtLimit: boolean
+      p2SuppressiveFire: boolean
+      p2Speedball: boolean
+    }
     deploymentDetails: {
       hidden: boolean
       infiltration: boolean
