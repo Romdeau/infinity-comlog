@@ -16,6 +16,13 @@ const TestComponent = () => {
             Update Scenario
           </button>
           <span data-testid="scenario-name">{activeSession.state.scenario}</span>
+          <button onClick={() => updateActiveSession((prev) => ({ 
+              ...prev, 
+              scoring: { ...prev.scoring, player: { ...prev.scoring.player, op: 5 } } 
+          }))}>
+            Update Scoring
+          </button>
+          <span data-testid="player-op">{activeSession.state.scoring.player.op}</span>
         </>
       )}
     </div>
@@ -46,7 +53,7 @@ describe("GameContext Persistence", () => {
     expect(sessions[sessionIds[0]].name).toBe("Test Session");
   });
 
-  it("persists updates to localStorage", () => {
+  it("persists scoring updates to localStorage", () => {
     render(
       <GameProvider>
         <TestComponent />
@@ -59,14 +66,14 @@ describe("GameContext Persistence", () => {
       createButton.click();
     });
 
-    // Update session
-    const updateButton = screen.getByText("Update Scenario");
+    // Update scoring
+    const updateButton = screen.getByText("Update Scoring");
     act(() => {
       updateButton.click();
     });
 
     const sessions = JSON.parse(window.localStorage.getItem("comlog_sessions") || "{}");
     const sessionIds = Object.keys(sessions);
-    expect(sessions[sessionIds[0]].state.scenario).toBe("Test Scenario");
+    expect(sessions[sessionIds[0]].state.scoring.player.op).toBe(5);
   });
 });
