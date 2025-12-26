@@ -1,0 +1,8 @@
+Task: Implement Scoring Tracker Refinement
+
+Summary:
+- Corrected N5 TP logic: +1 TP for loss <= 2 OP diff
+- Added Victory/Draw/Defeat label to the UI footer
+- Verified tests pass for the new TP logic
+
+Why: To ensure scoring follows the official N5 tournament rules and provides clear feedback to the player.
