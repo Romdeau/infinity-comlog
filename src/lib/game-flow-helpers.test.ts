@@ -62,8 +62,10 @@ describe("Game Flow Helpers", () => {
       it("calculates loss correctly", () => {
           expect(calculateTP(1, 5)).toBe(0);
       });
-      it("calculates close loss correctly (< 2 diff)", () => {
-          expect(calculateTP(2, 3)).toBe(1);
+      it("calculates close loss correctly (<= 2 diff)", () => {
+          expect(calculateTP(2, 3)).toBe(1); // diff 1
+          expect(calculateTP(2, 4)).toBe(1); // diff 2
+          expect(calculateTP(2, 5)).toBe(0); // diff 3
       });
   });
 

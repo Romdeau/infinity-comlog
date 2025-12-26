@@ -832,7 +832,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
         {completedCount === 5 && (
           <div className="flex items-center gap-1 text-primary font-medium">
             <CheckCircle2Icon className="size-3" />
-            Game Finished
+            Game Finished: {playerOP > opponentOP ? "Victory!" : playerOP === opponentOP ? "Draw" : "Defeat"}
           </div>
         )}
       </CardFooter>

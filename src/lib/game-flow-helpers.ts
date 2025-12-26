@@ -29,7 +29,7 @@ export const calculateTP = (op: number, rivalOp: number) => {
     else if (op === rivalOp) tp = 2;
     else {
       tp = 0;
-      if (rivalOp - op < 2) tp += 1; // Bonus for close loss
+      if (rivalOp - op <= 2) tp += 1; // Bonus for close loss (<= 2 OP diff)
     }
     if (op >= 5) tp += 1; // Bonus for 5+ OP
     return tp;
