@@ -14,9 +14,9 @@
 - [x] Task: Implement Scoring Tracker Refinement a831f9d
 - [x] Task: Conductor - User Manual Verification 'Complete N5 Sequence Implementation' (Protocol in workflow.md) 6d036a4
 
-## Phase 3: Army Context Integration
+## Phase 3: Army Context Integration [checkpoint: eab5bce]
 - [x] Task: Write Tests for Skill-to-Phase Mapping Logic b16d85f
 - [x] Task: Implement Skill-to-Phase Mapping (linking army units to tracker phases) 7ed603f
 - [x] Task: Write Tests for Contextual UI Hints in Tracker c4edc70
-- [ ] Task: Implement Contextual UI Hints for Imported Army Units
-- [ ] Task: Conductor - User Manual Verification 'Army Context Integration' (Protocol in workflow.md)
+- [x] Task: Implement Contextual UI Hints for Imported Army Units 7ed603f
+- [x] Task: Conductor - User Manual Verification 'Army Context Integration' (Protocol in workflow.md) eab5bce
