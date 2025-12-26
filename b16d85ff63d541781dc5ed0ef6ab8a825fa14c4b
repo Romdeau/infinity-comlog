@@ -1,0 +1,3 @@
+Task: Write Tests for Skill-to-Phase Mapping Logic
+Summary: Implemented the core mapping logic between Infinity skills/equipment and game tracker phases. Included comprehensive unit tests.
+Files: src/lib/army-context-mapping.ts, src/lib/army-context-mapping.test.ts
