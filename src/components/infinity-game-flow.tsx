@@ -58,29 +58,41 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
         {phase === "setup" ? "Deployment Assistance" : "Phase Hints"}
       </div>
       <div className="grid gap-2">
-        {hints.map((item) => (
-          <label key={item.id} className="flex items-center justify-between bg-background/40 p-2 rounded border border-border/40 cursor-pointer hover:bg-background/60 transition-colors">
-            <div className="flex items-center gap-3">
-              {onToggle && (
-                <Checkbox
-                  checked={checkedMap?.[item.id] || false}
-                  onCheckedChange={(val) => onToggle(item.id, !!val)}
-                />
+        {hints.map((item) => {
+          const isStrategic = item.unitName === "Strategic Use";
+          return (
+            <label 
+              key={item.id} 
+              className={cn(
+                "flex items-center justify-between p-2 rounded border transition-colors cursor-pointer",
+                isStrategic 
+                  ? "bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20" 
+                  : "bg-background/40 border-border/40 hover:bg-background/60"
               )}
-              <span className={cn(
-                "text-[10px] font-bold uppercase tracking-tight",
-                checkedMap?.[item.id] && "text-muted-foreground line-through opacity-70"
-              )}>{item.unitName}</span>
-            </div>
-            <div className="flex flex-wrap gap-1 justify-end">
-              {item.skills.map((skill, i) => (
-                <div key={i} className={cn(
-                  "text-[9px] px-2 py-0.5 rounded-md border flex items-center gap-1",
-                  skill === "Booty"
-                    ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                    : "bg-muted/50 text-muted-foreground border-border"
-                )}>
-                  {skill === "Booty" ? (
+            >
+              <div className="flex items-center gap-3">
+                {onToggle && !isStrategic && (
+                  <Checkbox
+                    checked={checkedMap?.[item.id] || false}
+                    onCheckedChange={(val) => onToggle(item.id, !!val)}
+                  />
+                )}
+                <span className={cn(
+                  "text-[10px] font-bold uppercase tracking-tight",
+                  isStrategic ? "text-indigo-400" : (checkedMap?.[item.id] && "text-muted-foreground line-through opacity-70")
+                )}>{item.unitName}</span>
+              </div>
+              <div className="flex flex-wrap gap-1 justify-end">
+                {item.skills.map((skill, i) => (
+                  <div key={i} className={cn(
+                    "text-[9px] px-2 py-0.5 rounded-md border flex items-center gap-1",
+                    isStrategic
+                      ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/30"
+                      : (skill === "Booty"
+                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                        : "bg-muted/50 text-muted-foreground border-border")
+                  )}>
+                    {skill === "Booty" ? (
                     <Popover>
                       <PopoverTrigger className="hover:underline cursor-pointer flex items-center gap-1">
                         Booty <CheckCircle2Icon className="size-2.5" />
@@ -160,7 +172,8 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
               ))}
             </div>
           </label>
-        ))}
+        );
+      })}
       </div>
     </div>
   );
@@ -174,22 +187,9 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
     const gameStep = activeSession.state;
     if (gameStep.selectedList === 'none') return [];
     
-    // Only show unit-specific hints for the user
     let hints: ContextualHint[] = [];
-    if (!isOpponent) {
-      const list = armyLists[gameStep.selectedList];
-      if (list) {
-        const unitsWithIds = list.combatGroups.flatMap((group, gIdx) => 
-          group.members.map((member, mIdx) => ({
-            id: `${gameStep.selectedList}-${gIdx}-${mIdx}-${member.id}`,
-            unit: member
-          }))
-        );
-        hints = getRelevantSkillsForPhase(unitsWithIds, phase);
-      }
-    }
 
-    // Add strategic hints
+    // Add strategic hints at the TOP
     if (phase === "setup" && !isOpponent) {
       if (gameStep.initiative.firstTurn === "player" && gameStep.strategicOptions.p1Reserve) {
         hints.push({
@@ -200,15 +200,42 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
       }
     }
 
-    if (phase === "tactical" && isOpponent) {
-      // If user is P2 and selected Order Reduction
+    if (phase === "tactical") {
+      const isUserP1 = gameStep.initiative.firstTurn === "player";
       const isUserP2 = gameStep.initiative.firstTurn === "opponent";
-      if (isUserP2 && gameStep.strategicOptions.p2OrderReduction) {
-        hints.push({
-          id: "strat-order-reduction",
-          unitName: "Strategic Use",
-          skills: ["Opponent's Order Pool reduced by 2 Regular Orders."]
-        });
+      
+      if (isOpponent) {
+        // Looking at opponent's tactical phase. They are P1 if user is P2.
+        if (isUserP2 && gameStep.strategicOptions.p2OrderReduction) {
+          hints.push({
+            id: "strat-order-reduction",
+            unitName: "Strategic Use",
+            skills: ["Opponent's Order Pool reduced by 2 Regular Orders."]
+          });
+        }
+      } else {
+        // Looking at user's tactical phase. They are P1 if user is P1.
+        if (isUserP1 && gameStep.strategicOptions.p2OrderReduction) {
+          hints.push({
+            id: "strat-order-reduction",
+            unitName: "Strategic Use",
+            skills: ["Your Order Pool reduced by 2 Regular Orders."]
+          });
+        }
+      }
+    }
+
+    // Add unit-specific hints for the user
+    if (!isOpponent) {
+      const list = armyLists[gameStep.selectedList];
+      if (list) {
+        const unitsWithIds = list.combatGroups.flatMap((group, gIdx) => 
+          group.members.map((member, mIdx) => ({
+            id: `${gameStep.selectedList}-${gIdx}-${mIdx}-${member.id}`,
+            unit: member
+          }))
+        );
+        hints = [...hints, ...getRelevantSkillsForPhase(unitsWithIds, phase)];
       }
     }
 

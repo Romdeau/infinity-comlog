@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { render, screen, act } from "@testing-library/react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { render, screen, act, cleanup } from "@testing-library/react";
 import { GameProvider, useGame } from "./game-context";
 
 const TestComponent = () => {
@@ -16,10 +17,13 @@ const TestComponent = () => {
     </div>
   );
 };
-
 describe("Strategic Options State", () => {
   beforeEach(() => {
     window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("has strategicOptions in the initial state", () => {
