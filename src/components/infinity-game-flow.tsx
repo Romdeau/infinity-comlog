@@ -428,7 +428,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                   />
 
                   <div className="pl-4 space-y-3 py-1 border-l-2 border-muted/30 ml-2">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">Winner</span>
                         <div className="flex bg-muted/50 rounded-md p-0.5">
@@ -457,7 +457,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">First Turn</span>
                         <div className="flex bg-muted/50 rounded-md p-0.5">
@@ -630,7 +630,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                         <span className="text-[10px] font-bold uppercase text-muted-foreground">
                           Logistical Use (Both Players)
                         </span>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                           <div className={cn(
                             "flex items-center gap-2 p-2 rounded-md border transition-colors",
                             gameStep.strategicOptions.p1Speedball ? "bg-primary/5 border-primary/30" : "bg-muted/20 border-border/50"

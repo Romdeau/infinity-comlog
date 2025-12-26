@@ -29,9 +29,9 @@ Inject dynamic hints into the setup and tactical phases based on strategic choic
 ## Phase 4: Final Polish & Verification
 Final styling adjustments and verification of the N5 rule implementation.
 
-- [~] Task: Style "Strategic Use" hints with a unique color and ensure they appear at the top of hint lists.
-- [ ] Task: Refine "Order Reduction" hint logic to show for both players when they are the target (P1) of the effect.
-- [ ] Task: Ensure mobile responsiveness of the new split layout.
-- [ ] Task: Verify wiki links for all strategic options.
-- [ ] Task: Run full suite of tests and linting.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Polish' (Protocol in workflow.md)
+- [x] Task: Style "Strategic Use" hints with a unique color and ensure they appear at the top of hint lists. b1623ff
+- [x] Task: Refine "Order Reduction" hint logic to show for both players when they are the target (P1) of the effect. b1623ff
+- [x] Task: Ensure mobile responsiveness of the new split layout. b1623ff
+- [x] Task: Verify wiki links for all strategic options. b1623ff
+- [x] Task: Run full suite of tests and linting. b1623ff
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Final Polish' (Protocol in workflow.md)
