@@ -10,7 +10,9 @@ export interface PlayerTurnState {
     count: boolean
   }
   impetuous: boolean
-  orders: boolean
+  orders: {
+    done: boolean
+  }
   states: boolean
   end: boolean
 }
@@ -31,6 +33,7 @@ export interface GameSession {
     initiationSubSteps: {
       rollOff: boolean
       deployment: boolean
+      strategicUse: boolean
       commandTokens: boolean
     }
     initiative: {

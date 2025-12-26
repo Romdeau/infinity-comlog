@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { isTacticalComplete, calculateTP } from "./game-flow-helpers";
+import { isTacticalComplete, calculateTP, isInitiativeComplete, isSetupComplete, isPlayerComplete } from "./game-flow-helpers";
 
 describe("Game Flow Helpers", () => {
   describe("isTacticalComplete", () => {
@@ -25,6 +25,32 @@ describe("Game Flow Helpers", () => {
       expect(isTacticalComplete(tactical)).toBe(false);
     });
   });
+
+  describe("isPlayerComplete", () => {
+    it("returns true when all player turn substeps are done", () => {
+      const p = {
+        doneOverride: false,
+        tactical: { tokens: true, retreat: true, lol: true, count: true },
+        impetuous: true,
+        orders: { done: true },
+        states: true,
+        end: true,
+      };
+      expect(isPlayerComplete(p as any)).toBe(true);
+    });
+
+    it("returns false if orders are not done", () => {
+      const p = {
+        doneOverride: false,
+        tactical: { tokens: true, retreat: true, lol: true, count: true },
+        impetuous: true,
+        orders: { done: false },
+        states: true,
+        end: true,
+      };
+      expect(isPlayerComplete(p as any)).toBe(false);
+    });
+  });
   
   describe("calculateTP", () => {
       it("calculates win correctly (OP > Rival)", () => {
@@ -39,5 +65,63 @@ describe("Game Flow Helpers", () => {
       it("calculates close loss correctly (< 2 diff)", () => {
           expect(calculateTP(2, 3)).toBe(1);
       });
+  });
+
+  describe("isInitiativeComplete", () => {
+    it("returns true when all initiative sub-steps are done", () => {
+      const subSteps = {
+        rollOff: true,
+        deployment: true,
+        strategicUse: true,
+        commandTokens: true,
+      };
+      const initiative = {
+        winner: 'player' as const,
+        choice: 'initiative' as const,
+        firstTurn: 'player' as const,
+        firstDeployment: 'opponent' as const,
+      };
+      expect(isInitiativeComplete(subSteps, initiative)).toBe(true);
+    });
+
+    it("returns false if any sub-step is missing", () => {
+      const subSteps = {
+        rollOff: true,
+        deployment: false, // missing
+        strategicUse: true,
+        commandTokens: true,
+      };
+      const initiative = {
+        winner: 'player' as const,
+        choice: 'initiative' as const,
+        firstTurn: 'player' as const,
+        firstDeployment: 'opponent' as const,
+      };
+      expect(isInitiativeComplete(subSteps, initiative)).toBe(false);
+    });
+  });
+
+  describe("isSetupComplete", () => {
+    it("returns true when everything is setup", () => {
+        const state = {
+            scenario: "mission-1",
+            scenarioPicked: true,
+            listPicked: true,
+            classifiedsDrawn: true,
+            initiationSubSteps: {
+                rollOff: true,
+                deployment: true,
+                strategicUse: true,
+                commandTokens: true,
+            },
+            initiative: {
+                winner: 'player' as const,
+                choice: 'initiative' as const,
+                firstTurn: 'player' as const,
+                firstDeployment: 'opponent' as const,
+            }
+        };
+        expect(isSetupComplete(state as any)).toBe(true);
+    });
   });
 });

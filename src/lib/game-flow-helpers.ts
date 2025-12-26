@@ -1,12 +1,27 @@
-import { type PlayerTurnState } from "../context/game-context-core";
+import { type PlayerTurnState, type GameSession } from "../context/game-context-core";
 
 export const isTacticalComplete = (t: PlayerTurnState['tactical']) => t.tokens && t.retreat && t.lol && t.count;
 
 export const isPlayerComplete = (p: PlayerTurnState) =>
-    (p.doneOverride || (isTacticalComplete(p.tactical) && p.impetuous && p.orders && p.states && p.end));
+    (p.doneOverride || (isTacticalComplete(p.tactical) && p.impetuous && p.orders.done && p.states && p.end));
 
 export const isTurnComplete = (t: { doneOverride: boolean; p1: PlayerTurnState; p2: PlayerTurnState }) =>
     (t.doneOverride || (isPlayerComplete(t.p1) && isPlayerComplete(t.p2)));
+
+export const isInitiativeComplete = (subSteps: GameSession['state']['initiationSubSteps'], initiative: GameSession['state']['initiative']) =>
+    subSteps.rollOff &&
+    subSteps.deployment &&
+    subSteps.strategicUse &&
+    subSteps.commandTokens &&
+    initiative.firstTurn !== null &&
+    initiative.firstDeployment !== null;
+
+export const isSetupComplete = (state: GameSession['state']) =>
+    !!state.scenario &&
+    state.scenarioPicked &&
+    state.listPicked &&
+    state.classifiedsDrawn &&
+    isInitiativeComplete(state.initiationSubSteps, state.initiative);
 
 export const calculateTP = (op: number, rivalOp: number) => {
     let tp = 0;

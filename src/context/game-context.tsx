@@ -16,7 +16,9 @@ const createInitialPlayerTurn = (): PlayerTurnState => ({
     count: false,
   },
   impetuous: false,
-  orders: false,
+  orders: {
+    done: false,
+  },
   states: false,
   end: false,
 })
@@ -32,6 +34,7 @@ const createInitialGameState = (): GameSession['state'] => ({
   initiationSubSteps: {
     rollOff: false,
     deployment: false,
+    strategicUse: false,
     commandTokens: false,
   },
   initiative: {
