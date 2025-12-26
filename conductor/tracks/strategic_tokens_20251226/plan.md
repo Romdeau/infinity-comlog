@@ -26,7 +26,7 @@ Inject dynamic hints into the setup and tactical phases based on strategic choic
 - [x] Task: Write unit tests in `src/components/infinity-game-flow.test.tsx` (or a new test file) to verify dynamic labeling and hint visibility. c477086
 - [~] Task: Conductor - User Manual Verification 'Phase 3: Integration' (Protocol in workflow.md)
 
-## Phase 4: Final Polish & Verification
+## Phase 4: Final Polish & Verification [checkpoint: f3f1b55]
 Final styling adjustments and verification of the N5 rule implementation.
 
 - [x] Task: Style "Strategic Use" hints with a unique color and ensure they appear at the top of hint lists. b1623ff
@@ -34,4 +34,4 @@ Final styling adjustments and verification of the N5 rule implementation.
 - [x] Task: Ensure mobile responsiveness of the new split layout. b1623ff
 - [x] Task: Verify wiki links for all strategic options. b1623ff
 - [x] Task: Run full suite of tests and linting. b1623ff
-- [~] Task: Conductor - User Manual Verification 'Phase 4: Final Polish' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Polish' (Protocol in workflow.md) f3f1b55
