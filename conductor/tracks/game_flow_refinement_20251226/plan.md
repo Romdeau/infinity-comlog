@@ -1,7 +1,7 @@
 # Plan: Refine Game Sequence Flow & Persistence
 
 ## Phase 1: Persistence Layer & Core State
-- [ ] Task: Write Tests for Game State Persistence (LocalStorage)
+- [x] Task: Write Tests for Game State Persistence (LocalStorage) bd4aeb7
 - [ ] Task: Implement Game State Persistence Logic
 - [ ] Task: Write Tests for Game Sequence State Machine (Transitions)
 - [ ] Task: Refactor Game Sequence State to Support Deep Persistence
