@@ -464,11 +464,14 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                     onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, strategicUse: !!val } }))}
                   >
                      <div className="pl-6 pt-1 text-[10px] text-muted-foreground space-y-1">
-                        <div>Opponent can use 1 Command Token to:</div>
+                        <div>
+                          {gameStep.initiative.firstTurn === 'opponent' ? <span className="font-bold text-primary">You (Player 2)</span> : <span className="font-bold">Opponent (Player 2)</span>} can use 1 Command Token to limit {gameStep.initiative.firstTurn === 'opponent' ? "Opponent" : "You"}:
+                          <a href="https://infinitythewiki.com/Command_Tokens#Command_Tokens:_Strategic_Use" target="_blank" rel="noopener noreferrer" className="ml-1 text-primary underline hover:text-primary/80">(Wiki)</a>
+                        </div>
                         <ul className="list-disc pl-3 space-y-0.5">
-                            <li>Limit your Command Token use to 1 per turn.</li>
-                            <li>Remove 2 Regular Orders from your Order Pool.</li>
-                            <li>Prevent one trooper from using Impetuous Order.</li>
+                            <li>Limit {gameStep.initiative.firstTurn === 'opponent' ? "Opponent's" : "Your"} Command Token use to 1 per turn.</li>
+                            <li>Remove 2 Regular Orders from {gameStep.initiative.firstTurn === 'opponent' ? "Opponent's" : "Your"} Order Pool.</li>
+                            <li>Prevent one {gameStep.initiative.firstTurn === 'opponent' ? "enemy" : "friendly"} trooper from using Impetuous Order.</li>
                         </ul>
                      </div>
                   </GameStep>

@@ -15,7 +15,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Complete N5 Sequence Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Army Context Integration
-- [ ] Task: Write Tests for Skill-to-Phase Mapping Logic
+- [~] Task: Write Tests for Skill-to-Phase Mapping Logic
 - [ ] Task: Implement Skill-to-Phase Mapping (linking army units to tracker phases)
 - [ ] Task: Write Tests for Contextual UI Hints in Tracker
 - [ ] Task: Implement Contextual UI Hints for Imported Army Units
