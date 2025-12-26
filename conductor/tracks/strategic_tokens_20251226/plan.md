@@ -21,10 +21,10 @@ Refactor `src/components/infinity-game-flow.tsx` to use the new state and dynami
 ## Phase 3: Contextual Hints & Integration
 Inject dynamic hints into the setup and tactical phases based on strategic choices.
 
-- [ ] Task: Update `ContextualHints` or the hint generation logic to include the "Reserve Trooper" hint for the user.
-- [ ] Task: Add the "Order Reduction" hint to the Turn 1 Tactical Phase for the opponent's order count step.
-- [ ] Task: Write unit tests in `src/components/infinity-game-flow.test.tsx` (or a new test file) to verify dynamic labeling and hint visibility.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Integration' (Protocol in workflow.md)
+- [x] Task: Update `ContextualHints` or the hint generation logic to include the "Reserve Trooper" hint for the user. c477086
+- [x] Task: Add the "Order Reduction" hint to the Turn 1 Tactical Phase for the opponent's order count step. c477086
+- [x] Task: Write unit tests in `src/components/infinity-game-flow.test.tsx` (or a new test file) to verify dynamic labeling and hint visibility. c477086
+- [~] Task: Conductor - User Manual Verification 'Phase 3: Integration' (Protocol in workflow.md)
 
 ## Phase 4: Final Polish & Verification
 Final styling adjustments and verification of the N5 rule implementation.
