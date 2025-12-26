@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Refine Game Sequence Flow & Persistence
+## [~] Track: Refine Game Sequence Flow & Persistence
 *Link: [./conductor/tracks/game_flow_refinement_20251226/](./conductor/tracks/game_flow_refinement_20251226/)*
