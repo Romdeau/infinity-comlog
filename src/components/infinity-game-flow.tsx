@@ -34,7 +34,7 @@ import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
 import { useGame, type GameSession } from "@/context/game-context"
-import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete } from "@/lib/game-flow-helpers"
+import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete, getPlayerByTurnOrder } from "@/lib/game-flow-helpers"
 import { getRelevantSkillsForPhase, type GamePhase, type ContextualHint } from "@/lib/army-context-mapping"
 
 export function ContextualHints({ hints, phase, onToggle, checkedMap }: { 
@@ -58,29 +58,41 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
         {phase === "setup" ? "Deployment Assistance" : "Phase Hints"}
       </div>
       <div className="grid gap-2">
-        {hints.map((item) => (
-          <label key={item.id} className="flex items-center justify-between bg-background/40 p-2 rounded border border-border/40 cursor-pointer hover:bg-background/60 transition-colors">
-            <div className="flex items-center gap-3">
-              {onToggle && (
-                <Checkbox
-                  checked={checkedMap?.[item.id] || false}
-                  onCheckedChange={(val) => onToggle(item.id, !!val)}
-                />
+        {hints.map((item) => {
+          const isStrategic = item.unitName === "Strategic Use";
+          return (
+            <label 
+              key={item.id} 
+              className={cn(
+                "flex items-center justify-between p-2 rounded border transition-colors cursor-pointer",
+                isStrategic 
+                  ? "bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20" 
+                  : "bg-background/40 border-border/40 hover:bg-background/60"
               )}
-              <span className={cn(
-                "text-[10px] font-bold uppercase tracking-tight",
-                checkedMap?.[item.id] && "text-muted-foreground line-through opacity-70"
-              )}>{item.unitName}</span>
-            </div>
-            <div className="flex flex-wrap gap-1 justify-end">
-              {item.skills.map((skill, i) => (
-                <div key={i} className={cn(
-                  "text-[9px] px-2 py-0.5 rounded-md border flex items-center gap-1",
-                  skill === "Booty"
-                    ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                    : "bg-muted/50 text-muted-foreground border-border"
-                )}>
-                  {skill === "Booty" ? (
+            >
+              <div className="flex items-center gap-3">
+                {onToggle && !isStrategic && (
+                  <Checkbox
+                    checked={checkedMap?.[item.id] || false}
+                    onCheckedChange={(val) => onToggle(item.id, !!val)}
+                  />
+                )}
+                <span className={cn(
+                  "text-[10px] font-bold uppercase tracking-tight",
+                  isStrategic ? "text-indigo-400" : (checkedMap?.[item.id] && "text-muted-foreground line-through opacity-70")
+                )}>{item.unitName}</span>
+              </div>
+              <div className="flex flex-wrap gap-1 justify-end">
+                {item.skills.map((skill, i) => (
+                  <div key={i} className={cn(
+                    "text-[9px] px-2 py-0.5 rounded-md border flex items-center gap-1",
+                    isStrategic
+                      ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/30"
+                      : (skill === "Booty"
+                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                        : "bg-muted/50 text-muted-foreground border-border")
+                  )}>
+                    {skill === "Booty" ? (
                     <Popover>
                       <PopoverTrigger className="hover:underline cursor-pointer flex items-center gap-1">
                         Booty <CheckCircle2Icon className="size-2.5" />
@@ -160,7 +172,8 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
               ))}
             </div>
           </label>
-        ))}
+        );
+      })}
       </div>
     </div>
   );
@@ -169,21 +182,64 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()
 
-  const getHints = (phase: GamePhase) => {
+  const getHints = (phase: GamePhase, isOpponent: boolean = false) => {
     if (!activeSession) return [];
     const gameStep = activeSession.state;
     if (gameStep.selectedList === 'none') return [];
-    const list = armyLists[gameStep.selectedList];
-    if (!list) return [];
+    
+    let hints: ContextualHint[] = [];
 
-    const unitsWithIds = list.combatGroups.flatMap((group, gIdx) => 
-      group.members.map((member, mIdx) => ({
-        id: `${gameStep.selectedList}-${gIdx}-${mIdx}-${member.id}`,
-        unit: member
-      }))
-    );
+    // Add strategic hints at the TOP
+    if (phase === "setup" && !isOpponent) {
+      if (gameStep.initiative.firstTurn === "player" && gameStep.strategicOptions.p1Reserve) {
+        hints.push({
+          id: "strat-reserve",
+          unitName: "Strategic Use",
+          skills: ["You have an extra unit in reserve."]
+        });
+      }
+    }
 
-    return getRelevantSkillsForPhase(unitsWithIds, phase);
+    if (phase === "tactical") {
+      const isUserP1 = gameStep.initiative.firstTurn === "player";
+      const isUserP2 = gameStep.initiative.firstTurn === "opponent";
+      
+      if (isOpponent) {
+        // Looking at opponent's tactical phase. They are P1 if user is P2.
+        if (isUserP2 && gameStep.strategicOptions.p2OrderReduction) {
+          hints.push({
+            id: "strat-order-reduction",
+            unitName: "Strategic Use",
+            skills: ["Opponent's Order Pool reduced by 2 Regular Orders."]
+          });
+        }
+      } else {
+        // Looking at user's tactical phase. They are P1 if user is P1.
+        if (isUserP1 && gameStep.strategicOptions.p2OrderReduction) {
+          hints.push({
+            id: "strat-order-reduction",
+            unitName: "Strategic Use",
+            skills: ["Your Order Pool reduced by 2 Regular Orders."]
+          });
+        }
+      }
+    }
+
+    // Add unit-specific hints for the user
+    if (!isOpponent) {
+      const list = armyLists[gameStep.selectedList];
+      if (list) {
+        const unitsWithIds = list.combatGroups.flatMap((group, gIdx) => 
+          group.members.map((member, mIdx) => ({
+            id: `${gameStep.selectedList}-${gIdx}-${mIdx}-${member.id}`,
+            unit: member
+          }))
+        );
+        hints = [...hints, ...getRelevantSkillsForPhase(unitsWithIds, phase)];
+      }
+    }
+
+    return hints;
   };
 
   if (!activeSession) {
@@ -271,6 +327,11 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
     isTurnComplete(gameStep.turns.turn3),
     gameStep.scoring.doneOverride
   ].filter(Boolean).length
+
+  const p1Identity = getPlayerByTurnOrder(gameStep.initiative, 1);
+  const p2Identity = getPlayerByTurnOrder(gameStep.initiative, 2);
+  const p1Label = p1Identity === 'player' ? "You" : "Opponent";
+  const p2Label = p2Identity === 'player' ? "You" : "Opponent";
 
   return (
     <Card className="w-full">
@@ -367,7 +428,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                   />
 
                   <div className="pl-4 space-y-3 py-1 border-l-2 border-muted/30 ml-2">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">Winner</span>
                         <div className="flex bg-muted/50 rounded-md p-0.5">
@@ -396,7 +457,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">First Turn</span>
                         <div className="flex bg-muted/50 rounded-md p-0.5">
@@ -425,6 +486,34 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                       </div>
                     </div>
                   </div>
+
+                  {p1Identity && (
+                    <div className="space-y-2 pt-1">
+                      <div className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                        First Player Strategic Use ({p1Label})
+                      </div>
+                      <div className="pl-2 space-y-2">
+                        <div className="flex items-start gap-2 bg-muted/30 p-2 rounded-md border border-border/50">
+                          <Checkbox 
+                            id="p1-reserve"
+                            checked={gameStep.strategicOptions.p1Reserve}
+                            onCheckedChange={(val) => setGameStep(prev => ({ 
+                              ...prev, 
+                              strategicOptions: { ...prev.strategicOptions, p1Reserve: !!val } 
+                            }))}
+                          />
+                          <div className="grid gap-1.5 leading-none">
+                            <label htmlFor="p1-reserve" className="text-[10px] font-bold leading-none cursor-pointer">
+                              Procedural: Reserve Trooper
+                            </label>
+                            <p className="text-[9px] text-muted-foreground">
+                              Set aside one extra Trooper and their Peripherals to be deployed in reserve.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <GameStep
                     label="Deployment"
@@ -455,17 +544,128 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                     checked={gameStep.initiationSubSteps.strategicUse}
                     onCheckedChange={(val) => setGameStep(prev => ({ ...prev, initiationSubSteps: { ...prev.initiationSubSteps, strategicUse: !!val } }))}
                   >
-                     <div className="pl-6 pt-1 text-[10px] text-muted-foreground space-y-1">
-                        <div>
-                          {gameStep.initiative.firstTurn === 'opponent' ? <span className="font-bold text-primary">You (Player 2)</span> : <span className="font-bold">Opponent (Player 2)</span>} can use 1 Command Token to limit {gameStep.initiative.firstTurn === 'opponent' ? "Opponent" : "You"}:
-                          <a href="https://infinitythewiki.com/Command_Tokens#Command_Tokens:_Strategic_Use" target="_blank" rel="noopener noreferrer" className="ml-1 text-primary underline hover:text-primary/80">(Wiki)</a>
+                    <div className="pl-6 pt-2 space-y-4">
+                      {/* Second Player Procedural */}
+                      {p2Identity && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                              Second Player Procedural ({p2Label})
+                            </span>
+                            <a href="https://infinitythewiki.com/Command_Tokens#Command_Tokens:_Strategic_Use" target="_blank" rel="noopener noreferrer" className="text-[9px] text-primary underline hover:text-primary/80">Wiki</a>
+                          </div>
+                          
+                          <div className="grid gap-2">
+                            <div className={cn(
+                              "flex items-start gap-2 p-2 rounded-md border transition-colors",
+                              gameStep.strategicOptions.p2OrderReduction ? "bg-primary/5 border-primary/30" : "bg-muted/20 border-border/50"
+                            )}>
+                              <Checkbox 
+                                id="p2-order"
+                                checked={gameStep.strategicOptions.p2OrderReduction}
+                                onCheckedChange={(val) => setGameStep(prev => ({ 
+                                  ...prev, 
+                                  strategicOptions: { 
+                                    ...prev.strategicOptions, 
+                                    p2OrderReduction: !!val,
+                                    p2CtLimit: false,
+                                    p2SuppressiveFire: false
+                                  } 
+                                }))}
+                              />
+                              <label htmlFor="p2-order" className="text-[10px] font-medium leading-none cursor-pointer">
+                                Remove 2 Regular Orders from opponent
+                              </label>
+                            </div>
+
+                            <div className={cn(
+                              "flex items-start gap-2 p-2 rounded-md border transition-colors",
+                              gameStep.strategicOptions.p2CtLimit ? "bg-primary/5 border-primary/30" : "bg-muted/20 border-border/50"
+                            )}>
+                              <Checkbox 
+                                id="p2-ct"
+                                checked={gameStep.strategicOptions.p2CtLimit}
+                                onCheckedChange={(val) => setGameStep(prev => ({ 
+                                  ...prev, 
+                                  strategicOptions: { 
+                                    ...prev.strategicOptions, 
+                                    p2CtLimit: !!val,
+                                    p2OrderReduction: false,
+                                    p2SuppressiveFire: false
+                                  } 
+                                }))}
+                              />
+                              <label htmlFor="p2-ct" className="text-[10px] font-medium leading-none cursor-pointer">
+                                Limit opponent to 1 Command Token use
+                              </label>
+                            </div>
+
+                            <div className={cn(
+                              "flex items-start gap-2 p-2 rounded-md border transition-colors",
+                              gameStep.strategicOptions.p2SuppressiveFire ? "bg-primary/5 border-primary/30" : "bg-muted/20 border-border/50"
+                            )}>
+                              <Checkbox 
+                                id="p2-sf"
+                                checked={gameStep.strategicOptions.p2SuppressiveFire}
+                                onCheckedChange={(val) => setGameStep(prev => ({ 
+                                  ...prev, 
+                                  strategicOptions: { 
+                                    ...prev.strategicOptions, 
+                                    p2SuppressiveFire: !!val,
+                                    p2OrderReduction: false,
+                                    p2CtLimit: false
+                                  } 
+                                }))}
+                              />
+                              <label htmlFor="p2-sf" className="text-[10px] font-medium leading-none cursor-pointer">
+                                Activate Suppressive Fire on 1 Trooper
+                              </label>
+                            </div>
+                          </div>
                         </div>
-                        <ul className="list-disc pl-3 space-y-0.5">
-                            <li>Limit {gameStep.initiative.firstTurn === 'opponent' ? "Opponent's" : "Your"} Command Token use to 1 per turn.</li>
-                            <li>Remove 2 Regular Orders from {gameStep.initiative.firstTurn === 'opponent' ? "Opponent's" : "Your"} Order Pool.</li>
-                            <li>Prevent one {gameStep.initiative.firstTurn === 'opponent' ? "enemy" : "friendly"} trooper from using Impetuous Order.</li>
-                        </ul>
-                     </div>
+                      )}
+
+                      {/* Logistical Use */}
+                      <div className="space-y-2 pt-2 border-t border-border/30">
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                          Logistical Use (Both Players)
+                        </span>
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
+                          <div className={cn(
+                            "flex items-center gap-2 p-2 rounded-md border transition-colors",
+                            gameStep.strategicOptions.p1Speedball ? "bg-primary/5 border-primary/30" : "bg-muted/20 border-border/50"
+                          )}>
+                            <Checkbox 
+                              id="p1-speedball"
+                              checked={gameStep.strategicOptions.p1Speedball}
+                              onCheckedChange={(val) => setGameStep(prev => ({ 
+                                ...prev, 
+                                strategicOptions: { ...prev.strategicOptions, p1Speedball: !!val } 
+                              }))}
+                            />
+                            <label htmlFor="p1-speedball" className="text-[10px] font-medium leading-none cursor-pointer">
+                              {p1Label}: Speedballs
+                            </label>
+                          </div>
+                          <div className={cn(
+                            "flex items-center gap-2 p-2 rounded-md border transition-colors",
+                            gameStep.strategicOptions.p2Speedball ? "bg-primary/5 border-primary/30" : "bg-muted/20 border-border/50"
+                          )}>
+                            <Checkbox 
+                              id="p2-speedball"
+                              checked={gameStep.strategicOptions.p2Speedball}
+                              onCheckedChange={(val) => setGameStep(prev => ({ 
+                                ...prev, 
+                                strategicOptions: { ...prev.strategicOptions, p2Speedball: !!val } 
+                              }))}
+                            />
+                            <label htmlFor="p2-speedball" className="text-[10px] font-medium leading-none cursor-pointer">
+                              {p2Label}: Speedballs
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </GameStep>
                 </div>
               </div>
@@ -492,7 +692,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                   {['p1', 'p2'].map((pKey) => {
                     const player = (turn as any)[pKey]
                     const label = pKey === 'p1' ? "First Player" : "Second Player"
-                    const playerName = (pKey === 'p1' && gameStep.initiative.firstTurn === 'player') || (pKey === 'p2' && gameStep.initiative.firstTurn === 'player') ? "You" : "Opponent"
+                    const playerName = getPlayerByTurnOrder(gameStep.initiative, pKey === 'p1' ? 1 : 2) === 'player' ? "You" : "Opponent"
 
                     return (
                       <div key={pKey} className="space-y-2">
@@ -559,7 +759,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                                 })}
                               />
                             </div>
-                            {playerName === "You" && <ContextualHints phase="tactical" hints={getHints('tactical')} />}
+                            <ContextualHints phase="tactical" hints={getHints('tactical', playerName === "Opponent")} />
                           </GameGroup>
                           <GameStep
                             label="Impetuous Phase"

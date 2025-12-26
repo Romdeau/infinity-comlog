@@ -33,3 +33,10 @@ export const calculateTP = (op: number, rivalOp: number) => {
     if (op >= 5) tp += 1; // Bonus for 5+ OP
     return tp;
 };
+
+export const getPlayerByTurnOrder = (initiative: { firstTurn: 'player' | 'opponent' | null }, turnOrder: 1 | 2): 'player' | 'opponent' | null => {
+    if (!initiative.firstTurn) return null;
+    
+    if (turnOrder === 1) return initiative.firstTurn;
+    return initiative.firstTurn === 'player' ? 'opponent' : 'player';
+};

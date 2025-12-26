@@ -42,6 +42,14 @@ const createInitialGameState = (): GameSession['state'] => ({
     firstTurn: null,
     firstDeployment: null,
   },
+  strategicOptions: {
+    p1Reserve: false,
+    p1Speedball: false,
+    p2OrderReduction: false,
+    p2CtLimit: false,
+    p2SuppressiveFire: false,
+    p2Speedball: false,
+  },
   deploymentDetails: {
     hidden: false,
     infiltration: false,
