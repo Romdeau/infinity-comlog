@@ -10,7 +10,7 @@
 ## Phase 2: Complete N5 Sequence Implementation
 - [x] Task: Write Tests for Missing N5 Sequence Phases (Audit against rules) 30f6ed3
 - [x] Task: Implement Missing N5 Sequence Phases in UI 18f383e
-- [ ] Task: Write Tests for Scoring Logic Persistence
+- [x] Task: Write Tests for Scoring Logic Persistence f077987
 - [ ] Task: Implement Scoring Tracker Refinement
 - [ ] Task: Conductor - User Manual Verification 'Complete N5 Sequence Implementation' (Protocol in workflow.md)
 
