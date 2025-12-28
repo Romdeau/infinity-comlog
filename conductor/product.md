@@ -17,4 +17,5 @@ The Infinity Comlog is designed as a mobile-first, quick-reference companion for
 - **Army Code Integration:** Ability to import official Infinity army codes to display unit-specific data and contextual phase-relevant hints.
 - **Strategic Use Tracking:** Compliance with N5 rules for First and Second Player procedural and logistical uses of Command Tokens, including dynamic labeling and contextual tactical hints.
 - **Wiki Integration:** Direct links to the official Infinity Wiki for instant verification of skills and AROs.
+- **Robust Data Management:** Persistent storage of raw army codes with automatic schema validation and re-parsing to ensure data integrity across application updates.
 - **Mobile-First Design:** Optimized for small screens and one-handed use at the gaming table.

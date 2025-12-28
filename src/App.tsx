@@ -10,6 +10,7 @@ const ArmyListViewPage = lazy(() => import("@/pages/army-list-view"));
 const ListAnalysisPage = lazy(() => import("@/pages/list-analysis"));
 const GameSequencePage = lazy(() => import("@/pages/game-sequence"));
 const OrderReferencePage = lazy(() => import("@/pages/order-reference"));
+const SettingsPage = lazy(() => import("@/pages/settings"));
 
 export function App() {
   return (
@@ -26,6 +27,7 @@ export function App() {
                   <Route path="list-analysis" element={<ListAnalysisPage />} />
                   <Route path="game-sequence" element={<GameSequencePage />} />
                   <Route path="order-reference" element={<OrderReferencePage />} />
+                  <Route path="settings" element={<SettingsPage />} />
                   <Route path="*" element={<Navigate to="army-lists" replace />} />
                 </Route>
               </Routes>

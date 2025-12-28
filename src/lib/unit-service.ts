@@ -52,6 +52,49 @@ export interface EnrichedArmyList extends Omit<ArmyList, 'combatGroups'> {
   version?: number;
 }
 
+export interface StoredArmyList extends EnrichedArmyList {
+  rawBase64: string;
+  schemaVersion: number;
+  importTimestamp: number;
+  validationHash: string;
+  name?: string;
+}
+
+export const CURRENT_SCHEMA_VERSION = 1;
+
+export function generateValidationHash(list: EnrichedArmyList): string {
+  // Create a stable string representation
+  // We exclude properties that might vary but aren't part of the core data definition if any
+  // For now, we just hash the whole enriched object
+  const str = JSON.stringify(list);
+  
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString(16);
+}
+
+export function migrateToStoredList(list: EnrichedArmyList | StoredArmyList): StoredArmyList {
+  // Check if it's already a StoredArmyList
+  if ('schemaVersion' in list && 'rawBase64' in list && 'validationHash' in list) {
+    return list as StoredArmyList;
+  }
+
+  // It's a legacy list
+  return {
+    ...list,
+    rawBase64: '', // Unknown for legacy lists
+    schemaVersion: 1, // Default to current version
+    importTimestamp: Date.now(),
+    validationHash: generateValidationHash(list),
+    // Extract name if possible, or use defaults
+    name: (list as any).name || (list as any).listName || `List ${list.rawCode}`
+  };
+}
+
 class UnitService {
   private cache: Record<number, UnitData> = {};
 
@@ -62,8 +105,8 @@ class UnitService {
       // In a real app, this would be a fetch to a static asset or API
       // Since this is a Vite project, we can try to fetch the local JSON
       // We must prepend BASE_URL to handle the subpath deployment (e.g. /infinity-comlog/)
-      // remove trailing slash from BASE_URL if needed, but usually it handles cleanly if we join carefully
-      const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+      const rawBaseUrl = import.meta.env?.BASE_URL || '/';
+      const baseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl : `${rawBaseUrl}/`;
       const response = await fetch(`${baseUrl}data/factions/${factionId}.json`);
       if (!response.ok) throw new Error(`Faction ${factionId} not found`);
 
