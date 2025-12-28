@@ -1,0 +1,7 @@
+Automated Test Command: bun test src/pages/settings.test.tsx
+Manual Verification Steps:
+1. Start development server: bun run dev
+2. Open browser to: http://localhost:5173
+3. Click user avatar -> Settings.
+4. Verify URL #/settings and content.
+User Confirmation: Received 'yes'.
