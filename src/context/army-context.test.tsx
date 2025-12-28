@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import * as React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArmyProvider, useArmy } from './army-context';
 import { type StoredArmyList } from '@/lib/unit-service';
 
@@ -16,6 +16,36 @@ if (!global.crypto.randomUUID) {
 describe('ArmyContext', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    // Mock fetch to return a valid faction data structure
+    global.fetch = vi.fn(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          version: "1.0",
+          units: [{
+            idArmy: 1, // Matches a dummy unit if needed, but the parser might produce IDs we don't know. 
+            // We need to match what the parser produces for the test base64. 
+            // For the specific base64 used in tests ("gr8Kb3BlcmF0aW9ucw..."), it's a PanO list. 
+            // However, just ensuring it returns *some* data is better than the error.
+            name: "Fusilier",
+            isc: "Fusilier",
+            profileGroups: [{
+              id: 1,
+              options: [{ id: 1, name: "Fusilier", points: 10, swc: "0" }],
+              profiles: [{
+                name: "Fusilier", move: [10, 10], type: 1,
+                w: 1, arm: 1, bts: 0, str: 0, s: 2,
+                weapons: [], skills: [], equip: []
+              }]
+            }]
+          }]
+        })
+      } as Response)
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
