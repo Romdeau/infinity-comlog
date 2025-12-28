@@ -1,5 +1,11 @@
 # Project Workflow
 
+## Critical Constraints
+- **Package Manager**: Strictly use `bun`. Never use `npm`, `yarn`, or `node`.
+- **Environment**: On Windows, use WSL for `bun` and PowerShell for `git`.
+- **Subpath Deployment**: Always use `import.meta.env.BASE_URL` for assets.
+- **Git Context**: Only perform `git commit` or `git push` when completing a task or phase as specified in this workflow, or when explicitly asked.
+
 ## Guiding Principles
 
 1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`

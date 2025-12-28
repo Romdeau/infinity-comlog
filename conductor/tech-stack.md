@@ -19,3 +19,10 @@
 ## Deployment & Tooling
 - **Linting:** ESLint
 - **Formatting:** TypeScript-ESLint
+- **Deployment:** GitHub Pages (Subpath: `/infinity-comlog/`)
+- **Critical Requirement:** Always use `import.meta.env.BASE_URL` for assets in the `public/` folder.
+
+## Environment Details
+- **Cross-Platform:** Developed on macOS and Windows (via WSL Ubuntu-24.04).
+- **WSL Constraint:** On Windows, all `bun` commands MUST be executed via WSL. Use PowerShell for `git` operations.
+- **Node/NPM Prohibited:** Strictly use `bun`. Never use `npm` or `yarn`.
