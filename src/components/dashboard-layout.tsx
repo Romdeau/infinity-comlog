@@ -43,6 +43,7 @@ export function DashboardLayout() {
     )
     if (path === "/game-sequence") return "Game Sequence"
     if (path === "/order-reference") return "Order Reference"
+    if (path === "/settings") return "Settings"
     return "Infinity Comlog"
   }
 
