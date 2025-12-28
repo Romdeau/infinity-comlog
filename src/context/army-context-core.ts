@@ -10,6 +10,7 @@ export interface ArmyContextType {
   storedLists: Record<string, StoredArmyList>
   saveList: (list: EnrichedArmyList, rawBase64?: string) => void
   deleteList: (listId: string) => void
+  reimportAllLists: () => Promise<void>
 
   // Error handling for background imports/migrations
   importErrors: string[]

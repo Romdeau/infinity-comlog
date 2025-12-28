@@ -160,4 +160,32 @@ describe('ArmyContext', () => {
       expect(list.validationHash).toBeTruthy();
     }, { timeout: 2000 });
   });
+
+  it('should manually re-import all lists when requested', async () => {
+    const list = {
+      armyName: 'To Reimport',
+      sectoralId: 101,
+      sectoralName: 'PanOceania',
+      points: 300,
+      combatGroups: [],
+      rawBase64: 'gr8Kb3BlcmF0aW9ucwEggSwCAQoAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgA=',
+      schemaVersion: 1,
+      importTimestamp: 1000,
+      validationHash: 'manual-reimport-test'
+    };
+
+    window.localStorage.setItem('comlog_stored_lists', JSON.stringify({
+      'test-id': list
+    }));
+
+    const { result } = renderHook(() => useArmy(), { wrapper });
+
+    await React.act(async () => {
+      await result.current.reimportAllLists();
+    });
+
+    const updatedList = result.current.storedLists['test-id'];
+    expect(updatedList.validationHash).not.toBe('manual-reimport-test');
+    expect(updatedList.validationHash).toBeTruthy();
+  });
 });

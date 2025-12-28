@@ -169,8 +169,45 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
     if (activePairIds.b === listId) setActivePairIds(p => ({ ...p, b: null }))
   }
 
+  const reimportAllLists = async () => {
+    let changed = false;
+    const newStored = { ...storedLists };
+    const errors: string[] = [];
+
+    for (const [id, currentList] of Object.entries(storedLists)) {
+      if (currentList.rawBase64 || currentList.rawCode) {
+        try {
+          const rawCode = currentList.rawBase64 || currentList.rawCode || '';
+          const parser = new ArmyParser(rawCode);
+          const rawList = parser.parse();
+          const enriched = await unitService.enrichArmyList(rawList);
+          
+          newStored[id] = {
+            ...enriched,
+            rawBase64: rawCode,
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+            importTimestamp: currentList.importTimestamp || Date.now(),
+            validationHash: generateValidationHash(enriched),
+            name: currentList.name || enriched.armyName
+          };
+          changed = true;
+        } catch (e) {
+          console.error(`Failed to re-import list ${id}:`, e);
+          errors.push(`Failed to re-import list "${currentList.armyName || id}": ${e instanceof Error ? e.message : 'Unknown error'}`);
+        }
+      }
+    }
+
+    if (changed) {
+      setStoredLists(newStored);
+    }
+    if (errors.length > 0) {
+      setImportErrors(errors);
+    }
+  }
+
   return (
-    <ArmyContext.Provider value={{ lists, setLists, storedLists, saveList, deleteList, importErrors, clearImportErrors }}>
+    <ArmyContext.Provider value={{ lists, setLists, storedLists, saveList, deleteList, reimportAllLists, importErrors, clearImportErrors }}>
       {children}
     </ArmyContext.Provider>
   )
