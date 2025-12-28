@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArmyListImporter } from "./army-list-importer"
 import { type ArmyList } from "@/lib/army-parser"
 import { type EnrichedArmyList, unitService } from "@/lib/unit-service"
-import { LayersIcon, Trash2, ShieldCheck, Sword, Loader2, LibraryIcon } from "lucide-react"
+import { LayersIcon, Trash2, ShieldCheck, Sword, Loader2, LibraryIcon, CopyIcon, CheckIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useArmy } from "@/context/army-context"
@@ -179,6 +179,17 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
 }
 
 function ArmyListDisplay({ list, onClear }: { list: EnrichedArmyList; onClear: () => void }) {
+  const [copied, setCopied] = React.useState(false)
+
+  const handleExport = () => {
+    const code = list.rawCode || (list as any).rawBase64 || ""
+    if (code) {
+      navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -190,18 +201,29 @@ function ArmyListDisplay({ list, onClear }: { list: EnrichedArmyList; onClear: (
               className="size-6 object-contain filter drop-shadow-sm"
             />
           )}
-          <div className="font-bold text-sm truncate max-w-[180px]">
+          <div className="font-bold text-sm truncate max-w-[150px]">
             {list.armyName || "Unnamed List"}
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 text-destructive hover:text-white hover:bg-destructive transition-colors shrink-0"
-          onClick={onClear}
-        >
-          <Trash2 className="size-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("size-8 transition-colors shrink-0", copied ? "text-green-500" : "text-muted-foreground hover:text-primary")}
+            onClick={handleExport}
+            title="Export Army Code (Base64)"
+          >
+            {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 text-destructive hover:text-white hover:bg-destructive transition-colors shrink-0"
+            onClick={onClear}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-muted-foreground border-y border-border/50 py-2">
