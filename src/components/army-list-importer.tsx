@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { ArmyParser, type ArmyList } from "@/lib/army-parser"
 import { FileCode, AlertCircle } from "lucide-react"
 
-export function ArmyListImporter({ onListParsed }: { onListParsed?: (list: ArmyList | null) => void }) {
+export function ArmyListImporter({ onListParsed }: { onListParsed?: (list: ArmyList | null, rawCode: string) => void }) {
   const [code, setCode] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
 
@@ -17,7 +17,7 @@ export function ArmyListImporter({ onListParsed }: { onListParsed?: (list: ArmyL
       const cleanCode = code.replace(/\s/g, "")
       const parser = new ArmyParser(cleanCode)
       const list = parser.parse()
-      if (onListParsed) onListParsed(list)
+      if (onListParsed) onListParsed(list, cleanCode)
     } catch (e) {
       setError("Failed to parse army code. Please check the code and try again.")
       console.error(e)

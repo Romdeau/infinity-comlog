@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
-import { type EnrichedArmyList, unitService } from "@/lib/unit-service"
+import { type EnrichedArmyList, type StoredArmyList, unitService, migrateToStoredList } from "@/lib/unit-service"
 import { ArmyParser } from "@/lib/army-parser"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { ArmyContext, type ArmyContextType, useArmy } from "./army-context-core"
@@ -9,7 +9,7 @@ export { useArmy }
 export type { ArmyContextType }
 
 export function ArmyProvider({ children }: { children: React.ReactNode }) {
-  const [storedLists, setStoredLists] = useLocalStorage<Record<string, EnrichedArmyList>>("comlog_stored_lists", {})
+  const [storedLists, setStoredLists] = useLocalStorage<Record<string, StoredArmyList>>("comlog_stored_lists", {})
   const [activePairIds, setActivePairIds] = useLocalStorage<{ a: string | null; b: string | null }>("comlog_active_pair", { a: null, b: null })
 
   // Auto-migration/Re-enrichment for stale lists
@@ -19,14 +19,27 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
       const newStored = { ...storedLists };
 
       for (const [id, list] of Object.entries(storedLists)) {
+        // First, ensure all lists are in the new StoredArmyList format
+        if (!('validationHash' in list)) {
+          newStored[id] = migrateToStoredList(list);
+          changed = true;
+        }
+
+        const currentList = newStored[id];
+
         // If list is missing version or has old version, and we have the raw code
         // Version 1 introduced the 'profiles' array structure
-        if ((!list.version || list.version < 1) && list.rawCode) {
+        if ((!currentList.version || currentList.version < 1) && currentList.rawCode) {
           try {
-            const parser = new ArmyParser(list.rawCode);
+            const parser = new ArmyParser(currentList.rawCode);
             const rawList = parser.parse();
             const enriched = await unitService.enrichArmyList(rawList);
-            newStored[id] = enriched;
+            // We preserve the storage metadata when re-parsing
+            newStored[id] = {
+              ...migrateToStoredList(enriched),
+              rawBase64: currentList.rawBase64 || currentList.rawCode || '',
+              importTimestamp: currentList.importTimestamp || Date.now()
+            };
             changed = true;
           } catch (e) {
             console.error(`Failed to auto-migrate list ${id}:`, e);
@@ -68,7 +81,10 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
         aId = existingId
       } else {
         const id = crypto.randomUUID()
-        newStored[id] = newLists.listA
+        newStored[id] = {
+          ...migrateToStoredList(newLists.listA),
+          rawBase64: newLists.listA.rawCode || ''
+        }
         aId = id
       }
     } else {
@@ -86,7 +102,10 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
         bId = existingId
       } else {
         const id = crypto.randomUUID()
-        newStored[id] = newLists.listB
+        newStored[id] = {
+          ...migrateToStoredList(newLists.listB),
+          rawBase64: newLists.listB.rawCode || ''
+        }
         bId = id
       }
     } else {
@@ -97,9 +116,15 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
     setActivePairIds({ a: aId, b: bId })
   }
 
-  const saveList = (list: EnrichedArmyList) => {
+  const saveList = (list: EnrichedArmyList, rawBase64?: string) => {
     const id = crypto.randomUUID()
-    setStoredLists(prev => ({ ...prev, [id]: list }))
+    const stored = migrateToStoredList(list);
+    if (rawBase64) {
+      stored.rawBase64 = rawBase64;
+    } else if (list.rawCode) {
+      stored.rawBase64 = list.rawCode;
+    }
+    setStoredLists(prev => ({ ...prev, [id]: stored }))
   }
 
   const deleteList = (listId: string) => {

@@ -26,7 +26,7 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
     setLists({ ...lists, listB: list })
   }
 
-  const handleListParsed = async (list: ArmyList | null, key: 'listA' | 'listB') => {
+  const handleListParsed = async (list: ArmyList | null, key: 'listA' | 'listB', rawCode: string) => {
     if (!list) {
       if (key === 'listA') setListA(null)
       else setListB(null)
@@ -51,6 +51,8 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
     setLoading(key)
     try {
       const enriched = await unitService.enrichArmyList(list)
+      // Ensure rawCode is preserved
+      enriched.rawCode = rawCode
       if (key === 'listA') setListA(enriched)
       else setListB(enriched)
     } finally {
@@ -99,7 +101,7 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
               </div>
             ) : (
               <div className="animate-in fade-in duration-300">
-                <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listA')} />
+                <ArmyListImporter onListParsed={(list, rawCode) => handleListParsed(list, 'listA', rawCode)} />
               </div>
             )}
           </TabsContent>
@@ -111,7 +113,7 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
               </div>
             ) : (
               <div className="animate-in fade-in duration-300">
-                <ArmyListImporter onListParsed={(list) => handleListParsed(list, 'listB')} />
+                <ArmyListImporter onListParsed={(list, rawCode) => handleListParsed(list, 'listB', rawCode)} />
               </div>
             )}
           </TabsContent>

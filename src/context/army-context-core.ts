@@ -1,5 +1,5 @@
 import * as React from "react"
-import { type EnrichedArmyList } from "@/lib/unit-service"
+import { type EnrichedArmyList, type StoredArmyList } from "@/lib/unit-service"
 
 export interface ArmyContextType {
   // The currently active pair for the game
@@ -7,8 +7,8 @@ export interface ArmyContextType {
   setLists: (lists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }) => void
 
   // The library of all imported lists
-  storedLists: Record<string, EnrichedArmyList>
-  saveList: (list: EnrichedArmyList) => void
+  storedLists: Record<string, StoredArmyList>
+  saveList: (list: EnrichedArmyList, rawBase64?: string) => void
   deleteList: (listId: string) => void
 }
 
