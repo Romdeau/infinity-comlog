@@ -18,12 +18,16 @@ export type { ArmyContextType }
 export function ArmyProvider({ children }: { children: React.ReactNode }) {
   const [storedLists, setStoredLists] = useLocalStorage<Record<string, StoredArmyList>>("comlog_stored_lists", {})
   const [activePairIds, setActivePairIds] = useLocalStorage<{ a: string | null; b: string | null }>("comlog_active_pair", { a: null, b: null })
+  const [importErrors, setImportErrors] = React.useState<string[]>([])
+
+  const clearImportErrors = () => setImportErrors([])
 
   // Auto-validation/Re-enrichment for stale or invalid lists
   React.useEffect(() => {
     const validateAndMigrate = async () => {
       let changed = false;
       const newStored = { ...storedLists };
+      const errors: string[] = [];
 
       for (const [id, list] of Object.entries(storedLists)) {
         // 1. Ensure all lists are in the new StoredArmyList format structure
@@ -67,12 +71,16 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
             changed = true;
           } catch (e) {
             console.error(`Failed to auto-reparse list ${id}:`, e);
+            errors.push(`Failed to update list "${currentList.armyName || id}": ${e instanceof Error ? e.message : 'Unknown error'}`);
           }
         }
       }
 
       if (changed) {
         setStoredLists(newStored);
+      }
+      if (errors.length > 0) {
+        setImportErrors(errors);
       }
     };
 
@@ -162,7 +170,7 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ArmyContext.Provider value={{ lists, setLists, storedLists, saveList, deleteList }}>
+    <ArmyContext.Provider value={{ lists, setLists, storedLists, saveList, deleteList, importErrors, clearImportErrors }}>
       {children}
     </ArmyContext.Provider>
   )

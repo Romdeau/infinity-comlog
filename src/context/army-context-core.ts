@@ -10,6 +10,10 @@ export interface ArmyContextType {
   storedLists: Record<string, StoredArmyList>
   saveList: (list: EnrichedArmyList, rawBase64?: string) => void
   deleteList: (listId: string) => void
+
+  // Error handling for background imports/migrations
+  importErrors: string[]
+  clearImportErrors: () => void
 }
 
 export const ArmyContext = React.createContext<ArmyContextType | undefined>(undefined)
