@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArmyListImporter } from "./army-list-importer"
 import { type ArmyList } from "@/lib/army-parser"
-import { type EnrichedArmyList, unitService } from "@/lib/unit-service"
+import { type EnrichedArmyList, type StoredArmyList, unitService } from "@/lib/unit-service"
 import { LayersIcon, Trash2, ShieldCheck, Sword, Loader2, LibraryIcon, CopyIcon, CheckIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -182,7 +182,7 @@ function ArmyListDisplay({ list, onClear }: { list: EnrichedArmyList; onClear: (
   const [copied, setCopied] = React.useState(false)
 
   const handleExport = () => {
-    const code = list.rawCode || (list as any).rawBase64 || ""
+    const code = list.rawCode || ("rawBase64" in list ? (list as StoredArmyList).rawBase64 : "") || ""
     if (code) {
       navigator.clipboard.writeText(code)
       setCopied(true)

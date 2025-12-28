@@ -2,7 +2,6 @@ import { renderHook, waitFor } from '@testing-library/react';
 import * as React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArmyProvider, useArmy } from './army-context';
-import { type StoredArmyList } from '@/lib/unit-service';
 
 // Mock crypto.randomUUID
 if (!global.crypto) {
@@ -17,7 +16,7 @@ describe('ArmyContext', () => {
   beforeEach(() => {
     window.localStorage.clear();
     // Mock fetch to return a valid faction data structure
-    global.fetch = vi.fn(() => 
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -54,7 +53,7 @@ describe('ArmyContext', () => {
 
   it('should store lists as StoredArmyList objects when saved', () => {
     const { result } = renderHook(() => useArmy(), { wrapper });
-    
+
     const mockEnrichedList = {
       armyName: 'Test List',
       sectoralId: 101,
@@ -64,7 +63,6 @@ describe('ArmyContext', () => {
       rawCode: 'test-base64'
     };
 
-    // @ts-expect-error - mock list
     React.act(() => {
       result.current.saveList(mockEnrichedList, 'test-base64');
     });
@@ -72,7 +70,7 @@ describe('ArmyContext', () => {
     const storedIds = Object.keys(result.current.storedLists);
     expect(storedIds.length).toBe(1);
     const storedList = result.current.storedLists[storedIds[0]];
-    
+
     expect(storedList.rawBase64).toBe('test-base64');
     expect(storedList.schemaVersion).toBe(1);
     expect(storedList.validationHash).toBeTruthy();

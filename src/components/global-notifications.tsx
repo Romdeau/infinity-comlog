@@ -1,4 +1,3 @@
-import * as React from "react"
 import { useArmy } from "@/context/army-context"
 import { AlertCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,8 +10,8 @@ export function GlobalNotifications() {
   return (
     <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm space-y-2 animate-in slide-in-from-bottom-5">
       {importErrors.map((error, idx) => (
-        <div 
-          key={idx} 
+        <div
+          key={idx}
           className="relative p-3 pl-10 bg-destructive text-destructive-foreground rounded-md shadow-lg border border-destructive-foreground/10"
         >
           <AlertCircle className="absolute left-3 top-3.5 size-4" />
