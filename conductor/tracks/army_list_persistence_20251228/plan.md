@@ -29,10 +29,10 @@ Implement startup validation and the ability to re-parse lists from their stored
 ## Phase 4: Settings Page Implementation
 Create a dedicated space for application settings and data management.
 
-- [ ] Task: Scaffold the `Settings` page component (`src/pages/settings.tsx`).
-- [ ] Task: Add the `/settings` route to `App.tsx`.
-- [ ] Task: Update `AppSidebar` (specifically the User/Profile section) to link to the new Settings page.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Settings Page Implementation' (Protocol in workflow.md)
+- [x] Task: Scaffold the `Settings` page component (`src/pages/settings.tsx`). 52e977c
+- [x] Task: Add the `/settings` route to `App.tsx`. 52e977c
+- [x] Task: Update `AppSidebar` (specifically the User/Profile section) to link to the new Settings page. 52e977c
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Settings Page Implementation' (Protocol in workflow.md)
 
 ## Phase 5: Global and Individual Data Actions
 Implement the "Re-import All" and "Export" functionalities.
