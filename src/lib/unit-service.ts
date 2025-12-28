@@ -60,6 +60,8 @@ export interface StoredArmyList extends EnrichedArmyList {
   name?: string;
 }
 
+export const CURRENT_SCHEMA_VERSION = 1;
+
 export function generateValidationHash(list: EnrichedArmyList): string {
   // Create a stable string representation
   // We exclude properties that might vary but aren't part of the core data definition if any
@@ -103,8 +105,8 @@ class UnitService {
       // In a real app, this would be a fetch to a static asset or API
       // Since this is a Vite project, we can try to fetch the local JSON
       // We must prepend BASE_URL to handle the subpath deployment (e.g. /infinity-comlog/)
-      // remove trailing slash from BASE_URL if needed, but usually it handles cleanly if we join carefully
-      const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+      const rawBaseUrl = import.meta.env?.BASE_URL || '/';
+      const baseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl : `${rawBaseUrl}/`;
       const response = await fetch(`${baseUrl}data/factions/${factionId}.json`);
       if (!response.ok) throw new Error(`Faction ${factionId} not found`);
 

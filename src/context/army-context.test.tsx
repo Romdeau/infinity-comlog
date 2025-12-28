@@ -76,4 +76,58 @@ describe('ArmyContext', () => {
     expect(storedList.rawBase64).toBe('');
     expect(storedList.validationHash).toBeTruthy();
   });
+
+  it('should re-parse lists with outdated schema version on mount', async () => {
+    const outdatedList = {
+      armyName: 'Outdated List',
+      sectoralId: 101,
+      sectoralName: 'PanOceania',
+      points: 300,
+      combatGroups: [],
+      rawBase64: 'gr8Kb3BlcmF0aW9ucwEggSwCAQoAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgA=',
+      schemaVersion: 0, // Outdated
+      importTimestamp: 1000,
+      validationHash: 'old-hash'
+    };
+
+    window.localStorage.setItem('comlog_stored_lists', JSON.stringify({
+      'outdated-id': outdatedList
+    }));
+
+    const { result } = renderHook(() => useArmy(), { wrapper });
+
+    await waitFor(() => {
+      const list = result.current.storedLists['outdated-id'];
+      expect(list).toBeDefined();
+      expect(list.schemaVersion).toBe(1);
+      expect(list.validationHash).not.toBe('old-hash');
+    }, { timeout: 2000 });
+  });
+
+  it('should detect and re-parse lists with invalid validation hash', async () => {
+    const corruptedList = {
+      armyName: 'Corrupted List',
+      sectoralId: 101,
+      sectoralName: 'PanOceania',
+      points: 300,
+      combatGroups: [],
+      rawBase64: 'gr8Kb3BlcmF0aW9ucwEggSwCAQoAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgA=',
+      schemaVersion: 1,
+      importTimestamp: 1000,
+      validationHash: 'wrong-hash'
+    };
+
+    window.localStorage.setItem('comlog_stored_lists', JSON.stringify({
+      'corrupted-id': corruptedList
+    }));
+
+    const { result } = renderHook(() => useArmy(), { wrapper });
+
+    await waitFor(() => {
+      const list = result.current.storedLists['corrupted-id'];
+      expect(list).toBeDefined();
+      expect(list.validationHash).not.toBe('wrong-hash');
+      expect(list.validationHash).toBeTruthy();
+    }, { timeout: 2000 });
+  });
 });

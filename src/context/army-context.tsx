@@ -1,6 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
-import { type EnrichedArmyList, type StoredArmyList, unitService, migrateToStoredList } from "@/lib/unit-service"
+import { 
+  type EnrichedArmyList, 
+  type StoredArmyList, 
+  unitService, 
+  migrateToStoredList, 
+  CURRENT_SCHEMA_VERSION, 
+  generateValidationHash 
+} from "@/lib/unit-service"
 import { ArmyParser } from "@/lib/army-parser"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { ArmyContext, type ArmyContextType, useArmy } from "./army-context-core"
@@ -12,14 +19,14 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
   const [storedLists, setStoredLists] = useLocalStorage<Record<string, StoredArmyList>>("comlog_stored_lists", {})
   const [activePairIds, setActivePairIds] = useLocalStorage<{ a: string | null; b: string | null }>("comlog_active_pair", { a: null, b: null })
 
-  // Auto-migration/Re-enrichment for stale lists
+  // Auto-validation/Re-enrichment for stale or invalid lists
   React.useEffect(() => {
-    const migrate = async () => {
+    const validateAndMigrate = async () => {
       let changed = false;
       const newStored = { ...storedLists };
 
       for (const [id, list] of Object.entries(storedLists)) {
-        // First, ensure all lists are in the new StoredArmyList format
+        // 1. Ensure all lists are in the new StoredArmyList format structure
         if (!('validationHash' in list)) {
           newStored[id] = migrateToStoredList(list);
           changed = true;
@@ -27,22 +34,39 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
 
         const currentList = newStored[id];
 
-        // If list is missing version or has old version, and we have the raw code
-        // Version 1 introduced the 'profiles' array structure
-        if ((!currentList.version || currentList.version < 1) && currentList.rawCode) {
+        // 2. Validate Schema Version and Hash
+        const isOutdated = (currentList.schemaVersion || 0) < CURRENT_SCHEMA_VERSION;
+        
+        // Extract EnrichedArmyList properties for hash validation
+        // We exclude metadata that is added by StoredArmyList
+        const { 
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          rawBase64, schemaVersion, importTimestamp, validationHash, name, 
+          ...coreEnriched 
+        } = currentList;
+        
+        const computedHash = generateValidationHash(coreEnriched as EnrichedArmyList);
+        const isCorrupted = validationHash !== computedHash;
+
+        // 3. Attempt automatic re-parse if needed and rawBase64 is available
+        if ((isOutdated || isCorrupted) && (currentList.rawBase64 || currentList.rawCode)) {
           try {
-            const parser = new ArmyParser(currentList.rawCode);
+            const rawCode = currentList.rawBase64 || currentList.rawCode || '';
+            const parser = new ArmyParser(rawCode);
             const rawList = parser.parse();
             const enriched = await unitService.enrichArmyList(rawList);
-            // We preserve the storage metadata when re-parsing
+            
             newStored[id] = {
-              ...migrateToStoredList(enriched),
-              rawBase64: currentList.rawBase64 || currentList.rawCode || '',
-              importTimestamp: currentList.importTimestamp || Date.now()
+              ...enriched,
+              rawBase64: rawCode,
+              schemaVersion: CURRENT_SCHEMA_VERSION,
+              importTimestamp: currentList.importTimestamp || Date.now(),
+              validationHash: generateValidationHash(enriched),
+              name: currentList.name || enriched.armyName
             };
             changed = true;
           } catch (e) {
-            console.error(`Failed to auto-migrate list ${id}:`, e);
+            console.error(`Failed to auto-reparse list ${id}:`, e);
           }
         }
       }
@@ -52,8 +76,7 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    migrate();
-    // We only want to run this once on mount or when storedLists changes from external source
+    validateAndMigrate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
