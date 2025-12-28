@@ -34,10 +34,10 @@ Create a dedicated space for application settings and data management.
 - [x] Task: Update `AppSidebar` (specifically the User/Profile section) to link to the new Settings page. 52e977c
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Settings Page Implementation' (Protocol in workflow.md) 55b17b4
 
-## Phase 5: Global and Individual Data Actions
+## Phase 5: Global and Individual Data Actions [checkpoint: 842063e]
 Implement the "Re-import All" and "Export" functionalities.
 
 - [x] Task: Implement the `reimportAllLists` function in `ArmyContext` that iterates through all stored lists and re-parses their `rawBase64`. 63c3ba1
 - [x] Task: Add the "Re-import All Lists" button and status feedback to the Settings page. e8ee8df
 - [x] Task: Add an "Export List" button to the army list display in `ArmyManager` to copy the `rawBase64` to the clipboard. 93519cb
-- [~] Task: Conductor - User Manual Verification 'Phase 5: Global and Individual Data Actions' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Global and Individual Data Actions' (Protocol in workflow.md) 842063e
