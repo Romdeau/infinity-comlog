@@ -13,9 +13,9 @@ Refactor the data models to support the new storage requirements and ensure type
 ## Phase 2: Storage Layer Refactor
 Update the context and services to handle the new `StoredArmyList` structure.
 
-- [ ] Task: Update `ArmyContext` to use `Record<string, StoredArmyList>` for `storedLists`.
-- [ ] Task: Update `ArmyListImporter` to capture and pass the `rawBase64` string during the import process.
-- [ ] Task: Update `saveList` in `ArmyContext` to populate the new metadata fields.
+- [x] Task: Update `ArmyContext` to use `Record<string, StoredArmyList>` for `storedLists`. 9f209be
+- [x] Task: Update `ArmyListImporter` to capture and pass the `rawBase64` string during the import process. 9f209be
+- [x] Task: Update `saveList` in `ArmyContext` to populate the new metadata fields. 9f209be
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Storage Layer Refactor' (Protocol in workflow.md)
 
 ## Phase 3: Validation & Automatic Migration
