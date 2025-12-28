@@ -21,10 +21,10 @@ Update the context and services to handle the new `StoredArmyList` structure.
 ## Phase 3: Validation & Automatic Migration
 Implement startup validation and the ability to re-parse lists from their stored base64.
 
-- [ ] Task: Implement a schema validation check that runs in `ArmyProvider` on initialization.
-- [ ] Task: Implement logic to automatically attempt a re-parse of a list if its `schemaVersion` is outdated or `validationHash` is invalid.
-- [ ] Task: Add error handling and notifications for failed automatic re-parses.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Validation & Automatic Migration' (Protocol in workflow.md)
+- [x] Task: Implement a schema validation check that runs in `ArmyProvider` on initialization. 945b97b
+- [x] Task: Implement logic to automatically attempt a re-parse of a list if its `schemaVersion` is outdated or `validationHash` is invalid. 945b97b
+- [x] Task: Add error handling and notifications for failed automatic re-parses. 16156e9
+- [~] Task: Conductor - User Manual Verification 'Phase 3: Validation & Automatic Migration' (Protocol in workflow.md)
 
 ## Phase 4: Settings Page Implementation
 Create a dedicated space for application settings and data management.
