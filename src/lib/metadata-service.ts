@@ -47,6 +47,7 @@ export type MeasurementUnit = "metric" | "imperial";
 
 export class MetadataService {
   private static skillsMap: Record<number, MetadataSkill> = {};
+  private static equipsMap: Record<number, MetadataEquip> = {};
   private static weaponsMap: Record<number, MetadataWeapon[]> = {};
   private static ammoMap: Record<number, MetadataAmmunition> = {};
 
@@ -58,14 +59,17 @@ export class MetadataService {
       this.skillsMap[s.id] = { ...s, name: s.name.replace(/\u00A0/g, ' ') };
     });
 
-    // Initialize Equipment (some things like ECM are in equips array)
+    // Initialize Equipment
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const equips = (metadata as any).equips as MetadataEquip[];
     if (equips) {
       equips.forEach(e => {
-        // Only add if not already present in skillsMap or if it provides a better name
+        const normalizedName = e.name.replace(/\u00A0/g, ' ');
+        this.equipsMap[e.id] = { ...e, name: normalizedName };
+
+        // Add to skillsMap as fallback if not already present
         if (!this.skillsMap[e.id]) {
-          this.skillsMap[e.id] = { ...e, name: e.name.replace(/\u00A0/g, ' ') };
+          this.skillsMap[e.id] = { ...e, name: normalizedName };
         }
       });
     }
@@ -103,12 +107,16 @@ export class MetadataService {
   }
 
   static getEquipmentName(id: number): string {
+    // Check official equipment first to avoid overlapping ID conflicts with weapons
+    if (this.equipsMap[id]) return this.equipsMap[id].name;
+
+    // Check skills as intermediate fallback (some equipment like ECM are listed as skills in metadata)
+    const skill = this.skillsMap[id];
+    if (skill?.name) return skill.name;
+
+    // Check weapons as final fallback
     const modes = this.weaponsMap[id];
     if (modes?.[0]?.name) return modes[0].name;
-    
-    // Check skills as fallback (some equipment like ECM are listed as skills in metadata)
-    const skill = this.getSkill(id);
-    if (skill?.name) return skill.name;
 
     return `Equip ${id}`;
   }
@@ -119,7 +127,7 @@ export class MetadataService {
 
   private static formatExtraName(id: number, filters?: FactionFilters, unit: MeasurementUnit = "imperial"): string | null {
     if (!filters?.extras) return null;
-    
+
     const extra = filters.extras.find((ex) => ex.id === id);
     if (!extra) return null;
 
@@ -140,7 +148,7 @@ export class MetadataService {
   }
 
   static resolveSkills(
-    skills: { id: number; q?: number; extra?: number[] }[], 
+    skills: { id: number; q?: number; extra?: number[] }[],
     filters?: FactionFilters,
     unit: MeasurementUnit = "imperial"
   ): string[] {
@@ -151,7 +159,7 @@ export class MetadataService {
           // Check faction-specific filters first
           const formatted = this.formatExtraName(e, filters, unit);
           if (formatted) return formatted;
-          
+
           return this.getSkillName(e) || this.getWeaponName(e) || e.toString();
         });
         name += ` (${extraNames.join(', ')})`;
@@ -164,7 +172,7 @@ export class MetadataService {
   }
 
   static resolveEquip(
-    equip: { id: number; q?: number; extra?: number[] }[], 
+    equip: { id: number; q?: number; extra?: number[] }[],
     filters?: FactionFilters,
     unit: MeasurementUnit = "imperial"
   ): string[] {
