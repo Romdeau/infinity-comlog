@@ -72,7 +72,8 @@ export default function ArmyListViewPage() {
         </TabsContent>
       </Tabs>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media print {
           @page {
             margin: 1cm;
@@ -243,7 +244,7 @@ function RangeBands({ distance, unit }: { distance: any, unit: "metric" | "imper
   const getMod = (val: number) => {
     // val is in inches if !isMetric, or in cm if isMetric
     const cm = isMetric ? val : val * 2.5;
-    
+
     // Find the band that covers this range
     // Bands are usually: short (0-20), med (20-40), long (40-60/80), max (60/80-120)
     // We check which band's max is >= our cm
@@ -261,17 +262,17 @@ function RangeBands({ distance, unit }: { distance: any, unit: "metric" | "imper
     return null;
   };
 
-  const ranges = isMetric 
+  const ranges = isMetric
     ? [10, 30, 50, 70, 90, 110, 180] // Midpoints of metric bands
     : [4, 12, 20, 28, 36, 44, 72]; // Midpoints of imperial bands
-  
+
   return (
     <div className="grid grid-cols-7 h-full items-stretch">
       {ranges.map((r, i) => {
         const mod = getMod(r);
         let bgColor = "bg-muted/5";
         let textColor = "text-muted-foreground/40";
-        
+
         if (mod === "+6") { bgColor = "bg-green-500/80"; textColor = "text-white font-black"; }
         else if (mod === "+3") { bgColor = "bg-green-600/60"; textColor = "text-white font-black"; }
         else if (mod === "0") { bgColor = "bg-sky-500/60"; textColor = "text-white font-black"; }
@@ -290,49 +291,57 @@ function RangeBands({ distance, unit }: { distance: any, unit: "metric" | "imper
 
 function UnitCard({ unit }: { unit: any }) {
   return (
-    <Card className="overflow-hidden flex flex-col h-full border-muted-foreground/20 shadow-sm hover:shadow-md transition-shadow break-inside-avoid card">
-      <CardHeader className="bg-muted/30 p-3 border-b border-muted-foreground/10">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {unit.logo ? (
-              <img src={unit.logo} alt="" className="size-10 object-contain shrink-0 print:grayscale" />
-            ) : (
-              <div className="size-10 bg-muted rounded-md flex items-center justify-center shrink-0">
-                <InfoIcon className="size-5 text-muted-foreground/40" />
+    <Card className="overflow-hidden flex flex-col h-full border-muted-foreground/20 shadow-sm hover:shadow-md transition-shadow break-inside-avoid card py-0">
+      <CardHeader className="bg-muted/30 px-3 pt-2.5 !pb-2 border-b border-muted-foreground/10">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {unit.logo ? (
+                <img src={unit.logo} alt="" className="size-10 object-contain shrink-0 print:grayscale" />
+              ) : (
+                <div className="size-10 bg-muted rounded-md flex items-center justify-center shrink-0">
+                  <InfoIcon className="size-5 text-muted-foreground/40" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <CardTitle className="text-sm font-black uppercase truncate leading-none tracking-tight">
+                  {unit.name}
+                </CardTitle>
+                <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground uppercase font-bold tracking-wider mt-1.5">
+                  <span className="shrink-0">{unit.type}</span>
+                  <span className="opacity-30">•</span>
+                  <span className={cn(
+                    "shrink-0",
+                    unit.training?.toUpperCase() === "REGULAR" ? "text-emerald-600" :
+                      unit.training?.toUpperCase() === "IRREGULAR" ? "text-amber-600" : ""
+                  )}>
+                    {unit.training}
+                  </span>
+                </div>
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <CardTitle className="text-sm font-black uppercase truncate leading-tight tracking-tight">{unit.name}</CardTitle>
-              <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground uppercase font-bold tracking-wider truncate">
-                <span>{unit.type}</span>
-                <span>•</span>
-                <span className={cn(
-                  unit.training?.toUpperCase() === "REGULAR" ? "text-emerald-500" : 
-                  unit.training?.toUpperCase() === "IRREGULAR" ? "text-amber-500" : ""
-                )}>
-                  {unit.training}
-                </span>
-                <span>•</span>
-                <span>{unit.isc}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex flex-wrap justify-end gap-1">
+                <Badge variant="outline" className="text-[10px] font-black h-5 px-1.5 border-primary/30 text-primary whitespace-nowrap bg-background/50">
+                  {unit.points} PTS
+                </Badge>
+                {unit.swc !== "0" && (
+                  <Badge variant="outline" className="text-[10px] font-black h-5 px-1.5 border-sky-500/30 text-sky-600 whitespace-nowrap bg-sky-50 rounded-full">
+                    {unit.swc} SWC
+                  </Badge>
+                )}
               </div>
+              <UnitDetailDialog unit={unit}>
+                <Button variant="ghost" size="icon" className="size-6 print:hidden hover:bg-primary/10 transition-colors shrink-0">
+                  <Maximize2Icon className="size-3.5" />
+                </Button>
+              </UnitDetailDialog>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0 ml-auto">
-            <div className="flex gap-1 items-center">
-              <Badge variant="outline" className="text-[10px] font-black h-5 px-1.5 border-primary/30 text-primary whitespace-nowrap">
-                {unit.points} PTS
-              </Badge>
-              {unit.swc !== "0" && (
-                <Badge variant="outline" className="text-[10px] font-black h-5 px-1.5 border-sky-500/30 text-sky-600 whitespace-nowrap">
-                  {unit.swc} SWC
-                </Badge>
-              )}
-            </div>
-            <UnitDetailDialog unit={unit}>
-              <Button variant="ghost" size="icon" className="size-6 print:hidden shrink-0">
-                <Maximize2Icon className="size-3.5" />
-              </Button>
-            </UnitDetailDialog>
+
+          <div className="text-[9px] text-foreground/60 uppercase font-black tracking-widest leading-tight break-words px-0.5">
+            {unit.isc}
           </div>
         </div>
       </CardHeader>
@@ -344,37 +353,37 @@ function UnitCard({ unit }: { unit: any }) {
                 Profile: {profile.name || `Option ${pIdx + 1}`}
               </div>
             )}
-            
+
             {/* Stat Line */}
             <div className="grid grid-cols-9 border-b border-muted-foreground/10 text-center text-[8px] font-black uppercase bg-muted/10">
-              <div className="border-r border-muted-foreground/10 py-1">MOV</div>
-              <div className="border-r border-muted-foreground/10 py-1">CC</div>
-              <div className="border-r border-muted-foreground/10 py-1">BS</div>
-              <div className="border-r border-muted-foreground/10 py-1">PH</div>
-              <div className="border-r border-muted-foreground/10 py-1">WIP</div>
-              <div className="border-r border-muted-foreground/10 py-1">ARM</div>
-              <div className="border-r border-muted-foreground/10 py-1">BTS</div>
-              <div className="border-r border-muted-foreground/10 py-1">{profile.isStr ? "STR" : "VITA"}</div>
-              <div className="py-1">S</div>
+              <div className="border-r border-muted-foreground/10 py-0.5">MOV</div>
+              <div className="border-r border-muted-foreground/10 py-0.5">CC</div>
+              <div className="border-r border-muted-foreground/10 py-0.5">BS</div>
+              <div className="border-r border-muted-foreground/10 py-0.5">PH</div>
+              <div className="border-r border-muted-foreground/10 py-0.5">WIP</div>
+              <div className="border-r border-muted-foreground/10 py-0.5">ARM</div>
+              <div className="border-r border-muted-foreground/10 py-0.5">BTS</div>
+              <div className="border-r border-muted-foreground/10 py-0.5">{profile.isStr ? "STR" : "VITA"}</div>
+              <div className="py-0.5">S</div>
             </div>
             <div className="grid grid-cols-9 text-center text-[11px] border-b border-muted-foreground/10 font-bold">
-              <div className="border-r border-muted-foreground/10 py-1.5 bg-background">{profile.mov}</div>
-              <div className="border-r border-muted-foreground/10 py-1.5 bg-background">{profile.cc}</div>
-              <div className="border-r border-muted-foreground/10 py-1.5 bg-background">{profile.bs}</div>
-              <div className="border-r border-muted-foreground/10 py-1.5 bg-background">{profile.ph}</div>
-              <div className="border-r border-muted-foreground/10 py-1.5 bg-background">{profile.wip}</div>
-              <div className="border-r border-muted-foreground/10 py-1.5 bg-background">{profile.arm}</div>
-              <div className="border-r border-muted-foreground/10 py-1.5 bg-background">{profile.bts}</div>
-              <div className="border-r border-muted-foreground/10 py-1.5 bg-background">{profile.w}</div>
-              <div className="py-1.5 bg-background">{profile.s}</div>
+              <div className="border-r border-muted-foreground/10 py-1 bg-background">{profile.mov}</div>
+              <div className="border-r border-muted-foreground/10 py-1 bg-background">{profile.cc}</div>
+              <div className="border-r border-muted-foreground/10 py-1 bg-background">{profile.bs}</div>
+              <div className="border-r border-muted-foreground/10 py-1 bg-background">{profile.ph}</div>
+              <div className="border-r border-muted-foreground/10 py-1 bg-background">{profile.wip}</div>
+              <div className="border-r border-muted-foreground/10 py-1 bg-background">{profile.arm}</div>
+              <div className="border-r border-muted-foreground/10 py-1 bg-background">{profile.bts}</div>
+              <div className="border-r border-muted-foreground/10 py-1 bg-background">{profile.w}</div>
+              <div className="py-1 bg-background">{profile.s}</div>
             </div>
 
-            <div className="p-3 space-y-3">
+            <div className="p-2.5 space-y-2.5">
               {/* Skills */}
               {profile.resolvedSkills && profile.resolvedSkills.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Skills</div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-x-1.5 gap-y-0.5">
                     {profile.resolvedSkills.map((s: string, idx: number) => (
                       <span key={idx} className="text-[10px] font-bold text-foreground/90">
                         {s}{idx < profile.resolvedSkills.length - 1 ? "," : ""}
@@ -386,9 +395,9 @@ function UnitCard({ unit }: { unit: any }) {
 
               {/* Equipment */}
               {profile.resolvedEquip && profile.resolvedEquip.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Equipment</div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-x-1.5 gap-y-0.5">
                     {profile.resolvedEquip.map((e: string, idx: number) => (
                       <span key={idx} className="text-[10px] font-bold text-foreground/80 italic">
                         {e}{idx < profile.resolvedEquip.length - 1 ? "," : ""}
@@ -400,9 +409,9 @@ function UnitCard({ unit }: { unit: any }) {
 
               {/* Weapons */}
               {profile.weapons && profile.weapons.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Weapons</div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-1.5">
                     {profile.weapons.map((w: any, idx: number) => {
                       const modes = WEAPON_DATA[w.id];
                       if (!modes) return (
@@ -410,31 +419,31 @@ function UnitCard({ unit }: { unit: any }) {
                           {MetadataService.getWeaponName(w.id)}
                         </div>
                       );
-                      
+
                       return modes.map((m, mIdx) => (
-                        <div key={`${idx}-${mIdx}`} className="flex items-center justify-between gap-2 group border-b border-muted/20 last:border-0 pb-1 last:pb-0">
-                          <div className="flex flex-col min-w-0">
-                            <div className="text-[10px] font-black text-primary/90 uppercase tracking-tight truncate">
-                              {m.name} {modes.length > 1 && <span className="text-[8px] text-muted-foreground italic">({m.mode})</span>}
+                        <div key={`${idx}-${mIdx}`} className="flex items-start justify-between gap-3 group border-b border-muted/20 last:border-0 pb-1 last:pb-0">
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <div className="text-[10px] font-black text-primary uppercase tracking-tight leading-tight break-words">
+                              {m.name} {modes.length > 1 && <span className="text-[8px] text-muted-foreground italic font-bold">({m.mode})</span>}
                             </div>
                             {m.traits.length > 0 && (
-                              <div className="text-[8px] text-muted-foreground truncate">
+                              <div className="text-[8px] text-muted-foreground leading-snug mt-0.5 break-words">
                                 {m.traits.join(", ")}
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="flex flex-col items-center">
-                              <span className="text-[6px] font-bold text-muted-foreground uppercase leading-none">PS</span>
+                          <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+                            <div className="flex flex-col items-center min-w-[16px]">
+                              <span className="text-[6px] font-bold text-muted-foreground uppercase leading-none mb-0.5">PS</span>
                               <span className="text-[9px] font-black leading-none">{m.damage}</span>
                             </div>
-                            <div className="flex flex-col items-center">
-                              <span className="text-[6px] font-bold text-muted-foreground uppercase leading-none">B</span>
+                            <div className="flex flex-col items-center min-w-[12px]">
+                              <span className="text-[6px] font-bold text-muted-foreground uppercase leading-none mb-0.5">B</span>
                               <span className="text-[9px] font-black leading-none">{m.burst}</span>
                             </div>
-                            <div className="flex flex-col items-center">
-                              <span className="text-[6px] font-bold text-muted-foreground uppercase leading-none">Ammo</span>
-                              <span className="text-[9px] font-black leading-none">{m.ammo}</span>
+                            <div className="flex flex-col items-center min-w-[24px]">
+                              <span className="text-[6px] font-bold text-muted-foreground uppercase leading-none mb-0.5">Ammo</span>
+                              <span className="text-[9px] font-black leading-none text-sky-600">{m.ammo}</span>
                             </div>
                           </div>
                         </div>
@@ -462,38 +471,44 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-            <DialogContent className="sm:max-w-[95vw] w-full h-[95vh] p-0 flex flex-col border-none overflow-hidden">
+      <DialogContent className="sm:max-w-[95vw] w-full h-[95vh] p-0 flex flex-col border-none overflow-hidden">
         <DialogHeader className="p-4 pr-12 border-b bg-muted/30 shrink-0">
-          <div className="flex items-center gap-4">
-            {unit.logo && <img src={unit.logo} alt="" className="size-10 object-contain" />}
-            <div className="flex-1">
-              <DialogTitle className="text-2xl font-black uppercase tracking-tighter leading-none">
-                {unit.name}
-              </DialogTitle>
-              <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">
-                <span>{unit.isc}</span>
-                <span>•</span>
-                <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black border-muted-foreground/30">
-                  {unit.type}
-                </Badge>
-                <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black border-muted-foreground/30">
-                  {unit.training}
-                </Badge>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                {unit.logo && <img src={unit.logo} alt="" className="size-10 object-contain shrink-0" />}
+                <div className="min-w-0">
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter leading-none truncate">
+                    {unit.name}
+                  </DialogTitle>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black border-muted-foreground/30 uppercase tracking-widest bg-background/50">
+                      {unit.type}
+                    </Badge>
+                    <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black border-muted-foreground/30 uppercase tracking-widest bg-background/50">
+                      {unit.training}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <div className="flex flex-col items-center bg-background border border-primary/20 rounded-md px-3 py-1 shadow-sm min-w-[60px]">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Points</span>
+                  <span className="text-lg font-black text-primary leading-none">{unit.points}</span>
+                </div>
+                <div className="flex flex-col items-center bg-background border border-sky-500/20 rounded-md px-3 py-1 shadow-sm min-w-[60px]">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">SWC</span>
+                  <span className="text-lg font-black text-sky-600 leading-none">{unit.swc}</span>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2">
-              <div className="flex flex-col items-center bg-background border border-primary/20 rounded-md px-3 py-1 shadow-sm min-w-[60px]">
-                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Points</span>
-                <span className="text-lg font-black text-primary leading-none">{unit.points}</span>
-              </div>
-              <div className="flex flex-col items-center bg-background border border-sky-500/20 rounded-md px-3 py-1 shadow-sm min-w-[60px]">
-                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">SWC</span>
-                <span className="text-lg font-black text-sky-600 leading-none">{unit.swc}</span>
-              </div>
+
+            <div className="text-[10px] font-black text-foreground/70 uppercase tracking-[0.2em] leading-relaxed break-words border-t border-muted-foreground/10 pt-3">
+              {unit.isc}
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="flex-1 overflow-y-auto p-4 bg-muted/5">
           <div className="max-w-[1600px] mx-auto space-y-6">
             {unit.profiles?.map((profile: any, pIdx: number) => (
@@ -571,7 +586,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                             {MetadataService.getWeaponName(w.id)}
                           </div>
                         );
-                        
+
                         return modes.map((m, mIdx) => (
                           <div key={`${idx}-${mIdx}`} className="space-y-2 border rounded-lg p-3 bg-background shadow-sm hover:border-primary/40 transition-all group">
                             <div className="flex justify-between items-start">
@@ -598,7 +613,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="flex flex-wrap gap-1 min-h-[18px]">
                               {m.traits.map((trait, tIdx) => (
                                 <span key={tIdx} className="text-[8px] font-bold text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded uppercase tracking-wider">
@@ -607,20 +622,22 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                               ))}
                             </div>
 
-                            <div className="pt-1 space-y-1">
-                              <div className="grid grid-cols-7 text-[7px] text-center font-black uppercase text-muted-foreground tracking-tighter px-[1px]">
-                                <div className="border-r border-transparent">0-8</div>
-                                <div className="border-r border-transparent">8-16</div>
-                                <div className="border-r border-transparent">16-24</div>
-                                <div className="border-r border-transparent">24-32</div>
-                                <div className="border-r border-transparent">32-40</div>
-                                <div className="border-r border-transparent">40-48</div>
-                                <div>48-96</div>
+                            {m.distance && Object.keys(m.distance).length > 0 && (
+                              <div className="pt-1 space-y-1">
+                                <div className="grid grid-cols-7 text-[7px] text-center font-black uppercase text-muted-foreground tracking-tighter px-[1px]">
+                                  <div className="border-r border-transparent">0-8</div>
+                                  <div className="border-r border-transparent">8-16</div>
+                                  <div className="border-r border-transparent">16-24</div>
+                                  <div className="border-r border-transparent">24-32</div>
+                                  <div className="border-r border-transparent">32-40</div>
+                                  <div className="border-r border-transparent">40-48</div>
+                                  <div>48-96</div>
+                                </div>
+                                <div className="h-6 border rounded overflow-hidden bg-muted/5">
+                                  <RangeBands distance={m.distance} unit={settings.measurementUnit} />
+                                </div>
                               </div>
-                              <div className="h-6 border rounded overflow-hidden bg-muted/5">
-                                <RangeBands distance={m.distance} unit={settings.measurementUnit} />
-                              </div>
-                            </div>
+                            )}
                           </div>
                         ));
                       })}
