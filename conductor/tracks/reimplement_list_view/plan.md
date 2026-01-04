@@ -19,7 +19,7 @@
 - [x] Task: Conductor - User Manual Verification 'UI Updates' (Protocol in workflow.md)
 
 ## Phase 4: Verification
-- [ ] Verify Kestrel Colonial Force list renders correctly (Unit 935 -> Tech-Bee).
-- [ ] Verify multiple profiles (Su-Jian) render correctly.
-- [ ] Run project linting/type-checking.
+- [x] Verify Kestrel Colonial Force list renders correctly (Unit 935 -> Tech-Bee).
+- [x] Verify multiple profiles (Su-Jian) render correctly.
+- [x] Run project linting/type-checking.
 - [ ] Task: Conductor - User Manual Verification 'Verification' (Protocol in workflow.md)

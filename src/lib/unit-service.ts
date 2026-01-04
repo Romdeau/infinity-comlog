@@ -12,11 +12,6 @@ interface ProfileGroup {
   options: any[];
 }
 
-interface Unit {
-  idArmy: number;
-  profileGroups: ProfileGroup[];
-}
-
 import { MetadataService } from './metadata-service';
 
 export interface EnrichedTrooper extends Trooper {
@@ -143,6 +138,7 @@ class UnitService {
             training: '',
             points: 0,
             swc: '0',
+            isLieutenant: false,
             profiles: []
           }))
         }))
@@ -174,13 +170,17 @@ class UnitService {
         training: '',
         points: 0,
         swc: '0',
+        isLieutenant: false,
         profiles: [{
           mov: '0-0',
           cc: 0, bs: 0, ph: 0, wip: 0, arm: 0, bts: 0, w: 0, s: 0,
           isStr: false,
           skills: [],
           weapons: [],
-          equip: []
+          equip: [],
+          resolvedSkills: [],
+          resolvedEquip: [],
+          resolvedWeapons: []
         }]
       };
     }
@@ -219,7 +219,7 @@ class UnitService {
         equip,
         resolvedSkills: MetadataService.resolveSkills(skills),
         resolvedEquip: MetadataService.resolveEquip(equip),
-        resolvedWeapons: weapons.map(w => ({
+        resolvedWeapons: weapons.map((w: any) => ({
           id: w.id,
           name: MetadataService.getWeaponName(w.id),
           traits: (w.extra || []).map((ext: number) => MetadataService.getWeaponName(ext) || ext.toString())
@@ -227,9 +227,9 @@ class UnitService {
       };
     });
 
-    const isLieutenant = enrichedProfiles.some(p => 
-      p.skills.some(s => s.id === 119) || // Lieutenant skill ID
-      p.resolvedSkills.some(s => s.toLowerCase().includes('lieutenant'))
+    const isLieutenant = enrichedProfiles.some((p: any) => 
+      p.skills.some((s: any) => s.id === 119) || // Lieutenant skill ID
+      p.resolvedSkills.some((s: string) => s.toLowerCase().includes('lieutenant'))
     );
 
     const result: EnrichedTrooper = {

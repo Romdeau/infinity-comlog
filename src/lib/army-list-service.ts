@@ -33,6 +33,7 @@ export interface ProfileData {
   skills: { id: number; q?: number; extra?: number[] }[];
   equip: { id: number; q?: number; extra?: number[] }[];
   str: boolean;
+  logo?: string;
 }
 
 export interface OptionData {
@@ -45,14 +46,21 @@ export interface OptionData {
   equip: { id: number; q?: number; extra?: number[] }[];
 }
 
-import { ArmyList, Trooper } from './army-parser';
+import type { ArmyList, Trooper } from './army-parser';
+import { MetadataService } from './metadata-service';
+
+export interface HydratedProfileData extends ProfileData {
+  weapons: { id: number; extra?: number[] }[];
+  resolvedSkills: string[];
+  resolvedEquip: string[];
+}
 
 export interface HydratedTrooper extends Trooper {
   unitName: string;
   isc: string;
   points: number;
   swc: string;
-  profiles: ProfileData[];
+  profiles: HydratedProfileData[];
   option: OptionData;
   logo?: string;
 }
@@ -104,7 +112,7 @@ export class ArmyListService {
               isc: `Unknown`,
               points: 0,
               swc: '0',
-              profiles: [this.getEmptyProfile()],
+              profiles: [this.getEmptyHydratedProfile()],
               option: this.getEmptyOption(),
             } as HydratedTrooper;
           }
@@ -112,11 +120,22 @@ export class ArmyListService {
           const profileGroup = unit.profileGroups.find((pg) => pg.id === member.groupId) || unit.profileGroups[0];
           const option = profileGroup.options.find((o) => o.id === member.optionId) || profileGroup.options[0];
           
-          // Use all profiles in the group
-          const profiles = profileGroup.profiles;
+          // Hydrate profiles
+          const profiles: HydratedProfileData[] = profileGroup.profiles.map(p => {
+             const combinedSkills = [...(p.skills || []), ...(option.skills || [])];
+             const combinedEquip = [...(p.equip || []), ...(option.equip || [])];
+             
+             return {
+               ...p,
+               weapons: option.weapons || [],
+               resolvedSkills: MetadataService.resolveSkills(combinedSkills),
+               resolvedEquip: MetadataService.resolveEquip(combinedEquip)
+             };
+          });
 
           return {
             ...member,
+            name: unit.name,
             unitName: unit.name,
             isc: unit.isc,
             points: option.points,
@@ -140,7 +159,7 @@ export class ArmyListService {
     };
   }
 
-  private static getEmptyProfile(): ProfileData {
+  private static getEmptyHydratedProfile(): HydratedProfileData {
     return {
       id: 0,
       name: '',
@@ -157,6 +176,9 @@ export class ArmyListService {
       skills: [],
       equip: [],
       str: false,
+      weapons: [],
+      resolvedSkills: [],
+      resolvedEquip: []
     };
   }
 

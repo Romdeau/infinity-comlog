@@ -45,7 +45,7 @@ export class MetadataService {
     });
 
     // Initialize Weapons & Equipment
-    (metadata.weapons as any[]).forEach(w => {
+    (metadata.weapons as MetadataWeapon[]).forEach(w => {
       if (!this.weaponsMap[w.id]) {
         this.weaponsMap[w.id] = [];
       }

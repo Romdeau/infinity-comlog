@@ -6,7 +6,7 @@ import { unitService } from '../src/lib/unit-service.ts';
 import fs from 'fs';
 import path from 'path';
 
-const originalGetFactionData = (unitService as any).getFactionData;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (unitService as any).getFactionData = async (id: number) => {
   const filePath = path.join(process.cwd(), 'public', 'data', 'factions', `${id}.json`);
   if (fs.existsSync(filePath)) {
