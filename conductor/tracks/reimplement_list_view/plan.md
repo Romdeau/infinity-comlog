@@ -12,11 +12,11 @@
 - [x] Refactor `unit-service.ts` to use `MetadataService`.
 - [ ] Task: Conductor - User Manual Verification 'Core Logic Implementation' (Protocol in workflow.md)
 
-## Phase 3: UI Updates
+## Phase 3: UI Updates [checkpoint: b58254d]
 - [x] Update `ArmyListViewPage` to display hydrated data (Skills, Weapons, Equip).
 - [x] Update `ListAnalysisPage` to use resolved data for stats.
 - [x] Update `UnitDetailDialog` to show full profile info.
-- [ ] Task: Conductor - User Manual Verification 'UI Updates' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'UI Updates' (Protocol in workflow.md)
 
 ## Phase 4: Verification
 - [ ] Verify Kestrel Colonial Force list renders correctly (Unit 935 -> Tech-Bee).
