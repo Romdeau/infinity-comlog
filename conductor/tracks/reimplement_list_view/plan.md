@@ -18,8 +18,8 @@
 - [x] Update `UnitDetailDialog` to show full profile info.
 - [x] Task: Conductor - User Manual Verification 'UI Updates' (Protocol in workflow.md)
 
-## Phase 4: Verification
+## Phase 4: Verification [checkpoint: bff2094]
 - [x] Verify Kestrel Colonial Force list renders correctly (Unit 935 -> Tech-Bee).
 - [x] Verify multiple profiles (Su-Jian) render correctly.
 - [x] Run project linting/type-checking.
-- [ ] Task: Conductor - User Manual Verification 'Verification' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Verification' (Protocol in workflow.md)
