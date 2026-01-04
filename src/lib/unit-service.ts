@@ -17,6 +17,8 @@ interface Unit {
   profileGroups: ProfileGroup[];
 }
 
+import { MetadataService } from './metadata-service';
+
 export interface EnrichedTrooper extends Trooper {
   name: string;
   isc: string;
@@ -25,6 +27,7 @@ export interface EnrichedTrooper extends Trooper {
   training: string;
   points: number;
   swc: string;
+  isLieutenant: boolean;
   profiles: {
     name?: string;
     mov: string;
@@ -40,6 +43,10 @@ export interface EnrichedTrooper extends Trooper {
     weapons: any[];
     equip: any[];
     isStr: boolean;
+    // Resolved names for UI
+    resolvedSkills: string[];
+    resolvedEquip: string[];
+    resolvedWeapons: { id: number; name: string; traits: string[] }[];
   }[];
 }
 
@@ -155,9 +162,8 @@ class UnitService {
   }
 
   private enrichTrooper(trooper: Trooper, factionData: UnitData): EnrichedTrooper {
-    // Corvus Belli army codes use idArmy to identify units within a specific faction/sectoral.
-    // We must match against idArmy to ensure we get the correct sectoral-specific unit options.
-    const unit = factionData.units.find((u: Unit) => u.idArmy === trooper.id);
+    // Corvus Belli army codes use unit ID (stable global ID) to identify units.
+    const unit = factionData.units.find((u: any) => u.id === trooper.id);
 
     if (!unit) {
       return {
@@ -191,22 +197,40 @@ class UnitService {
       option = profileGroup.options[trooper.optionId - 1] || profileGroup.options[0];
     }
 
-    const enrichedProfiles = profileGroup.profiles.map((p: any) => ({
-      name: p.name,
-      mov: this.formatMove(p.move),
-      cc: p.cc,
-      bs: p.bs,
-      ph: p.ph,
-      wip: p.wip,
-      arm: p.arm,
-      bts: p.bts,
-      w: p.w,
-      s: p.s,
-      isStr: !!p.str,
-      skills: [...(p.skills || []), ...(option?.skills || [])],
-      weapons: [...(p.weapons || []), ...(option?.weapons || [])],
-      equip: [...(p.equip || []), ...(option?.equip || [])]
-    }));
+    const enrichedProfiles = profileGroup.profiles.map((p: any) => {
+      const skills = [...(p.skills || []), ...(option?.skills || [])];
+      const weapons = [...(p.weapons || []), ...(option?.weapons || [])];
+      const equip = [...(p.equip || []), ...(option?.equip || [])];
+
+      return {
+        name: p.name,
+        mov: this.formatMove(p.move),
+        cc: p.cc,
+        bs: p.bs,
+        ph: p.ph,
+        wip: p.wip,
+        arm: p.arm,
+        bts: p.bts,
+        w: p.w,
+        s: p.s,
+        isStr: !!p.str,
+        skills,
+        weapons,
+        equip,
+        resolvedSkills: MetadataService.resolveSkills(skills),
+        resolvedEquip: MetadataService.resolveEquip(equip),
+        resolvedWeapons: weapons.map(w => ({
+          id: w.id,
+          name: MetadataService.getWeaponName(w.id),
+          traits: (w.extra || []).map((ext: number) => MetadataService.getWeaponName(ext) || ext.toString())
+        }))
+      };
+    });
+
+    const isLieutenant = enrichedProfiles.some(p => 
+      p.skills.some(s => s.id === 119) || // Lieutenant skill ID
+      p.resolvedSkills.some(s => s.toLowerCase().includes('lieutenant'))
+    );
 
     const result: EnrichedTrooper = {
       ...trooper,
@@ -217,6 +241,7 @@ class UnitService {
       training: option?.orders?.[0]?.type || 'REGULAR',
       points: option?.points || 0,
       swc: option?.swc || '0',
+      isLieutenant,
       profiles: enrichedProfiles
     };
 

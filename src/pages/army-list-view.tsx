@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { PrinterIcon, InfoIcon, Maximize2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { SKILL_MAP, WEAPON_MAP, EQUIP_MAP } from "@/lib/constants";
+import { MetadataService } from "@/lib/metadata-service";
 import { WEAPON_DATA } from "@/lib/weapon-data";
 import {
   Dialog,
@@ -348,13 +348,13 @@ function UnitCard({ unit }: { unit: any }) {
 
             <div className="p-3 space-y-3">
               {/* Skills */}
-              {profile.skills && profile.skills.length > 0 && (
+              {profile.resolvedSkills && profile.resolvedSkills.length > 0 && (
                 <div className="space-y-1">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Skills</div>
                   <div className="flex flex-wrap gap-1">
-                    {profile.skills.map((s: any, idx: number) => (
+                    {profile.resolvedSkills.map((s: string, idx: number) => (
                       <span key={idx} className="text-[10px] font-bold text-foreground/90">
-                        {SKILL_MAP[s.id] || `Skill ${s.id}`}{idx < profile.skills.length - 1 ? "," : ""}
+                        {s}{idx < profile.resolvedSkills.length - 1 ? "," : ""}
                       </span>
                     ))}
                   </div>
@@ -362,13 +362,13 @@ function UnitCard({ unit }: { unit: any }) {
               )}
 
               {/* Equipment */}
-              {profile.equip && profile.equip.length > 0 && (
+              {profile.resolvedEquip && profile.resolvedEquip.length > 0 && (
                 <div className="space-y-1">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Equipment</div>
                   <div className="flex flex-wrap gap-1">
-                    {profile.equip.map((e: any, idx: number) => (
+                    {profile.resolvedEquip.map((e: string, idx: number) => (
                       <span key={idx} className="text-[10px] font-bold text-foreground/80 italic">
-                        {EQUIP_MAP[e.id] || `Equip ${e.id}`}{idx < profile.equip.length - 1 ? "," : ""}
+                        {e}{idx < profile.resolvedEquip.length - 1 ? "," : ""}
                       </span>
                     ))}
                   </div>
@@ -384,7 +384,7 @@ function UnitCard({ unit }: { unit: any }) {
                       const modes = WEAPON_DATA[w.id];
                       if (!modes) return (
                         <div key={idx} className="text-[10px] font-black text-primary/90 uppercase tracking-tight">
-                          {WEAPON_MAP[w.id] || `Weapon ${w.id}`}
+                          {MetadataService.getWeaponName(w.id)}
                         </div>
                       );
                       
@@ -509,9 +509,9 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                         <div className="h-px flex-1 bg-muted" />
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
-                        {profile.skills?.map((s: any, idx: number) => (
+                        {profile.resolvedSkills?.map((s: string, idx: number) => (
                           <Badge key={idx} variant="secondary" className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary/5 text-primary border-primary/10">
-                            {SKILL_MAP[s.id] || `Skill ${s.id}`}
+                            {s}
                           </Badge>
                         ))}
                       </div>
@@ -524,9 +524,9 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                         <div className="h-px flex-1 bg-muted" />
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
-                        {profile.equip?.map((e: any, idx: number) => (
+                        {profile.resolvedEquip?.map((e: string, idx: number) => (
                           <Badge key={idx} variant="outline" className="text-[10px] font-bold italic px-2 py-0.5 rounded border-muted-foreground/20">
-                            {EQUIP_MAP[e.id] || `Equip ${e.id}`}
+                            {e}
                           </Badge>
                         ))}
                       </div>
@@ -544,7 +544,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                         const modes = WEAPON_DATA[w.id];
                         if (!modes) return (
                           <div key={idx} className="p-3 border rounded bg-muted/10 font-black uppercase tracking-widest text-[10px]">
-                            {WEAPON_MAP[w.id]}
+                            {MetadataService.getWeaponName(w.id)}
                           </div>
                         );
                         

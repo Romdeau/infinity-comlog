@@ -117,7 +117,7 @@ export class ArmyParser {
           id: unitId,
           groupId: groupChoice,
           optionId: optionChoice,
-          name: getUnitName(unitId)
+          name: ""
         });
       }
 
