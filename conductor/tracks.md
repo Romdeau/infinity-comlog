@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 ---
 
-## [~] Track: Reimplement Army List View & Parsing
+## [x] Track: Reimplement Army List View & Parsing
 *Link: [./conductor/tracks/reimplement_list_view/](./conductor/tracks/reimplement_list_view/)*
