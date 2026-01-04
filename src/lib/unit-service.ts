@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ArmyList, type Trooper, type CombatGroup } from './army-parser';
-import { MetadataService, type FactionFilters } from './metadata-service';
+import { MetadataService, type FactionFilters, type MeasurementUnit } from './metadata-service';
 
 export interface UnitData {
   units: any[];

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
+import { SettingsProvider } from '@/context/settings-context';
 
 // Mock the hook
 const mockUseArmy = vi.fn();
@@ -21,7 +22,11 @@ describe('ArmyListViewPage', () => {
       lists: { listA: null, listB: null },
     });
 
-    render(<ArmyListViewPage />);
+    render(
+      <SettingsProvider>
+        <ArmyListViewPage />
+      </SettingsProvider>
+    );
     expect(screen.getByText(/No Army Lists Loaded/i)).toBeTruthy();
   });
 
@@ -60,7 +65,11 @@ describe('ArmyListViewPage', () => {
       lists: { listA: mockList, listB: null },
     });
 
-    render(<ArmyListViewPage />);
+    render(
+      <SettingsProvider>
+        <ArmyListViewPage />
+      </SettingsProvider>
+    );
     // Use getAllByText because it appears in the Tab and the Header
     expect(screen.getAllByText('Test Army').length).toBeGreaterThan(0);
     expect(screen.getByText('Test Unit')).toBeTruthy();

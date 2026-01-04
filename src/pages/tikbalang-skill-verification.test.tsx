@@ -50,7 +50,7 @@ describe('Tikbalang Skill Verification', () => {
       ]
     };
 
-    const enriched = await unitService.enrichArmyList(rawList);
+    const enriched = await unitService.enrichArmyList(rawList, "imperial");
     const tikbalang = enriched.combatGroups[0].members[0];
 
     // Check Profile 1 (Mobility form or Combat form? Usually defined by profiles array)
@@ -100,7 +100,7 @@ describe('Tikbalang Skill Verification', () => {
       ]
     };
 
-    const enriched = await unitService.enrichArmyList(rawList);
+    const enriched = await unitService.enrichArmyList(rawList, "imperial");
     const tikbalang = enriched.combatGroups[0].members[0];
     const skills = tikbalang.profiles[0].resolvedSkills;
     
@@ -128,7 +128,7 @@ describe('Tikbalang Skill Verification', () => {
       ]
     };
 
-    const enriched = await unitService.enrichArmyList(rawList);
+    const enriched = await unitService.enrichArmyList(rawList, "imperial");
     const tikbalang = enriched.combatGroups[0].members[0];
     const equip = tikbalang.profiles[0].resolvedEquip;
     
@@ -189,7 +189,7 @@ describe('Tikbalang Skill Verification', () => {
       }]
     } as unknown as ArmyList;
 
-    const enriched = await unitService.enrichArmyList(rawList);
+    const enriched = await unitService.enrichArmyList(rawList, "imperial");
     
     const bipandra = enriched.combatGroups[0].members[0];
     expect(bipandra.profiles[0].resolvedSkills).toContain('Dodge (+1")');

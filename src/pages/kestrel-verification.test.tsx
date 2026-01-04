@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
 import { ArmyParser } from '@/lib/army-parser';
 import { ArmyListService, FactionData } from '@/lib/army-list-service';
+import { SettingsProvider } from '@/context/settings-context';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -58,7 +59,11 @@ describe('Kestrel List Verification', () => {
       lists: { listA: hydrated, listB: null },
     });
 
-    render(<ArmyListViewPage />);
+    render(
+      <SettingsProvider>
+        <ArmyListViewPage />
+      </SettingsProvider>
+    );
     
     // Check if "TECH-BEES" is visible
     expect(screen.getAllByText(/TECH-BEES/i).length).toBeGreaterThan(0);

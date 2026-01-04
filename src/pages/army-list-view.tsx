@@ -456,6 +456,7 @@ function UnitCard({ unit }: { unit: any }) {
 }
 
 function UnitDetailDialog({ unit, children }: { unit: any, children: React.ReactNode }) {
+  const { settings } = useSettings()
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -617,7 +618,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                                 <div>48-96</div>
                               </div>
                               <div className="h-6 border rounded overflow-hidden bg-muted/5">
-                                <RangeBands distance={m.distance} />
+                                <RangeBands distance={m.distance} unit={settings.measurementUnit} />
                               </div>
                             </div>
                           </div>

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
 import { ArmyListService, FactionData } from '@/lib/army-list-service';
 import { ArmyList } from '@/lib/army-parser';
+import { SettingsProvider } from '@/context/settings-context';
 
 // Mock the hook
 const mockUseArmy = vi.fn();
@@ -83,7 +84,11 @@ describe('Multi-Profile Unit Verification', () => {
       lists: { listA: hydrated, listB: null },
     });
 
-    render(<ArmyListViewPage />);
+    render(
+      <SettingsProvider>
+        <ArmyListViewPage />
+      </SettingsProvider>
+    );
 
     // 4. Verify
     // Should see "Transforming Unit"
