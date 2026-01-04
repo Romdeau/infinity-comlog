@@ -3,6 +3,8 @@ import * as React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArmyProvider, useArmy } from './army-context';
 
+import { SettingsProvider } from './settings-context';
+
 // Mock crypto.randomUUID
 if (!global.crypto) {
   // @ts-expect-error - polyfilling for node
@@ -48,7 +50,9 @@ describe('ArmyContext', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <ArmyProvider>{children}</ArmyProvider>
+    <SettingsProvider>
+      <ArmyProvider>{children}</ArmyProvider>
+    </SettingsProvider>
   );
 
   it('should store lists as StoredArmyList objects when saved', () => {

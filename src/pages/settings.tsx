@@ -1,11 +1,14 @@
 import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Settings as SettingsIcon, Database, RefreshCcw, CheckCircle2, Loader2 } from "lucide-react"
+import { Settings as SettingsIcon, Database, RefreshCcw, CheckCircle2, Loader2, Ruler } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useArmy } from "@/context/army-context"
+import { useSettings } from "@/context/settings-context"
+import { cn } from "@/lib/utils"
 
 export default function SettingsPage() {
   const { reimportAllLists } = useArmy()
+  const { settings, updateSettings } = useSettings()
   const [reimporting, setReimporting] = React.useState(false)
   const [lastSuccess, setLastSuccess] = React.useState<number | null>(null)
 
@@ -33,6 +36,52 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-6">
+        {/* User Preferences */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Ruler className="size-5 text-primary/80" />
+              <CardTitle className="text-lg">Preferences</CardTitle>
+            </div>
+            <CardDescription>Customize your application experience.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-muted/30 border border-border/50">
+              <div className="space-y-1">
+                <div className="text-sm font-bold">Measurement Unit</div>
+                <p className="text-xs text-muted-foreground">
+                  Choose between Imperial (inches) and Metric (cm) for distances.
+                </p>
+              </div>
+              <div className="flex bg-background border rounded-md p-1 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-7 px-3 text-xs font-bold",
+                    settings.measurementUnit === "imperial" && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                  )}
+                  onClick={() => updateSettings({ measurementUnit: "imperial" })}
+                >
+                  Imperial (")
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-7 px-3 text-xs font-bold",
+                    settings.measurementUnit === "metric" && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                  )}
+                  onClick={() => updateSettings({ measurementUnit: "metric" })}
+                >
+                  Metric (cm)
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Data Management */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useArmy } from "@/context/army-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { SKILL_MAP, EQUIP_MAP } from "@/lib/constants";
 import {
   BarChart,
   Bar,
@@ -97,17 +96,17 @@ function ListAnalysis({ list }: { list: any }) {
       // Check for Impetuous & Tactical Awareness (Deduplicated per unit)
       const unitSkills = new Set<string>();
       unit.profiles.forEach((p: any) => {
-        p.skills?.forEach((s: any) => {
-          const name = SKILL_MAP[s.id];
-          if (name) unitSkills.add(name);
+        p.resolvedSkills?.forEach((name: string) => {
+          unitSkills.add(name);
         });
       });
 
       let hasImpetuous = false;
       let hasTacAware = false;
       unitSkills.forEach(name => {
-        if (name.includes('Impetuous') || name.includes('Frenzy')) hasImpetuous = true;
-        if (name.includes('Tactical Awareness')) hasTacAware = true;
+        const lowerName = name.toLowerCase();
+        if (lowerName.includes('impetuous') || lowerName.includes('frenzy')) hasImpetuous = true;
+        if (lowerName.includes('tactical awareness')) hasTacAware = true;
       });
       if (hasImpetuous) impetuous++;
       if (hasTacAware) tacticalAwareness++;
@@ -118,20 +117,18 @@ function ListAnalysis({ list }: { list: any }) {
   const unitSpecialists = list.combatGroups.flatMap((g: any) => g.members).map((unit: any) => {
     const unitSpecs = new Set<string>();
     unit.profiles.forEach((p: any) => {
-      p.skills?.forEach((s: any) => {
-        const name = SKILL_MAP[s.id];
-        if (!name) return;
-        if (name.includes('Hacker')) unitSpecs.add('Hacker');
-        if (name.includes('Doctor')) unitSpecs.add('Doctor');
-        if (name.includes('Engineer')) unitSpecs.add('Engineer');
-        if (name.includes('Paramedic')) unitSpecs.add('Paramedic');
-        if (name.includes('Forward Observer')) unitSpecs.add('Forward Observer');
-        if (name.includes('Chain of Command')) unitSpecs.add('Chain of Command');
-        if (name.includes('Specialist Operative')) unitSpecs.add('Specialist Operative');
+      p.resolvedSkills?.forEach((name: string) => {
+        const lowerName = name.toLowerCase();
+        if (lowerName.includes('hacker')) unitSpecs.add('Hacker');
+        if (lowerName.includes('doctor')) unitSpecs.add('Doctor');
+        if (lowerName.includes('engineer')) unitSpecs.add('Engineer');
+        if (lowerName.includes('paramedic')) unitSpecs.add('Paramedic');
+        if (lowerName.includes('forward observer')) unitSpecs.add('Forward Observer');
+        if (lowerName.includes('chain of command')) unitSpecs.add('Chain of Command');
+        if (lowerName.includes('specialist operative')) unitSpecs.add('Specialist Operative');
       });
-      p.equip?.forEach((e: any) => {
-        const name = EQUIP_MAP[e.id];
-        if (name?.includes('Hacking Device')) unitSpecs.add('Hacker');
+      p.resolvedEquip?.forEach((name: string) => {
+        if (name.toLowerCase().includes('hacking device')) unitSpecs.add('Hacker');
       });
     });
     return Array.from(unitSpecs);

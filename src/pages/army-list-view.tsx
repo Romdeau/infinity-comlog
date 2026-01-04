@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useArmy } from "@/context/army-context"
+import { useSettings } from "@/context/settings-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { PrinterIcon, InfoIcon, Maximize2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { SKILL_MAP, WEAPON_MAP, EQUIP_MAP } from "@/lib/constants";
+import { MetadataService } from "@/lib/metadata-service";
 import { WEAPON_DATA } from "@/lib/weapon-data";
 import {
   Dialog,
@@ -19,6 +20,7 @@ import {
 
 export default function ArmyListViewPage() {
   const { lists } = useArmy()
+  const { settings } = useSettings()
 
   const handlePrint = () => {
     window.print()
@@ -63,10 +65,10 @@ export default function ArmyListViewPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="listA" className="mt-4 print:mt-0">
-          {lists.listA && <ListView list={lists.listA} />}
+          {lists.listA && <ListView list={lists.listA} unit={settings.measurementUnit} />}
         </TabsContent>
         <TabsContent value="listB" className="mt-4 print:mt-0">
-          {lists.listB && <ListView list={lists.listB} />}
+          {lists.listB && <ListView list={lists.listB} unit={settings.measurementUnit} />}
         </TabsContent>
       </Tabs>
 
@@ -97,7 +99,7 @@ export default function ArmyListViewPage() {
   )
 }
 
-function ListView({ list }: { list: any }) {
+function ListView({ list, unit }: { list: any, unit: "metric" | "imperial" }) {
   return (
     <div className="space-y-8">
       <div className="hidden print:block border-b-2 border-primary pb-4 mb-6">
@@ -131,13 +133,13 @@ function ListView({ list }: { list: any }) {
         <div className="flex items-center gap-2 border-b-2 border-primary pb-1">
           <h2 className="text-xl font-black uppercase tracking-tight text-primary">Weapons Chart</h2>
         </div>
-        <WeaponChart list={list} />
+        <WeaponChart list={list} unit={unit} />
       </div>
     </div>
   )
 }
 
-function WeaponChart({ list }: { list: any }) {
+function WeaponChart({ list, unit }: { list: any, unit: "metric" | "imperial" }) {
   // Collect all unique weapons from the list
   const weaponIds = new Set<number>();
   list.combatGroups.forEach((group: any) => {
@@ -163,6 +165,8 @@ function WeaponChart({ list }: { list: any }) {
 
   if (sortedWeapons.length === 0) return null;
 
+  const isMetric = unit === "metric";
+
   return (
     <div className="overflow-x-auto border-2 border-muted rounded-lg shadow-sm bg-card">
       <table className="w-full text-[10px] border-collapse">
@@ -172,16 +176,30 @@ function WeaponChart({ list }: { list: any }) {
             <th className="p-2 text-left border-r-2 border-muted">Mode</th>
             <th className="p-0 border-r-2 border-muted min-w-[280px]">
               <div className="grid grid-cols-7 text-[8px] text-center border-b border-muted bg-muted/30">
-                <div className="col-span-7 py-0.5 tracking-widest">Range (Inches)</div>
+                <div className="col-span-7 py-0.5 tracking-widest">Range ({isMetric ? "cm" : "Inches"})</div>
               </div>
               <div className="grid grid-cols-7 text-[8px] text-center py-1 font-bold">
-                <div>0-8</div>
-                <div>8-16</div>
-                <div>16-24</div>
-                <div>24-32</div>
-                <div>32-40</div>
-                <div>40-48</div>
-                <div>48-96</div>
+                {isMetric ? (
+                  <>
+                    <div>0-20</div>
+                    <div>20-40</div>
+                    <div>40-60</div>
+                    <div>60-80</div>
+                    <div>80-100</div>
+                    <div>100-120</div>
+                    <div>120-240</div>
+                  </>
+                ) : (
+                  <>
+                    <div>0-8</div>
+                    <div>8-16</div>
+                    <div>16-24</div>
+                    <div>24-32</div>
+                    <div>32-40</div>
+                    <div>40-48</div>
+                    <div>48-96</div>
+                  </>
+                )}
               </div>
             </th>
             <th className="p-2 text-center border-r-2 border-muted">PS</th>
@@ -198,7 +216,7 @@ function WeaponChart({ list }: { list: any }) {
               <td className="p-2 font-black border-r-2 border-muted whitespace-nowrap uppercase tracking-tight">{w.name}</td>
               <td className="p-2 font-bold border-r-2 border-muted whitespace-nowrap text-muted-foreground italic">{w.mode}</td>
               <td className="p-0 border-r-2 border-muted">
-                <RangeBands distance={w.distance} />
+                <RangeBands distance={w.distance} unit={unit} />
               </td>
               <td className="p-2 text-center border-r-2 border-muted font-black text-primary">{w.damage}</td>
               <td className="p-2 text-center border-r-2 border-muted font-black">{w.burst}</td>
@@ -216,12 +234,15 @@ function WeaponChart({ list }: { list: any }) {
   );
 }
 
-function RangeBands({ distance }: { distance: any }) {
+function RangeBands({ distance, unit }: { distance: any, unit: "metric" | "imperial" }) {
   if (!distance) return <div className="h-full bg-muted/10" />;
 
-  // Helper to get mod for a range in inches
-  const getMod = (inches: number) => {
-    const cm = inches * 2.5;
+  const isMetric = unit === "metric";
+
+  // Helper to get mod for a range
+  const getMod = (val: number) => {
+    // val is in inches if !isMetric, or in cm if isMetric
+    const cm = isMetric ? val : val * 2.5;
     
     // Find the band that covers this range
     // Bands are usually: short (0-20), med (20-40), long (40-60/80), max (60/80-120)
@@ -240,7 +261,9 @@ function RangeBands({ distance }: { distance: any }) {
     return null;
   };
 
-  const ranges = [4, 12, 20, 28, 36, 44, 72]; // Midpoints of 0-8, 8-16, 16-24, 24-32, 32-40, 40-48, 48-96
+  const ranges = isMetric 
+    ? [10, 30, 50, 70, 90, 110, 180] // Midpoints of metric bands
+    : [4, 12, 20, 28, 36, 44, 72]; // Midpoints of imperial bands
   
   return (
     <div className="grid grid-cols-7 h-full items-stretch">
@@ -348,13 +371,13 @@ function UnitCard({ unit }: { unit: any }) {
 
             <div className="p-3 space-y-3">
               {/* Skills */}
-              {profile.skills && profile.skills.length > 0 && (
+              {profile.resolvedSkills && profile.resolvedSkills.length > 0 && (
                 <div className="space-y-1">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Skills</div>
                   <div className="flex flex-wrap gap-1">
-                    {profile.skills.map((s: any, idx: number) => (
+                    {profile.resolvedSkills.map((s: string, idx: number) => (
                       <span key={idx} className="text-[10px] font-bold text-foreground/90">
-                        {SKILL_MAP[s.id] || `Skill ${s.id}`}{idx < profile.skills.length - 1 ? "," : ""}
+                        {s}{idx < profile.resolvedSkills.length - 1 ? "," : ""}
                       </span>
                     ))}
                   </div>
@@ -362,13 +385,13 @@ function UnitCard({ unit }: { unit: any }) {
               )}
 
               {/* Equipment */}
-              {profile.equip && profile.equip.length > 0 && (
+              {profile.resolvedEquip && profile.resolvedEquip.length > 0 && (
                 <div className="space-y-1">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Equipment</div>
                   <div className="flex flex-wrap gap-1">
-                    {profile.equip.map((e: any, idx: number) => (
+                    {profile.resolvedEquip.map((e: string, idx: number) => (
                       <span key={idx} className="text-[10px] font-bold text-foreground/80 italic">
-                        {EQUIP_MAP[e.id] || `Equip ${e.id}`}{idx < profile.equip.length - 1 ? "," : ""}
+                        {e}{idx < profile.resolvedEquip.length - 1 ? "," : ""}
                       </span>
                     ))}
                   </div>
@@ -384,7 +407,7 @@ function UnitCard({ unit }: { unit: any }) {
                       const modes = WEAPON_DATA[w.id];
                       if (!modes) return (
                         <div key={idx} className="text-[10px] font-black text-primary/90 uppercase tracking-tight">
-                          {WEAPON_MAP[w.id] || `Weapon ${w.id}`}
+                          {MetadataService.getWeaponName(w.id)}
                         </div>
                       );
                       
@@ -433,6 +456,7 @@ function UnitCard({ unit }: { unit: any }) {
 }
 
 function UnitDetailDialog({ unit, children }: { unit: any, children: React.ReactNode }) {
+  const { settings } = useSettings()
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -509,9 +533,9 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                         <div className="h-px flex-1 bg-muted" />
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
-                        {profile.skills?.map((s: any, idx: number) => (
+                        {profile.resolvedSkills?.map((s: string, idx: number) => (
                           <Badge key={idx} variant="secondary" className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary/5 text-primary border-primary/10">
-                            {SKILL_MAP[s.id] || `Skill ${s.id}`}
+                            {s}
                           </Badge>
                         ))}
                       </div>
@@ -524,9 +548,9 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                         <div className="h-px flex-1 bg-muted" />
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
-                        {profile.equip?.map((e: any, idx: number) => (
+                        {profile.resolvedEquip?.map((e: string, idx: number) => (
                           <Badge key={idx} variant="outline" className="text-[10px] font-bold italic px-2 py-0.5 rounded border-muted-foreground/20">
-                            {EQUIP_MAP[e.id] || `Equip ${e.id}`}
+                            {e}
                           </Badge>
                         ))}
                       </div>
@@ -544,7 +568,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                         const modes = WEAPON_DATA[w.id];
                         if (!modes) return (
                           <div key={idx} className="p-3 border rounded bg-muted/10 font-black uppercase tracking-widest text-[10px]">
-                            {WEAPON_MAP[w.id]}
+                            {MetadataService.getWeaponName(w.id)}
                           </div>
                         );
                         
@@ -594,7 +618,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                                 <div>48-96</div>
                               </div>
                               <div className="h-6 border rounded overflow-hidden bg-muted/5">
-                                <RangeBands distance={m.distance} />
+                                <RangeBands distance={m.distance} unit={settings.measurementUnit} />
                               </div>
                             </div>
                           </div>

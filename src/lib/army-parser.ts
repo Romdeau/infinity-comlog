@@ -24,10 +24,6 @@ export interface ArmyList {
 
 import metadata from '../data/metadata.json';
 
-const getUnitName = (id: number): string => {
-  return `Unit ${id}`;
-};
-
 const getFactionInfo = (id: number) => {
   const factions = (metadata as any).factions;
   const faction = factions.find((f: any) => f.id === id);
@@ -117,7 +113,7 @@ export class ArmyParser {
           id: unitId,
           groupId: groupChoice,
           optionId: optionChoice,
-          name: getUnitName(unitId)
+          name: ""
         });
       }
 

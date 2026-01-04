@@ -1,0 +1,8 @@
+{
+  "id": "reimplement_list_view",
+  "name": "Reimplement Army List View & Parsing",
+  "type": "feature",
+  "status": "in_progress",
+  "created": "2025-12-29",
+  "description": "Reimplement the army list parsing and display logic to correctly resolve unit names and provide a detailed overview similar to the official app."
+}

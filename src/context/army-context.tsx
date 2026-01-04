@@ -10,12 +10,14 @@ import {
 } from "@/lib/unit-service"
 import { ArmyParser } from "@/lib/army-parser"
 import { useLocalStorage } from "@/hooks/use-local-storage"
+import { useSettings } from "@/context/settings-context"
 import { ArmyContext, type ArmyContextType, useArmy } from "./army-context-core"
 
 export { useArmy }
 export type { ArmyContextType }
 
 export function ArmyProvider({ children }: { children: React.ReactNode }) {
+  const { settings } = useSettings()
   const [storedLists, setStoredLists] = useLocalStorage<Record<string, StoredArmyList>>("comlog_stored_lists", {})
   const [activePairIds, setActivePairIds] = useLocalStorage<{ a: string | null; b: string | null }>("comlog_active_pair", { a: null, b: null })
   const [importErrors, setImportErrors] = React.useState<string[]>([])
@@ -58,7 +60,7 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
             const rawCode = currentList.rawBase64 || currentList.rawCode || '';
             const parser = new ArmyParser(rawCode);
             const rawList = parser.parse();
-            const enriched = await unitService.enrichArmyList(rawList);
+            const enriched = await unitService.enrichArmyList(rawList, settings.measurementUnit);
             
             newStored[id] = {
               ...enriched,
@@ -86,7 +88,7 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
 
     validateAndMigrate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [settings.measurementUnit]);
 
   const lists = React.useMemo(() => ({
     listA: activePairIds.a ? storedLists[activePairIds.a] || null : null,
@@ -180,7 +182,7 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
           const rawCode = currentList.rawBase64 || currentList.rawCode || '';
           const parser = new ArmyParser(rawCode);
           const rawList = parser.parse();
-          const enriched = await unitService.enrichArmyList(rawList);
+          const enriched = await unitService.enrichArmyList(rawList, settings.measurementUnit);
           
           newStored[id] = {
             ...enriched,
@@ -205,6 +207,7 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
       setImportErrors(errors);
     }
   }
+
 
   return (
     <ArmyContext.Provider value={{ lists, setLists, storedLists, saveList, deleteList, reimportAllLists, importErrors, clearImportErrors }}>
