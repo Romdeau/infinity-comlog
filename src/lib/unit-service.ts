@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ArmyList, type Trooper, type CombatGroup } from './army-parser';
+import { MetadataService, type FactionFilters } from './metadata-service';
 
 export interface UnitData {
   units: any[];
+  filters?: FactionFilters;
   version: string;
 }
 
@@ -11,8 +13,6 @@ interface ProfileGroup {
   profiles: any[];
   options: any[];
 }
-
-import { MetadataService } from './metadata-service';
 
 export interface EnrichedTrooper extends Trooper {
   name: string;
@@ -121,7 +121,7 @@ class UnitService {
     }
   }
 
-  async enrichArmyList(list: ArmyList): Promise<EnrichedArmyList> {
+  async enrichArmyList(list: ArmyList, unitPref: MeasurementUnit = "imperial"): Promise<EnrichedArmyList> {
     const factionData = await this.getFactionData(list.sectoralId);
 
     if (!factionData) {
@@ -147,7 +147,7 @@ class UnitService {
 
     const enrichedGroups = list.combatGroups.map(group => ({
       ...group,
-      members: group.members.map(member => this.enrichTrooper(member, factionData))
+      members: group.members.map(member => this.enrichTrooper(member, factionData, unitPref))
     }));
 
     return {
@@ -157,7 +157,7 @@ class UnitService {
     };
   }
 
-  private enrichTrooper(trooper: Trooper, factionData: UnitData): EnrichedTrooper {
+  private enrichTrooper(trooper: Trooper, factionData: UnitData, unitPref: MeasurementUnit): EnrichedTrooper {
     // Corvus Belli army codes use unit ID (stable global ID) to identify units.
     const unit = factionData.units.find((u: any) => u.id === trooper.id);
 
@@ -204,7 +204,7 @@ class UnitService {
 
       return {
         name: p.name,
-        mov: this.formatMove(p.move),
+        mov: this.formatMove(p.move, unitPref),
         cc: p.cc,
         bs: p.bs,
         ph: p.ph,
@@ -217,8 +217,8 @@ class UnitService {
         skills,
         weapons,
         equip,
-        resolvedSkills: MetadataService.resolveSkills(skills),
-        resolvedEquip: MetadataService.resolveEquip(equip),
+        resolvedSkills: MetadataService.resolveSkills(skills, factionData.filters, unitPref),
+        resolvedEquip: MetadataService.resolveEquip(equip, factionData.filters, unitPref),
         resolvedWeapons: weapons.map((w: any) => ({
           id: w.id,
           name: MetadataService.getWeaponName(w.id),
@@ -248,8 +248,13 @@ class UnitService {
     return result;
   }
 
-  private formatMove(move: number[]): string {
+  private formatMove(move: number[], unit: MeasurementUnit): string {
     if (!move || move.length < 2) return "0-0";
+    
+    if (unit === "metric") {
+      return `${move[0]}-${move[1]}`;
+    }
+
     // Convert cm to inches (approximate: 2.5cm = 1 inch)
     // 10cm = 4", 15cm = 6", 5cm = 2"
     const m1 = Math.round(move[0] / 2.5);

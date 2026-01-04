@@ -1,6 +1,7 @@
 
 export interface FactionData {
   units: UnitData[];
+  filters?: FactionFilters;
 }
 
 export interface UnitData {
@@ -47,7 +48,7 @@ export interface OptionData {
 }
 
 import type { ArmyList, Trooper } from './army-parser';
-import { MetadataService } from './metadata-service';
+import { MetadataService, type FactionFilters, type MeasurementUnit } from './metadata-service';
 
 export interface HydratedProfileData extends ProfileData {
   weapons: { id: number; extra?: number[] }[];
@@ -56,6 +57,7 @@ export interface HydratedProfileData extends ProfileData {
 }
 
 export interface HydratedTrooper extends Trooper {
+  name: string;
   unitName: string;
   isc: string;
   points: number;
@@ -98,7 +100,7 @@ export class ArmyListService {
     }
   }
 
-  static async hydrate(list: ArmyList): Promise<HydratedArmyList> {
+  static async hydrate(list: ArmyList, unitPref: MeasurementUnit = "imperial"): Promise<HydratedArmyList> {
     const factionData = await this.getFactionData(list.sectoralId);
 
     const hydratedGroups: HydratedCombatGroup[] = await Promise.all(
@@ -108,6 +110,7 @@ export class ArmyListService {
           if (!unit) {
             return {
               ...member,
+              name: member.name || `Unit ${member.id}`,
               unitName: `Unknown Unit ${member.id}`,
               isc: `Unknown`,
               points: 0,
@@ -128,8 +131,8 @@ export class ArmyListService {
              return {
                ...p,
                weapons: option.weapons || [],
-               resolvedSkills: MetadataService.resolveSkills(combinedSkills),
-               resolvedEquip: MetadataService.resolveEquip(combinedEquip)
+               resolvedSkills: MetadataService.resolveSkills(combinedSkills, factionData.filters, unitPref),
+               resolvedEquip: MetadataService.resolveEquip(combinedEquip, factionData.filters, unitPref)
              };
           });
 
