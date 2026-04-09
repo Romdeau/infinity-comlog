@@ -23,13 +23,8 @@ export const isSetupComplete = (state: GameSession['state']) =>
     isInitiativeComplete(state.initiationSubSteps, state.initiative);
 
 export const calculateTP = (op: number, rivalOp: number) => {
-    let tp = 0;
-    if (op > rivalOp) tp = 4;
-    else if (op === rivalOp) tp = 2;
-    else {
-      tp = 0;
-      if (rivalOp - op <= 2) tp += 1; // Bonus for close loss (<= 2 OP diff)
-    }
+    let tp = op > rivalOp ? 4 : op === rivalOp ? 2 : 0;
+    if (op < rivalOp && rivalOp - op <= 2) tp += 1; // Bonus for close loss (<= 2 OP diff)
     if (op >= 5) tp += 1; // Bonus for 5+ OP
     return tp;
 };

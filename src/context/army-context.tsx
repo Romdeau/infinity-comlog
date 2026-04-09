@@ -98,10 +98,8 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
   const setLists = (newLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }) => {
     // When setting active lists, we ensure they are in the store first
     const newStored = { ...storedLists }
-    let aId = activePairIds.a
-    let bId = activePairIds.b
 
-    if (newLists.listA) {
+    const aId = newLists.listA ? (() => {
       // Check if this exact list object (by reference or content) is already in storedLists
       // For now, we'll just generate a new ID if it's not already one of our active ones
       const existingId = Object.entries(storedLists).find(([, l]) =>
@@ -111,20 +109,18 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
       )?.[0]
 
       if (existingId) {
-        aId = existingId
+        return existingId
       } else {
         const id = crypto.randomUUID()
         newStored[id] = {
           ...migrateToStoredList(newLists.listA),
           rawBase64: newLists.listA.rawCode || ''
         }
-        aId = id
+        return id
       }
-    } else {
-      aId = null
-    }
+    })() : null
 
-    if (newLists.listB) {
+    const bId = newLists.listB ? (() => {
       const existingId = Object.entries(storedLists).find(([, l]) =>
         l.armyName === newLists.listB?.armyName &&
         l.sectoralId === newLists.listB?.sectoralId &&
@@ -132,18 +128,16 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
       )?.[0]
 
       if (existingId) {
-        bId = existingId
+        return existingId
       } else {
         const id = crypto.randomUUID()
         newStored[id] = {
           ...migrateToStoredList(newLists.listB),
           rawBase64: newLists.listB.rawCode || ''
         }
-        bId = id
+        return id
       }
-    } else {
-      bId = null
-    }
+    })() : null
 
     setStoredLists(newStored)
     setActivePairIds({ a: aId, b: bId })
