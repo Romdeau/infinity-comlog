@@ -58,8 +58,8 @@ The service "enriches" the raw IDs from the parser by:
 4. Formatting raw values (e.g., converting `move` from cm to inches).
 5. Determining if the unit uses `STR` or `VITA`.
 
-### `WeaponData` Generator (`scripts/fetch-faction-data.ts`)
-Because the global `metadata.json` is too large to search efficiently at runtime for every weapon mode, we use a script to pre-process it into `src/lib/weapon-data.ts`.
+### `WeaponData` Registry (`src/lib/weapon-data.ts`)
+The `WEAPON_DATA` registry is a checked-in derived file used to render weapon modes efficiently in the UI.
 - It groups weapons by ID into a `Record<number, WeaponMode[]>`.
 - This allows the UI to instantly render all fire modes for a weapon (like the MULTI Red Fury) without complex filtering.
 
@@ -76,4 +76,4 @@ These components consume the `EnrichedTrooper` object.
 ---
 
 ## 5. Maintenance
-When Corvus Belli updates the game (e.g., a new N5 patch), the `metadata.json` and faction files should be re-fetched using the `fetch-faction-data.ts` script to ensure all IDs and stats remain accurate.
+When Corvus Belli updates the game (e.g., a new N5 patch), refresh `src/data/metadata.json` as needed, then re-fetch the faction files using `bun run data:sync:factions`.
