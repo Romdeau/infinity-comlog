@@ -20,6 +20,7 @@ A specialized utility for players of Corvus Belli's **Infinity N5**. This applic
 
 - [User Manual](./docs/user-manual.md) - How to use the application during a game.
 - [Missions Development Guide](./docs/missions-guide.md) - How to update scenario data and scoring logic.
+- [Faction Data Management](./docs/faction-data-management.md) - How to regenerate `public/data/factions/*.json` from Infinity Army data.
 - [Deployment Guide](./docs/deployment.md) - Technical instructions for hosting the app.
 - [Project Guidelines](./PROJECT_GUIDELINES.md) - Coding standards and architecture.
 

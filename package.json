@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "test": "bun test",
+    "preview": "vite preview",
+    "data:sync:factions": "bun scripts/fetch-faction-data.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
