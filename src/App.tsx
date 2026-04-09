@@ -19,7 +19,7 @@ export function App() {
       <SettingsProvider>
         <ArmyProvider>
           <GameProvider>
-            <div className="min-h-screen bg-background text-foreground">
+            <div className="min-h-screen bg-background text-foreground antialiased">
               <HashRouter>
                 <Routes>
                   <Route path="/" element={<DashboardLayout />}>

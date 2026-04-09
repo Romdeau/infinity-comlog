@@ -1,8 +1,6 @@
-import { Outlet, useLocation } from "react-router-dom"
+import { Link, Outlet, useLocation } from "react-router-dom"
 import { Suspense } from "react"
-import {
-  Search,
-} from "lucide-react"
+import { Settings2Icon } from "lucide-react"
 
 import {
   SidebarInset,
@@ -12,78 +10,67 @@ import {
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getRouteMeta } from "@/lib/navigation"
 import { AppSidebar } from "./app-sidebar"
 import { GlobalNotifications } from "./global-notifications"
+import { ThemeToggle } from "./theme-toggle"
 
 export function DashboardLayout() {
   const location = useLocation()
-
-  const getBreadcrumb = () => {
-    const path = location.pathname
-    if (path === "/army-lists") return "Army Lists"
-    if (path === "/army-list-view") return (
-      <div className="flex items-center gap-1.5">
-        <span>List View</span>
-        <span className="text-[10px] font-black text-orange-500 uppercase tracking-tighter">(Alpha)</span>
-      </div>
-    )
-    if (path === "/list-analysis") return (
-      <div className="flex items-center gap-1.5">
-        <span>List Analysis</span>
-        <span className="text-[10px] font-black text-orange-500 uppercase tracking-tighter">(Alpha)</span>
-      </div>
-    )
-    if (path === "/game-sequence") return "Game Sequence"
-    if (path === "/order-reference") return "Order Reference"
-    if (path === "/settings") return "Settings"
-    return "Infinity Comlog"
-  }
+  const page = getRouteMeta(location.pathname)
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
         <GlobalNotifications />
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
+        <header className="border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <div className="flex h-14 items-center gap-3 px-4 md:px-6">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator orientation="vertical" className="h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#/">
+                <BreadcrumbItem className="hidden sm:block">
+                  <Link to="/army-lists" className="text-muted-foreground transition-colors hover:text-foreground">
                     Infinity Comlog
-                  </BreadcrumbLink>
+                  </Link>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbSeparator className="hidden sm:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{getBreadcrumb()}</BreadcrumbPage>
+                  <BreadcrumbPage>{page.section}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+            <div className="ml-auto flex items-center gap-2 md:hidden">
+              <ThemeToggle />
+              <Button variant="outline" size="icon" onClick={() => window.location.hash = "#/settings"} aria-label="Open settings">
+                <Settings2Icon className="size-4" />
+              </Button>
+            </div>
           </div>
-          <div className="ml-auto flex items-center gap-4 md:gap-2 lg:gap-4">
-            <form className="hidden sm:flex flex-1 sm:flex-initial">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search wiki..."
-                  className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                />
+          <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-end md:justify-between md:px-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-semibold tracking-tight">{page.title}</h1>
+                {page.status && (
+                  <Badge variant="outline" className="text-xs">
+                    {page.status}
+                  </Badge>
+                )}
               </div>
-            </form>
+              <p className="max-w-2xl text-sm text-muted-foreground">{page.description}</p>
+            </div>
           </div>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:p-6 lg:p-8">
           <Suspense fallback={
             <div className="flex flex-col gap-4">
               <Skeleton className="h-8 w-[200px]" />

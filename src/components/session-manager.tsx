@@ -22,7 +22,8 @@ import {
   MoreVerticalIcon,
   Trash2Icon,
   CheckIcon,
-  SaveIcon
+  SaveIcon,
+  Clock3Icon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -56,13 +57,27 @@ export function SessionManager() {
   const sortedSessions = Object.values(sessions).sort((a, b) => b.updatedAt - a.updatedAt)
 
   return (
-    <Card className="w-full mb-4">
-      <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
-        <div>
-          <CardTitle className="text-sm font-bold flex items-center gap-2">
+    <Card className="mb-4 w-full border-border/70 bg-card/70 shadow-none">
+      <CardHeader className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+        <div className="space-y-2">
+          <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-tight">
             <HistoryIcon className="size-4 text-primary" />
             Game Sessions
           </CardTitle>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {activeSession ? (
+              <>
+                <span className="rounded-full bg-primary/10 px-2 py-1 font-medium text-primary">Active</span>
+                <span className="font-medium text-foreground">{activeSession.name}</span>
+                <span className="inline-flex items-center gap-1">
+                  <Clock3Icon className="size-3" />
+                  Updated {new Date(activeSession.updatedAt).toLocaleString()}
+                </span>
+              </>
+            ) : (
+              <span>No active session selected yet.</span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {activeSession && editingId !== activeSessionId ? (
@@ -155,7 +170,7 @@ export function SessionManager() {
         </div>
       </CardHeader>
       {isCreating && (
-        <CardContent className="px-4 pb-3 pt-0">
+        <CardContent className="border-t border-border/60 px-4 pb-4 pt-4">
           <div className="flex items-center gap-2">
             <Input
               placeholder="Session Name (e.g. Game 1 vs John)"

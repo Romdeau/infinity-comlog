@@ -1,25 +1,14 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ExternalLinkIcon,
-  SwordIcon,
-  MoveIcon,
-  RadioIcon,
-  ShieldCheckIcon,
-  LayersIcon,
-} from "lucide-react"
+import { ExternalLinkIcon, LayersIcon, MoveIcon, RadioIcon, ShieldCheckIcon, SwordIcon } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { HackingReference } from "./hacking-reference"
 
 const ACTION_GROUPS = [
   {
     title: "Movement Actions",
+    description: "Core movement and positional tools used to advance, reposition, or avoid ARO pressure.",
     icon: MoveIcon,
     actions: [
       { name: "Move", type: "Short Movement", url: "https://infinitythewiki.com/Move" },
@@ -31,6 +20,7 @@ const ACTION_GROUPS = [
   },
   {
     title: "Combat Actions",
+    description: "Primary offensive tools for direct fire, close combat, and special attack declarations.",
     icon: SwordIcon,
     actions: [
       { name: "BS Attack", type: "Short Action", url: "https://infinitythewiki.com/BS_Attack" },
@@ -42,6 +32,7 @@ const ACTION_GROUPS = [
   },
   {
     title: "AROs",
+    description: "Reactive declarations you will reach for most often when the opponent activates nearby units.",
     icon: ShieldCheckIcon,
     actions: [
       { name: "BS Attack", type: "ARO", url: "https://infinitythewiki.com/BS_Attack" },
@@ -52,6 +43,7 @@ const ACTION_GROUPS = [
   },
   {
     title: "Technical Actions",
+    description: "Objective interaction, discovery, hacking access, and supporting technical declarations.",
     icon: RadioIcon,
     actions: [
       { name: "Discover", type: "Short Action", url: "https://infinitythewiki.com/Discover" },
@@ -68,59 +60,76 @@ const ACTION_GROUPS = [
 
 export function TurnReference() {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <div className="bg-primary/10 rounded-lg p-2">
-            <LayersIcon className="text-primary size-5" />
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-border/70 bg-card/55 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <LayersIcon className="size-3.5" />
+              Table Reference
+            </div>
+            <h2 className="text-xl font-semibold tracking-tight">Common Skills And Reactive Options</h2>
+            <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+              Keep the most frequently checked Infinity actions within reach during a round, with direct links to the wiki when you need the full wording.
+            </p>
           </div>
-          <div>
-            <CardTitle>Order Reference</CardTitle>
-            <CardDescription>Commonly used skills and AROs</CardDescription>
+          <div className="flex flex-wrap gap-2">
+            <HackingReference />
+            <Button variant="outline" size="sm" asChild>
+              <a href="https://infinitythewiki.com/Main_Page" target="_blank" rel="noopener noreferrer">
+                Full Wiki
+                <ExternalLinkIcon className="ml-2 size-3.5" />
+              </a>
+            </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-6">
-        {ACTION_GROUPS.map((group) => (
-          <div key={group.title} className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-primary/80 uppercase tracking-wider justify-between">
-              <div className="flex items-center gap-2">
+      </section>
+
+      <div className="space-y-6">
+        {ACTION_GROUPS.map((group, index) => (
+          <section key={group.title} className="space-y-4">
+            {index > 0 && <Separator className="opacity-60" />}
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
                 <group.icon className="size-4" />
-                {group.title}
               </div>
-              {group.title === "Technical Actions" && <HackingReference />}
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold tracking-tight">{group.title}</h3>
+                <p className="text-sm text-muted-foreground">{group.description}</p>
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+            <div className="grid gap-3 sm:grid-cols-2">
               {group.actions.map((action) => (
-                <a
-                  key={action.name}
-                  href={action.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between rounded-md border bg-muted/20 p-2.5 transition-all hover:bg-muted hover:border-primary/50 group/link"
-                >
-                  <div className="grid gap-0.5">
-                    <span className="text-sm font-medium leading-none group-hover/link:text-primary transition-colors">
-                      {action.name}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground uppercase">
-                      {action.type}
-                    </span>
-                  </div>
-                  <ExternalLinkIcon className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/link:opacity-100" />
-                </a>
+                <ActionLinkCard key={action.name} name={action.name} type={action.type} url={action.url} />
               ))}
             </div>
-          </div>
+          </section>
         ))}
-      </CardContent>
-      <CardFooter className="bg-muted/30 border-t flex items-center justify-center p-3">
-        <Button variant="ghost" size="sm" asChild className="w-full text-muted-foreground hover:text-primary">
-          <a href="https://infinitythewiki.com/Main_Page" target="_blank" rel="noopener noreferrer">
-            View Full Wiki <ExternalLinkIcon className="ml-2 size-3" />
+      </div>
+    </div>
+  )
+}
+
+function ActionLinkCard({ name, type, url }: { name: string; type: string; url: string }) {
+  return (
+    <Card className="border-border/70 bg-background/70 shadow-none transition-colors hover:border-primary/40 hover:bg-muted/20">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <CardTitle className="text-base font-semibold tracking-tight">{name}</CardTitle>
+            <CardDescription>{type}</CardDescription>
+          </div>
+          <ExternalLinkIcon className="mt-0.5 size-4 text-muted-foreground" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Button variant="ghost" size="sm" asChild className="px-0 text-muted-foreground hover:text-primary">
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            Open wiki entry
           </a>
         </Button>
-      </CardFooter>
+      </CardContent>
     </Card>
   )
 }
