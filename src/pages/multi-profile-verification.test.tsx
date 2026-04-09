@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
 import { ArmyListService, FactionData } from '@/lib/army-list-service';
 import { ArmyList } from '@/lib/army-parser';
@@ -84,7 +84,7 @@ describe('Multi-Profile Unit Verification', () => {
       lists: { listA: hydrated, listB: null },
     });
 
-    render(
+    const { getByText } = render(
       <SettingsProvider>
         <ArmyListViewPage />
       </SettingsProvider>
@@ -92,11 +92,11 @@ describe('Multi-Profile Unit Verification', () => {
 
     // 4. Verify
     // Should see "Transforming Unit"
-    expect(screen.getByText('Transforming Unit')).toBeTruthy();
+    expect(getByText('Transforming Unit')).toBeTruthy();
     
     // Should see both profile names
-    expect(screen.getByText(/Mobility Form/i)).toBeTruthy();
-    expect(screen.getByText(/Combat Form/i)).toBeTruthy();
+    expect(getByText(/Mobility Form/i)).toBeTruthy();
+    expect(getByText(/Combat Form/i)).toBeTruthy();
     
     // In UnitCard:
     // {unit.profiles.length > 1 && ( <div ...>Profile: {profile.name}</div> )}

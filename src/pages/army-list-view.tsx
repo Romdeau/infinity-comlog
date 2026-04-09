@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { PrinterIcon, InfoIcon, Maximize2Icon } from "lucide-react"
+import { PageEmptyState } from "@/components/page-empty-state"
+import { PageIntro } from "@/components/page-intro"
 import { cn } from "@/lib/utils"
 import { MetadataService } from "@/lib/metadata-service";
 import { WEAPON_DATA } from "@/lib/weapon-data";
@@ -28,32 +30,35 @@ export default function ArmyListViewPage() {
 
   if (!lists.listA && !lists.listB) {
     return (
-      <div className="flex flex-1 items-center justify-center p-4">
-        <Card className="w-full max-w-md border-dashed">
-          <CardHeader className="text-center">
-            <CardTitle>No Army Lists Loaded</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center text-muted-foreground">
-            Please import an army list in the Army Lists page first.
-          </CardContent>
-        </Card>
+      <div className="flex flex-1 flex-col gap-6">
+        <PageIntro
+          eyebrow="Roster Viewer"
+          title="Inspect Active Lists"
+          description="Open a cleaner read-only view of each list, print roster details, and scan combat groups or weapon profiles more easily."
+          status="Alpha"
+        />
+        <PageEmptyState
+          title="No Army Lists Loaded"
+          description="Please import an army list in the Army Lists page first."
+        />
       </div>
     )
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black text-orange-500 uppercase tracking-tighter bg-orange-500/10 px-2 py-0.5 rounded-full">
-            Alpha Feature
-          </span>
-        </div>
-        <Button variant="outline" size="sm" onClick={handlePrint}>
-          <PrinterIcon className="mr-2 size-4" />
-          Print List
-        </Button>
-      </div>
+    <div className="flex flex-1 flex-col gap-6">
+      <PageIntro
+        eyebrow="Roster Viewer"
+        title="Inspect Active Lists"
+        description="Review combat groups, unit details, and weapon profiles in a format that is easier to scan at the table or print before a round."
+        status="Alpha"
+        actions={
+          <Button variant="outline" size="sm" onClick={handlePrint} className="print:hidden">
+            <PrinterIcon className="mr-2 size-4" />
+            Print List
+          </Button>
+        }
+      />
 
       <Tabs defaultValue="listA" className="w-full">
         <TabsList className="grid w-full grid-cols-2 print:hidden">
@@ -98,6 +103,24 @@ export default function ArmyListViewPage() {
       `}} />
     </div>
   )
+}
+
+function getUnitProfiles(member: any) {
+  return Array.isArray(member?.profiles) ? member.profiles : []
+}
+
+function getProfileWeaponIds(profile: any) {
+  const resolvedWeaponIds = Array.isArray(profile?.resolvedWeapons)
+    ? profile.resolvedWeapons.map((weapon: any) => weapon?.id).filter((id: unknown): id is number => typeof id === "number")
+    : []
+
+  if (resolvedWeaponIds.length > 0) {
+    return resolvedWeaponIds
+  }
+
+  return Array.isArray(profile?.weapons)
+    ? profile.weapons.map((weapon: any) => weapon?.id).filter((id: unknown): id is number => typeof id === "number")
+    : []
 }
 
 function ListView({ list, unit }: { list: any, unit: "metric" | "imperial" }) {
@@ -145,8 +168,8 @@ function WeaponChart({ list, unit }: { list: any, unit: "metric" | "imperial" })
   const weaponIds = new Set<number>();
   list.combatGroups.forEach((group: any) => {
     group.members.forEach((member: any) => {
-      member.profiles.forEach((profile: any) => {
-        profile.weapons.forEach((w: any) => weaponIds.add(w.id));
+      getUnitProfiles(member).forEach((profile: any) => {
+        getProfileWeaponIds(profile).forEach((id: number) => weaponIds.add(id));
       });
     });
   });

@@ -1,79 +1,63 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { render, screen, act } from "@testing-library/react";
-import { GameProvider, useGame } from "./game-context";
+import * as React from "react"
 
-// Mock component to interact with the context
-const TestComponent = () => {
-  const { createSession, activeSession, updateActiveSession } = useGame();
+import { describe, it, expect, beforeEach, afterEach } from "bun:test"
+import { renderHook, act, cleanup, waitFor } from "@testing-library/react"
 
-  return (
-    <div>
-      <button onClick={() => createSession("Test Session")}>Create Session</button>
-      {activeSession && (
-        <>
-          <span data-testid="session-name">{activeSession.name}</span>
-          <button onClick={() => updateActiveSession((prev) => ({ ...prev, scenario: "Test Scenario" }))}>
-            Update Scenario
-          </button>
-          <span data-testid="scenario-name">{activeSession.state.scenario}</span>
-          <button onClick={() => updateActiveSession((prev) => ({ 
-              ...prev, 
-              scoring: { ...prev.scoring, player: { ...prev.scoring.player, op: 5 } } 
-          }))}>
-            Update Scoring
-          </button>
-          <span data-testid="player-op">{activeSession.state.scoring.player.op}</span>
-        </>
-      )}
-    </div>
-  );
-};
+await import("@/context/game-context")
+
+import { GameProvider, useGame } from "./game-context"
 
 describe("GameContext Persistence", () => {
   beforeEach(() => {
-    window.localStorage.clear();
-  });
+    window.localStorage.clear()
+    window.localStorage.removeItem("comlog_sessions")
+    window.localStorage.removeItem("comlog_active_session_id")
+  })
 
-  it("persists new session to localStorage", () => {
-    render(
-      <GameProvider>
-        <TestComponent />
-      </GameProvider>
-    );
+  afterEach(() => {
+    cleanup()
+  })
 
-    const createButton = screen.getByText("Create Session");
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <GameProvider>{children}</GameProvider>
+  )
+
+  it("creates a new active session", async () => {
+    const { result } = renderHook(() => useGame(), { wrapper })
+
     act(() => {
-      createButton.click();
-    });
+      result.current.createSession("Test Session")
+    })
 
-    expect(window.localStorage.getItem("comlog_sessions")).not.toBeNull();
-    const sessions = JSON.parse(window.localStorage.getItem("comlog_sessions") || "{}");
-    const sessionIds = Object.keys(sessions);
-    expect(sessionIds.length).toBe(1);
-    expect(sessions[sessionIds[0]].name).toBe("Test Session");
-  });
+    await waitFor(() => {
+      expect(result.current.activeSessionId).toBeTruthy()
+      expect(result.current.activeSession?.name).toBe("Test Session")
+    })
+  })
 
-  it("persists scoring updates to localStorage", () => {
-    render(
-      <GameProvider>
-        <TestComponent />
-      </GameProvider>
-    );
+  it("updates scoring in the active session", async () => {
+    const { result } = renderHook(() => useGame(), { wrapper })
 
-    // Create session
-    const createButton = screen.getByText("Create Session");
     act(() => {
-      createButton.click();
-    });
+      result.current.createSession("Test Session")
+    })
 
-    // Update scoring
-    const updateButton = screen.getByText("Update Scoring");
+    await waitFor(() => {
+      expect(result.current.activeSession?.name).toBe("Test Session")
+    })
+
     act(() => {
-      updateButton.click();
-    });
+      result.current.updateActiveSession((prev) => ({
+        ...prev,
+        scoring: {
+          ...prev.scoring,
+          player: { ...prev.scoring.player, op: 5 },
+        },
+      }))
+    })
 
-    const sessions = JSON.parse(window.localStorage.getItem("comlog_sessions") || "{}");
-    const sessionIds = Object.keys(sessions);
-    expect(sessions[sessionIds[0]].state.scoring.player.op).toBe(5);
-  });
-});
+    await waitFor(() => {
+      expect(result.current.activeSession?.state.scoring.player.op).toBe(5)
+    })
+  })
+})

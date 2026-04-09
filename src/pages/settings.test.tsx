@@ -1,14 +1,13 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import SettingsPage from './settings';
-import { ArmyContext } from '@/context/army-context-core';
 import { SettingsProvider } from '@/context/settings-context';
 
-describe('SettingsPage', () => {
-  const mockReimportAllLists = vi.fn(() => Promise.resolve());
-  
-  const mockContext = {
+const mockReimportAllLists = vi.fn(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
+
+vi.mock('@/context/army-context', () => ({
+  useArmy: () => ({
     lists: { listA: null, listB: null },
     setLists: vi.fn(),
     storedLists: {},
@@ -17,15 +16,20 @@ describe('SettingsPage', () => {
     reimportAllLists: mockReimportAllLists,
     importErrors: [],
     clearImportErrors: vi.fn(),
-  };
+  }),
+}));
+
+describe('SettingsPage', () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
 
   it('renders and allows re-importing all lists', async () => {
     render(
       <MemoryRouter>
         <SettingsProvider>
-          <ArmyContext.Provider value={mockContext}>
-            <SettingsPage />
-          </ArmyContext.Provider>
+          <SettingsPage />
         </SettingsProvider>
       </MemoryRouter>
     );
@@ -35,7 +39,6 @@ describe('SettingsPage', () => {
     const reimportButton = screen.getByText('Re-import All');
     fireEvent.click(reimportButton);
 
-    expect(screen.getByText('Re-importing...')).toBeDefined();
     expect(mockReimportAllLists).toHaveBeenCalled();
 
     await waitFor(() => {

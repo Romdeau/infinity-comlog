@@ -1,23 +1,39 @@
 import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Settings as SettingsIcon, Database, RefreshCcw, CheckCircle2, Loader2, Ruler } from "lucide-react"
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { PageIntro } from "@/components/page-intro"
 import { useArmy } from "@/context/army-context"
 import { useSettings } from "@/context/settings-context"
-import { cn } from "@/lib/utils"
+import {
+  AlertCircle,
+  CheckCircle2,
+  Database,
+  Loader2,
+  RefreshCcw,
+  Ruler,
+} from "lucide-react"
 
 export default function SettingsPage() {
   const { reimportAllLists } = useArmy()
   const { settings, updateSettings } = useSettings()
   const [reimporting, setReimporting] = React.useState(false)
   const [lastSuccess, setLastSuccess] = React.useState<number | null>(null)
+  const [reimportError, setReimportError] = React.useState<string | null>(null)
 
   const handleReimport = async () => {
     setReimporting(true)
     setLastSuccess(null)
+    setReimportError(null)
+
     try {
       await reimportAllLists()
       setLastSuccess(Date.now())
+    } catch (error) {
+      setReimportError(error instanceof Error ? error.message : "An unknown error prevented re-importing your stored lists.")
     } finally {
       setReimporting(false)
     }
@@ -25,107 +41,128 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-3">
-        <div className="bg-primary/10 p-2.5 rounded-lg">
-          <SettingsIcon className="size-6 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-          <p className="text-sm text-muted-foreground">Manage application preferences and data.</p>
-        </div>
-      </div>
+      <PageIntro
+        eyebrow="Preferences"
+        title="Settings"
+        description="Choose the measurement system you want to use and manage the locally stored list data that powers the rest of the workspace."
+      />
 
-      <div className="grid gap-6">
-        {/* User Preferences */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <Card>
-          <CardHeader>
+          <CardHeader className="gap-3">
             <div className="flex items-center gap-2">
-              <Ruler className="size-5 text-primary/80" />
-              <CardTitle className="text-lg">Preferences</CardTitle>
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Ruler className="size-4" />
+              </div>
+              <div>
+                <CardTitle>Display</CardTitle>
+                <CardDescription>Customize how the app presents distances and reference values throughout the interface.</CardDescription>
+              </div>
             </div>
-            <CardDescription>Customize your application experience.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-muted/30 border border-border/50">
+            <section className="space-y-4 rounded-2xl border border-border/70 bg-muted/15 p-4">
               <div className="space-y-1">
-                <div className="text-sm font-bold">Measurement Unit</div>
-                <p className="text-xs text-muted-foreground">
-                  Choose between Imperial (inches) and Metric (cm) for distances.
+                <h2 className="text-sm font-medium text-foreground">Measurement Unit</h2>
+                <p className="text-sm text-muted-foreground">
+                  Choose between Imperial (inches) and Metric (cm) for distances shown across the app.
                 </p>
               </div>
-              <div className="flex bg-background border rounded-md p-1 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "h-7 px-3 text-xs font-bold",
-                    settings.measurementUnit === "imperial" && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
-                  )}
-                  onClick={() => updateSettings({ measurementUnit: "imperial" })}
-                >
-                  Imperial (")
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "h-7 px-3 text-xs font-bold",
-                    settings.measurementUnit === "metric" && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
-                  )}
-                  onClick={() => updateSettings({ measurementUnit: "metric" })}
-                >
-                  Metric (cm)
-                </Button>
-              </div>
-            </div>
+
+              <RadioGroup
+                value={settings.measurementUnit}
+                onValueChange={(value) => updateSettings({ measurementUnit: value as "imperial" | "metric" })}
+                className="grid gap-3 sm:grid-cols-2"
+              >
+                <Label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border/70 bg-background px-4 py-3 hover:border-primary/40 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5">
+                  <RadioGroupItem value="imperial" id="unit-imperial" className="mt-1" />
+                  <div className="space-y-1">
+                    <div className="text-sm font-medium text-foreground">Imperial</div>
+                    <div className="text-sm text-muted-foreground">Uses inches for movement, range, and reference values.</div>
+                  </div>
+                </Label>
+                <Label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border/70 bg-background px-4 py-3 hover:border-primary/40 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5">
+                  <RadioGroupItem value="metric" id="unit-metric" className="mt-1" />
+                  <div className="space-y-1">
+                    <div className="text-sm font-medium text-foreground">Metric</div>
+                    <div className="text-sm text-muted-foreground">Uses centimeters for movement, range, and reference values.</div>
+                  </div>
+                </Label>
+              </RadioGroup>
+            </section>
           </CardContent>
         </Card>
 
-        {/* Data Management */}
         <Card>
-          <CardHeader>
+          <CardHeader className="gap-3">
             <div className="flex items-center gap-2">
-              <Database className="size-5 text-primary/80" />
-              <CardTitle className="text-lg">Data Management</CardTitle>
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Database className="size-4" />
+              </div>
+              <div>
+                <CardTitle>Data</CardTitle>
+                <CardDescription>Maintain the stored list data used throughout the application.</CardDescription>
+              </div>
             </div>
-            <CardDescription>Control your local data and army lists.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-muted/30 border border-border/50">
+          <CardContent className="space-y-4">
+            <section className="space-y-4 rounded-2xl border border-border/70 bg-muted/15 p-4">
               <div className="space-y-1">
-                <div className="text-sm font-bold flex items-center gap-2">
-                  Re-import All Lists
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-sm font-medium text-foreground">Re-import All Lists</h2>
                   {lastSuccess && (
-                    <span className="text-[10px] text-green-500 font-medium flex items-center gap-1 animate-in fade-in slide-in-from-left-2">
-                      <CheckCircle2 className="size-3" />
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                      <CheckCircle2 className="size-3.5" />
                       Updated just now
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Refreshes all stored army lists using their original base64 codes. Useful after application updates.
+                <p className="text-sm text-muted-foreground">
+                  Refreshes all stored army lists using their original base64 codes. Run this after data or parsing changes when you want stored lists to pick up the latest enrichments.
                 </p>
               </div>
-              <Button 
-                onClick={handleReimport} 
-                disabled={reimporting}
-                variant="outline"
-                size="sm"
-                className="shrink-0"
-              >
-                {reimporting ? (
-                  <>
-                    <Loader2 className="mr-2 size-3.5 animate-spin" />
-                    Re-importing...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCcw className="mr-2 size-3.5" />
-                    Re-import All
-                  </>
-                )}
-              </Button>
-            </div>
+
+              <Alert>
+                <AlertCircle />
+                <AlertTitle>Local data refresh</AlertTitle>
+                <AlertDescription>
+                  This only updates lists stored in your browser. It will not delete them, but it may change derived values if the underlying data has changed.
+                </AlertDescription>
+              </Alert>
+
+              {reimportError && (
+                <Alert variant="destructive">
+                  <AlertCircle />
+                  <AlertTitle>Re-import failed</AlertTitle>
+                  <AlertDescription>{reimportError}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Use this when metadata changes or when you want older saved lists to refresh against the current parser and faction data.
+                </div>
+                <Button
+                  onClick={handleReimport}
+                  disabled={reimporting}
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                >
+                  {reimporting ? (
+                    <>
+                      <Loader2 className="mr-2 size-3.5 animate-spin" />
+                      Re-importing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCcw className="mr-2 size-3.5" />
+                      Re-import All
+                    </>
+                  )}
+                </Button>
+              </div>
+            </section>
           </CardContent>
         </Card>
       </div>

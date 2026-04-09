@@ -37,6 +37,18 @@ import { useGame, type GameSession } from "@/context/game-context"
 import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete, getPlayerByTurnOrder } from "@/lib/game-flow-helpers"
 import { getRelevantSkillsForPhase, type GamePhase, type ContextualHint } from "@/lib/army-context-mapping"
 
+function FlowStatusCard({ label, value, emphasis = false }: { label: string; value: string; emphasis?: boolean }) {
+  return (
+    <div className={cn(
+      "rounded-xl border px-4 py-3",
+      emphasis ? "border-primary/30 bg-primary/8" : "border-border/70 bg-background/70"
+    )}>
+      <div className="text-ui-label">{label}</div>
+      <div className={cn("mt-2 text-sm font-medium", emphasis && "text-primary")}>{value}</div>
+    </div>
+  )
+}
+
 export function ContextualHints({ hints, phase, onToggle, checkedMap }: { 
   hints: ContextualHint[], 
   phase: GamePhase, 
@@ -48,11 +60,11 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
   return (
     <div className={cn(
       "border rounded-lg p-3 space-y-3",
-      phase === "setup" ? "border-fuchsia-500/20 bg-fuchsia-500/5" : "border-primary/10 bg-primary/5"
+      phase === "setup" ? "border-border/70 bg-muted/30" : "border-primary/10 bg-primary/5"
     )}>
       <div className={cn(
-        "flex items-center gap-2 font-bold text-[11px] uppercase tracking-wider",
-        phase === "setup" ? "text-fuchsia-500" : "text-primary"
+        "flex items-center gap-2 text-ui-label",
+        phase === "setup" ? "text-foreground" : "text-primary"
       )}>
         <LayersIcon className="size-3.5" />
         {phase === "setup" ? "Deployment Assistance" : "Phase Hints"}
@@ -66,7 +78,7 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
               className={cn(
                 "flex items-center justify-between p-2 rounded border transition-colors cursor-pointer",
                 isStrategic 
-                  ? "bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20" 
+                  ? "bg-accent border-border/70 hover:bg-accent/80" 
                   : "bg-background/40 border-border/40 hover:bg-background/60"
               )}
             >
@@ -78,18 +90,18 @@ export function ContextualHints({ hints, phase, onToggle, checkedMap }: {
                   />
                 )}
                 <span className={cn(
-                  "text-[10px] font-bold uppercase tracking-tight",
-                  isStrategic ? "text-indigo-400" : (checkedMap?.[item.id] && "text-muted-foreground line-through opacity-70")
+                  "text-xs font-medium uppercase tracking-[0.14em]",
+                  isStrategic ? "text-foreground" : (checkedMap?.[item.id] && "text-muted-foreground line-through opacity-70")
                 )}>{item.unitName}</span>
               </div>
               <div className="flex flex-wrap gap-1 justify-end">
                 {item.skills.map((skill, i) => (
                   <div key={i} className={cn(
-                    "text-[9px] px-2 py-0.5 rounded-md border flex items-center gap-1",
+                    "text-xs px-2 py-0.5 rounded-md border flex items-center gap-1",
                     isStrategic
-                      ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/30"
+                      ? "bg-accent text-accent-foreground border-border/70"
                       : (skill === "Booty"
-                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                        ? "bg-accent text-foreground border-border/70"
                         : "bg-muted/50 text-muted-foreground border-border")
                   )}>
                     {skill === "Booty" ? (
@@ -332,17 +344,37 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
   const p2Identity = getPlayerByTurnOrder(gameStep.initiative, 2);
   const p1Label = p1Identity === 'player' ? "You" : "Opponent";
   const p2Label = p2Identity === 'player' ? "You" : "Opponent";
+  const selectedArmy = gameStep.selectedList === "listA" ? armyLists.listA : gameStep.selectedList === "listB" ? armyLists.listB : null
+  const missionName = activeMission?.name || "No mission selected"
+  const currentStatus = completedCount === 5
+    ? (playerOP > opponentOP ? "Finished: Victory" : playerOP === opponentOP ? "Finished: Draw" : "Finished: Defeat")
+    : !gameStep.scenario
+      ? "Choose mission"
+      : gameStep.selectedList === "none"
+        ? "Choose active list"
+        : !gameStep.initiationSubSteps.rollOff
+          ? "Resolve initiative"
+          : "Continue game flow"
 
   return (
-    <Card className="w-full">
+    <Card className="w-full border-border/70 bg-card/70 shadow-none">
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <div className="bg-primary/10 rounded-lg p-2">
-            <SwordIcon className="text-primary size-5" />
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 rounded-lg p-2">
+              <SwordIcon className="text-primary size-5" />
+            </div>
+            <div>
+              <CardTitle>Infinity Game Flow</CardTitle>
+              <CardDescription>N5 Sequence of Play & Scoring</CardDescription>
+            </div>
           </div>
-          <div>
-            <CardTitle>Infinity Game Flow</CardTitle>
-            <CardDescription>N5 Sequence of Play & Scoring</CardDescription>
+
+          <div className="grid gap-3 md:grid-cols-4">
+            <FlowStatusCard label="Status" value={currentStatus} emphasis />
+            <FlowStatusCard label="Mission" value={missionName} />
+            <FlowStatusCard label="Active List" value={selectedArmy?.armyName || "None selected"} />
+            <FlowStatusCard label="Progress" value={`${completedCount}/5 phases`} />
           </div>
         </div>
       </CardHeader>

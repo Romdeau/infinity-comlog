@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
 import { ArmyParser } from '@/lib/army-parser';
 import { ArmyListService, FactionData } from '@/lib/army-list-service';
@@ -59,13 +59,13 @@ describe('Kestrel List Verification', () => {
       lists: { listA: hydrated, listB: null },
     });
 
-    render(
+    const { getAllByText } = render(
       <SettingsProvider>
         <ArmyListViewPage />
       </SettingsProvider>
     );
     
     // Check if "TECH-BEES" is visible
-    expect(screen.getAllByText(/TECH-BEES/i).length).toBeGreaterThan(0);
+    expect(getAllByText(/TECH-BEES/i).length).toBeGreaterThan(0);
   });
 });

@@ -15,8 +15,8 @@ export function GlobalNotifications() {
           className="relative p-3 pl-10 bg-destructive text-destructive-foreground rounded-md shadow-lg border border-destructive-foreground/10"
         >
           <AlertCircle className="absolute left-3 top-3.5 size-4" />
-          <div className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Import Warning</div>
-          <div className="text-[11px] leading-relaxed pr-6 font-medium">
+          <div className="mb-0.5 text-xs font-medium uppercase tracking-[0.14em] opacity-80">Import Warning</div>
+          <div className="pr-6 text-sm leading-relaxed font-medium">
             {error}
           </div>
           <Button

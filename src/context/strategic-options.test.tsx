@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { render, screen, act, cleanup } from "@testing-library/react";
+import { render, act, cleanup } from "@testing-library/react";
 import { GameProvider, useGame } from "./game-context";
 
 const TestComponent = () => {
@@ -20,6 +20,7 @@ const TestComponent = () => {
 describe("Strategic Options State", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    cleanup();
   });
 
   afterEach(() => {
@@ -27,18 +28,18 @@ describe("Strategic Options State", () => {
   });
 
   it("has strategicOptions in the initial state", () => {
-    render(
+    const { getByText, getByTestId } = render(
       <GameProvider>
         <TestComponent />
       </GameProvider>
     );
 
-    const createButton = screen.getByText("Create Session");
+    const createButton = getByText("Create Session");
     act(() => {
       createButton.click();
     });
 
-    const optionsDiv = screen.getByTestId("strategic-options");
+    const optionsDiv = getByTestId("strategic-options");
     const options = JSON.parse(optionsDiv.textContent || "null");
     
     expect(options).not.toBeNull();

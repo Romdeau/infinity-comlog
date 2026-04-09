@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
 import { SettingsProvider } from '@/context/settings-context';
 
@@ -22,12 +22,12 @@ describe('ArmyListViewPage', () => {
       lists: { listA: null, listB: null },
     });
 
-    render(
+    const { getByText } = render(
       <SettingsProvider>
         <ArmyListViewPage />
       </SettingsProvider>
     );
-    expect(screen.getByText(/No Army Lists Loaded/i)).toBeTruthy();
+    expect(getByText(/No Army Lists Loaded/i)).toBeTruthy();
   });
 
   it('renders list view when listA is present', () => {
@@ -65,13 +65,13 @@ describe('ArmyListViewPage', () => {
       lists: { listA: mockList, listB: null },
     });
 
-    render(
+    const { getAllByText, getByText } = render(
       <SettingsProvider>
         <ArmyListViewPage />
       </SettingsProvider>
     );
     // Use getAllByText because it appears in the Tab and the Header
-    expect(screen.getAllByText('Test Army').length).toBeGreaterThan(0);
-    expect(screen.getByText('Test Unit')).toBeTruthy();
+    expect(getAllByText('Test Army').length).toBeGreaterThan(0);
+    expect(getByText('Test Unit')).toBeTruthy();
   });
 });

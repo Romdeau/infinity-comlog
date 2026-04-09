@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, mock, afterEach } from "bun:test";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, cleanup } from "@testing-library/react";
 import { InfinityGameFlow } from "./infinity-game-flow";
 import * as React from "react";
+import { GameContext } from "@/context/game-context-core";
 
 const createMockTurn = () => ({
   doneOverride: false,
@@ -13,8 +14,11 @@ const createMockTurn = () => ({
   end: false,
 });
 
-// Mock useGame
 const mockActiveSession = {
+  id: "test-session",
+  name: "Test Session",
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
   state: {
     scenario: "test-mission",
     selectedList: "listA",
@@ -52,14 +56,6 @@ const mockActiveSession = {
   }
 };
 
-mock.module("@/context/game-context", () => ({
-  useGame: () => ({
-    activeSession: mockActiveSession,
-    updateActiveSession: () => {},
-    createSession: () => {},
-  }),
-}));
-
 // Mock missions
 mock.module("@/data/missions.json", () => [
   { id: "test-mission", name: "Test Mission", objectives: [] }
@@ -68,6 +64,7 @@ mock.module("@/data/missions.json", () => [
 describe("InfinityGameFlow Strategic Hints", () => {
   afterEach(() => {
     cleanup();
+    mock.restore();
   });
 
   const mockArmyLists = {
@@ -78,15 +75,30 @@ describe("InfinityGameFlow Strategic Hints", () => {
     listB: null
   };
 
+  const gameContextValue = {
+    sessions: { [mockActiveSession.id]: mockActiveSession },
+    activeSessionId: mockActiveSession.id,
+    activeSession: mockActiveSession,
+    updateActiveSession: () => {},
+    createSession: () => mockActiveSession.id,
+    renameSession: () => {},
+    switchSession: () => {},
+    deleteSession: () => {},
+  };
+
   it("shows 'Reserve Trooper' hint in Setup phase when user is first player and selected it", () => {
     // Force firstTurn to 'player' and p1Reserve to true
     mockActiveSession.state.initiative.firstTurn = "player";
     mockActiveSession.state.strategicOptions.p1Reserve = true;
 
-    render(<InfinityGameFlow armyLists={mockArmyLists as any} />);
+    const { getByText } = render(
+      <GameContext.Provider value={gameContextValue as any}>
+        <InfinityGameFlow armyLists={mockArmyLists as any} />
+      </GameContext.Provider>
+    );
     
-    expect(screen.getByText("Strategic Use")).not.toBeNull();
-    expect(screen.getByText("You have an extra unit in reserve.")).not.toBeNull();
+    expect(getByText("Strategic Use")).not.toBeNull();
+    expect(getByText("You have an extra unit in reserve.")).not.toBeNull();
   });
 
   it("shows 'Order Reduction' hint in Turn 1 Tactical Phase for opponent when user is second player and selected it", async () => {
@@ -94,18 +106,22 @@ describe("InfinityGameFlow Strategic Hints", () => {
     mockActiveSession.state.initiative.firstTurn = "opponent";
     mockActiveSession.state.strategicOptions.p2OrderReduction = true;
 
-    render(<InfinityGameFlow armyLists={mockArmyLists as any} />);
+    const { getByText, findAllByText, findByText } = render(
+      <GameContext.Provider value={gameContextValue as any}>
+        <InfinityGameFlow armyLists={mockArmyLists as any} />
+      </GameContext.Provider>
+    );
     
     // Open Round 1 accordion
-    const round1Trigger = screen.getByText(/Game Round 1/);
+    const round1Trigger = getByText(/Game Round 1/);
     round1Trigger.click();
 
     // Use findAllByText and click the first one (which should be p1 - the opponent)
-    const tacticalTriggers = await screen.findAllByText("Tactical Phase");
+    const tacticalTriggers = await findAllByText("Tactical Phase");
     tacticalTriggers[0].click();
 
-    expect(await screen.findByText("Strategic Use")).not.toBeNull();
-    expect(await screen.findByText("Opponent's Order Pool reduced by 2 Regular Orders.")).not.toBeNull();
+    expect(await findByText("Strategic Use")).not.toBeNull();
+    expect(await findByText("Opponent's Order Pool reduced by 2 Regular Orders.")).not.toBeNull();
   });
 
   it("shows 'Your Order Pool' hint in Turn 1 Tactical Phase for user when user is first player and opponent selected order reduction", async () => {
@@ -113,17 +129,21 @@ describe("InfinityGameFlow Strategic Hints", () => {
     mockActiveSession.state.initiative.firstTurn = "player";
     mockActiveSession.state.strategicOptions.p2OrderReduction = true;
 
-    render(<InfinityGameFlow armyLists={mockArmyLists as any} />);
+    const { getByText, findAllByText, findByText } = render(
+      <GameContext.Provider value={gameContextValue as any}>
+        <InfinityGameFlow armyLists={mockArmyLists as any} />
+      </GameContext.Provider>
+    );
     
     // Open Round 1 accordion
-    const round1Trigger = screen.getByText(/Game Round 1/);
+    const round1Trigger = getByText(/Game Round 1/);
     round1Trigger.click();
 
     // Find the user's tactical phase (P1)
-    const tacticalTriggers = await screen.findAllByText("Tactical Phase");
+    const tacticalTriggers = await findAllByText("Tactical Phase");
     tacticalTriggers[0].click();
 
-    expect(await screen.findByText("Strategic Use")).not.toBeNull();
-    expect(await screen.findByText("Your Order Pool reduced by 2 Regular Orders.")).not.toBeNull();
+    expect(await findByText("Strategic Use")).not.toBeNull();
+    expect(await findByText("Your Order Pool reduced by 2 Regular Orders.")).not.toBeNull();
   });
 });

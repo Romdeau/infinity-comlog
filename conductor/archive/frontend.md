@@ -113,6 +113,27 @@ That means:
 - clearer action placement
 - removing placeholder UI that implies unsupported features
 
+## Execution Status
+
+All eight redesign phases described in this document have now been implemented in the codebase.
+
+Completed outcomes:
+
+- Phase 1: the app shell was normalized with a cleaner header, grouped navigation, real utility actions, and removal of placeholder search/profile UI.
+- Phase 2: route pages were aligned around shared page intro and empty-state patterns.
+- Phase 3: `Army Lists` was reworked into distinct active-pair, import, and library sections with inline validation.
+- Phase 4: `List Analysis` was redesigned into clearer insight panels with summary metrics and dedicated chart/specialist sections.
+- Phase 5: `Settings` was rebuilt into clearer preference and data sections using shared form primitives.
+- Phase 6: `Order Reference` and `Game Sequence` were restructured to improve reading rhythm and state visibility.
+- Phase 7: the token system was tightened and several high-impact hardcoded color/type patterns were normalized.
+- Phase 8: the shared primitive layer was cleaned up selectively where it materially improved consistency and maintainability.
+
+Additional work completed during implementation:
+
+- hardened several routes against legacy localStorage data so navigation no longer fails on older saved sessions/lists
+- fixed `List View` weapon chart rendering against the enriched unit data shape
+- aligned `Order Reference` with the new full-width page layout instead of the older centered wrapper
+
 ## Redesign Plan
 
 ### Phase 1: Normalize The Application Shell
@@ -320,6 +341,8 @@ This preserves credibility for a rules-heavy companion tool and fits current sha
 
 ## Suggested Implementation Order
 
+This section reflects the order the redesign was executed.
+
 1. Clean the app shell and navigation.
 2. Introduce a shared page-header pattern.
 3. Redesign `Army Lists` as the primary workflow page.
@@ -340,6 +363,10 @@ The redesign should be considered complete when:
 - analysis and reference screens read clearly on mobile and desktop
 - tests are updated so the component structure can evolve safely
 
-## Immediate Next Step
+## Next Recommended Work
 
-If you want to execute this plan incrementally, start with `dashboard-layout.tsx`, `app-sidebar.tsx`, and `army-manager.tsx`. Those three files will produce the biggest visible improvement fastest and establish the patterns the rest of the app should follow.
+The redesign plan itself is complete. The most useful follow-up work is now:
+
+1. update the remaining flaky tests so they reflect the current UI structure and the localStorage/session migrations
+2. do a focused visual cleanup pass on `src/pages/army-list-view.tsx`, which still contains the highest density of legacy micro-type and hardcoded detail styling
+3. optionally create a proper command/search surface if global navigation/search is still a desired product feature
