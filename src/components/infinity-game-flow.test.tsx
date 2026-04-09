@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "bun:test";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, cleanup } from "@testing-library/react";
 import { ContextualHints } from "./infinity-game-flow";
 
 describe("ContextualHints Component", () => {
@@ -18,35 +18,35 @@ describe("ContextualHints Component", () => {
     const hints = [
       { id: "1", unitName: "Unit A", skills: ["Skill 1", "Skill 2"] }
     ];
-    render(
+    const { getByText } = render(
       <ContextualHints hints={hints} phase="tactical" />
     );
     
-    expect(screen.getByText("Unit A")).not.toBeNull();
-    expect(screen.getByText("Skill 1")).not.toBeNull();
-    expect(screen.getByText("Skill 2")).not.toBeNull();
+    expect(getByText("Unit A")).not.toBeNull();
+    expect(getByText("Skill 1")).not.toBeNull();
+    expect(getByText("Skill 2")).not.toBeNull();
   });
 
   it("shows 'Deployment Assistance' for setup phase", () => {
     const hints = [
       { id: "setup-hint", unitName: "Setup Unit", skills: ["Setup Skill"] }
     ];
-    render(
+    const { getByText } = render(
       <ContextualHints hints={hints} phase="setup" />
     );
     
-    expect(screen.getByText("Deployment Assistance")).not.toBeNull();
+    expect(getByText("Deployment Assistance")).not.toBeNull();
   });
 
   it("shows 'Phase Hints' for other phases", () => {
     const hints = [
       { id: "tactical-hint", unitName: "Tactical Unit", skills: ["Tactical Skill"] }
     ];
-    render(
+    const { getByText } = render(
       <ContextualHints hints={hints} phase="tactical" />
     );
     
-    expect(screen.getByText("Phase Hints")).not.toBeNull();
+    expect(getByText("Phase Hints")).not.toBeNull();
   });
 
   it("renders a checkbox and respects checkedMap for setup phase", () => {
@@ -54,7 +54,7 @@ describe("ContextualHints Component", () => {
       { id: "setup-1", unitName: "Checked Unit", skills: ["Skill 1"] }
     ];
     const checkedMap = { "setup-1": true };
-    render(
+    const { getByRole, getByText } = render(
       <ContextualHints 
         hints={hints} 
         phase="setup" 
@@ -63,10 +63,10 @@ describe("ContextualHints Component", () => {
       />
     );
     
-    const checkbox = screen.getByRole("checkbox");
+    const checkbox = getByRole("checkbox");
     expect(checkbox.getAttribute("data-state")).toBe("checked");
     
-    const unitText = screen.getByText("Checked Unit");
+    const unitText = getByText("Checked Unit");
     expect(unitText.className).toContain("line-through");
   });
 });

@@ -1,6 +1,21 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, cleanup } from '@testing-library/react';
 import ListAnalysisPage from './list-analysis';
+
+vi.mock('recharts', () => {
+  const Div = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+
+  return {
+    ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => <div style={{ width: 400, height: 320 }}>{children}</div>,
+    BarChart: Div,
+    Bar: Div,
+    XAxis: Div,
+    YAxis: Div,
+    CartesianGrid: Div,
+    Tooltip: Div,
+    Cell: Div,
+  };
+});
 
 // Mock the hook
 const mockUseArmy = vi.fn();
@@ -16,6 +31,11 @@ global.ResizeObserver = class ResizeObserver {
 };
 
 describe('ListAnalysisPage', () => {
+  afterEach(() => {
+    cleanup();
+    mockUseArmy.mockReset();
+  });
+
   it('renders empty state when no lists are loaded', () => {
     mockUseArmy.mockReturnValue({
       lists: { listA: null, listB: null },
@@ -53,6 +73,7 @@ describe('ListAnalysisPage', () => {
     // Check for the header
     expect(screen.getByText(/Test Army Analysis/i)).toBeTruthy();
     // Check for "Order Pool" card title
-    expect(screen.getByText(/Order Pool/i)).toBeTruthy();
+    expect(screen.getAllByRole('heading', { name: /Analyze List Composition/i }).length).toBeGreaterThan(0);
+    expect(screen.getByText('Order Pool', { selector: '[data-slot="card-title"]' })).toBeTruthy();
   });
 });
