@@ -11,8 +11,9 @@ This project uses official Infinity Army unit data to provide contextual assista
 
 - `public/data/factions/*.json` can be regenerated from the Corvus Belli API.
 - `src/data/metadata.json` is a prerequisite for that process, but this repo does not currently include a dedicated script to regenerate it.
+- Direct automated metadata pulls are currently access denied, so refresh `src/data/metadata.json` manually from a live Infinity Army app copy before syncing faction files.
 
-If `metadata.json` is out of date, update that file first, then run the faction sync.
+If `metadata.json` is out of date, update that file first from the live app payload, then run the faction sync.
 
 ## Synchronizing Data
 

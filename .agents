@@ -1,0 +1,85 @@
+# Infinity Comlog Agent Instructions
+
+## Source Of Truth
+- Read `PROJECT_GUIDELINES.md`, `README.md`, and the relevant files in `conductor/` before making non-trivial changes.
+- Treat `conductor/workflow.md`, `conductor/tech-stack.md`, `conductor/product.md`, and `conductor/product-guidelines.md` as the primary project guidance.
+- Use `docs/` for domain-specific maintenance rules, especially `docs/faction-data-management.md`, `docs/metadata-structure.md`, `docs/army-code-format.md`, and `docs/missions-guide.md`.
+- Follow existing code patterns over generic framework advice when there is a conflict.
+
+## Project Summary
+- Infinity Comlog is a mobile-first React companion for Corvus Belli's Infinity N5 tabletop game.
+- The app prioritizes fast in-game reference, procedural accuracy, army-code import, list analysis, mission scoring, and official wiki links.
+- Preserve the tech-noir, minimalist UI direction: high contrast, clear status color, concise copy, and reliable touch targets.
+
+## Stack And Commands
+- Use Bun only. Do not use `npm`, `yarn`, or package-manager-specific alternatives.
+- Common commands:
+- `bun install` installs dependencies.
+- `bun run dev` starts the Vite dev server.
+- `bun test` or `bun run test` runs tests.
+- `bun run lint` runs ESLint.
+- `bun run build` runs TypeScript build plus Vite build.
+- `bun run data:sync:factions` refreshes faction JSON from the Corvus Belli API.
+- On Windows, run Bun commands through WSL Ubuntu-24.04. Use PowerShell only for git operations.
+
+## Architecture
+- `src/pages/` contains route-level page components.
+- `src/components/` contains shared UI and feature components.
+- `src/components/ui/` contains shadcn/Radix-style primitives and wrappers. Reuse these before creating new primitives.
+- `src/context/` contains React Context state for game, army, and settings flows.
+- `src/lib/` contains parsing, hydration, metadata, navigation, and game-flow helpers.
+- `src/data/metadata.json` is the global Infinity metadata registry.
+- `src/data/missions.json` powers scenario selection and scoring.
+- `public/data/factions/{id}.json` stores generated faction unit payloads fetched from the official API.
+- Use the `@/` alias for imports from `src` when it improves clarity.
+
+## Data Maintenance
+- For army-data updates, inspect `docs/faction-data-management.md` and `docs/metadata-structure.md` first.
+- `src/data/metadata.json` must be current before regenerating faction files. It is currently refreshed manually from a live Infinity Army app copy because direct automated pulls are access denied.
+- Regenerate faction files with `bun run data:sync:factions` from the repo root.
+- The faction sync reads faction IDs from `src/data/metadata.json`, fetches `https://api.corvusbelli.com/army/units/en/{id}`, and writes `public/data/factions/{id}.json`.
+- It is expected for faction `901` / Non-Aligned Armies to be skipped as metadata-only unless the upstream API changes.
+- After data syncs, review changed JSON files and check that generated faction payload versions are plausible.
+- Do not hand-edit generated `public/data/factions/*.json` unless fixing a narrowly scoped, documented upstream issue.
+- Preserve the binary army-code parser behavior documented in `docs/army-code-format.md`; changes require tests with realistic encoded list samples.
+- `src/lib/weapon-data.ts` is a checked-in derived registry for weapon mode rendering. Update it deliberately when metadata weapon behavior changes.
+
+## Coding Standards
+- Use TypeScript with strict types. Avoid `any`; if existing data interfaces force it, keep the scope narrow and do not spread it further.
+- Prefer named exports, ES modules, `const` by default, `let` only when reassignment is required, and no `var`.
+- Use single quotes in TypeScript files unless the edited file already consistently uses double quotes.
+- End statements with semicolons when editing TypeScript files that already use them; otherwise match the local file style.
+- Avoid non-null assertions and type assertions unless there is a clear reason.
+- Keep changes small and focused. Do not perform major refactors or destructive operations without explicit user consent.
+- Add comments only when they explain non-obvious intent, data quirks, or domain constraints.
+- Maintain existing local-storage persistence semantics; users must not lose game or army-list state after refreshes.
+
+## React And UI
+- Use React 19 functional components and hooks.
+- Prefer existing shadcn/ui, Radix, and project UI components for buttons, dialogs, sheets, tabs, popovers, inputs, badges, cards, alerts, and navigation.
+- Use `cn()` from `@/lib/utils` for conditional Tailwind class composition.
+- Keep UI mobile-first and usable at the gaming table: large touch targets, readable typography, minimal interaction cost, and responsive layouts.
+- Use concise, action-oriented copy such as checklist imperatives.
+- Preserve accessibility: semantic HTML, keyboard support through Radix primitives, visible focus states, clear labels, and adequate contrast.
+- For assets served from `public/`, use `import.meta.env.BASE_URL` so GitHub Pages subpath deployment works under `/infinity-comlog/`.
+
+## Testing And Verification
+- Follow the project preference for TDD on functional changes: write or update tests that define behavior before implementation when practical.
+- Use Bun test files colocated with related modules or pages, following existing `*.test.ts` and `*.test.tsx` patterns.
+- For parser, metadata, army hydration, local-storage, and game-flow changes, add focused regression tests.
+- Before considering code complete, run the narrowest relevant test first, then `bun test` when feasible.
+- Run `bun run build` for changes that affect TypeScript types, routing, data imports, Vite config, or deploy behavior.
+- Run `bun run lint` when code style or broad TypeScript/React changes are involved.
+- CI currently builds with Bun on pull requests; do not assume lint or tests run in CI unless the workflow is updated.
+
+## Git And Workflow
+- Inspect the worktree before editing and never revert unrelated user changes.
+- Do not commit, push, amend, tag, or create branches unless explicitly asked.
+- If asked to commit, use Conventional Commits such as `feat(scope): description`, `fix(scope): description`, `docs(scope): description`, or `test(scope): description`.
+- Prefer non-interactive commands. For watch-mode tools, use CI-compatible single-run behavior where available.
+- If working from an active Conductor plan, keep task state in the plan consistent with `conductor/workflow.md`; otherwise do not invent new plan files.
+
+## Documentation
+- Update docs when changing army data workflows, mission schema, deployment behavior, persistence semantics, parser assumptions, or user-visible flows.
+- For mission data changes, follow `docs/missions-guide.md`: kebab-case IDs, clear scoring text, role consistency, correct objective type, and verified OP values.
+- Keep documentation concise and current; document why domain-specific decisions were made, not just what changed.
