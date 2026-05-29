@@ -1,23 +1,9 @@
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   SwordIcon,
   ZapIcon,
   CheckCircle2Icon,
-  LayersIcon,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -29,240 +15,29 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { GameStep, GameGroup } from "@/components/game-flow-components"
+import { Panel, Readout, StatusPip } from "@/components/system"
 import { type EnrichedArmyList } from "@/lib/unit-service"
 import missions from "@/data/missions.json"
 
-import { useGame, type GameSession } from "@/context/game-context"
+import { useGame } from "@/context/game-context"
 import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete, getPlayerByTurnOrder } from "@/lib/game-flow-helpers"
 import { getRelevantSkillsForPhase, type GamePhase, type ContextualHint } from "@/lib/army-context-mapping"
 import { calculateObjectivePoints, getAssignedMissionRole, getRoundObjectiveProgress, objectiveAppliesToRole } from "@/features/game/scoring/scoring-service"
-import type { MissionDefinition, MissionObjective } from "@/shared/types/missions"
-import { scoringSides, turnKeys, turnPlayerKeys, type ScoringSide, type TurnKey, type TurnPlayerKey } from "@/shared/types/game"
+import type { MissionDefinition } from "@/shared/types/missions"
+import { scoringSides, turnKeys, turnPlayerKeys, type ScoringSide } from "@/shared/types/game"
+import { ContextualHints } from "@/components/game-flow/contextual-hints"
+import {
+  type GameState,
+  isRoundObjective,
+  toggleRoundObjective,
+  toggleScoringObjective,
+  updateTurnPlayer,
+} from "@/components/game-flow/game-flow-state"
 
-type GameState = GameSession["state"]
-type GameTurn = GameState["turns"][TurnKey]
-type PlayerTurn = GameTurn[TurnPlayerKey]
-type RoundObjective = Extract<MissionObjective, { type: "round-end" | "round-end-boolean" | "round-end-manual" }>
+export { ContextualHints }
 
 const missionDefinitions = missions as MissionDefinition[]
 
-function isRoundObjective(objective: MissionObjective): objective is RoundObjective {
-  return objective.type === "round-end" || objective.type === "round-end-boolean" || objective.type === "round-end-manual"
-}
-
-function updateTurn(state: GameState, turnKey: TurnKey, updater: (turn: GameTurn) => GameTurn): GameState {
-  return {
-    ...state,
-    turns: {
-      ...state.turns,
-      [turnKey]: updater(state.turns[turnKey]),
-    },
-  }
-}
-
-function updateTurnPlayer(state: GameState, turnKey: TurnKey, playerKey: TurnPlayerKey, updater: (player: PlayerTurn) => PlayerTurn): GameState {
-  return updateTurn(state, turnKey, (turn) => ({
-    ...turn,
-    [playerKey]: updater(turn[playerKey]),
-  }))
-}
-
-function toggleRoundObjective(state: GameState, turnKey: TurnKey, side: ScoringSide, objective: RoundObjective): GameState {
-  return updateTurn(state, turnKey, (turn) => {
-    const currentObjectives = turn.objectives[side]
-    const current = currentObjectives[objective.id]
-    const nextValue = objective.type === "round-end-manual"
-      ? (typeof current === "number" && current >= objective.max ? 0 : (typeof current === "number" ? current : 0) + 1)
-      : !current
-
-    return {
-      ...turn,
-      objectives: {
-        ...turn.objectives,
-        [side]: {
-          ...currentObjectives,
-          [objective.id]: nextValue,
-        },
-      },
-    }
-  })
-}
-
-function toggleScoringObjective(state: GameState, side: ScoringSide, objective: MissionObjective): GameState {
-  const currentObjectives = state.scoring[side].objectives
-  const current = currentObjectives[objective.id]
-  const nextValue = objective.type === "manual"
-    ? (typeof current === "number" && current >= objective.max ? 0 : (typeof current === "number" ? current : 0) + 1)
-    : !current
-
-  return {
-    ...state,
-    scoring: {
-      ...state.scoring,
-      [side]: {
-        ...state.scoring[side],
-        objectives: {
-          ...currentObjectives,
-          [objective.id]: nextValue,
-        },
-      },
-    },
-  }
-}
-
-function FlowStatusCard({ label, value, emphasis = false }: { label: string; value: string; emphasis?: boolean }) {
-  return (
-    <div className={cn(
-      "rounded-xl border px-4 py-3",
-      emphasis ? "border-primary/30 bg-primary/8" : "border-border/70 bg-background/70"
-    )}>
-      <div className="text-ui-label">{label}</div>
-      <div className={cn("mt-2 text-sm font-medium", emphasis && "text-primary")}>{value}</div>
-    </div>
-  )
-}
-
-export function ContextualHints({ hints, phase, onToggle, checkedMap }: { 
-  hints: ContextualHint[], 
-  phase: GamePhase, 
-  onToggle?: (id: string, val: boolean) => void,
-  checkedMap?: Record<string, boolean>
-}) {
-  if (hints.length === 0) return null;
-
-  return (
-    <div className={cn(
-      "border rounded-lg p-3 space-y-3",
-      phase === "setup" ? "border-border/70 bg-muted/30" : "border-primary/10 bg-primary/5"
-    )}>
-      <div className={cn(
-        "flex items-center gap-2 text-ui-label",
-        phase === "setup" ? "text-foreground" : "text-primary"
-      )}>
-        <LayersIcon className="size-3.5" />
-        {phase === "setup" ? "Deployment Assistance" : "Phase Hints"}
-      </div>
-      <div className="grid gap-2">
-        {hints.map((item) => {
-          const isStrategic = item.unitName === "Strategic Use";
-          return (
-            <label 
-              key={item.id} 
-              className={cn(
-                "flex items-center justify-between p-2 rounded border transition-colors cursor-pointer",
-                isStrategic 
-                  ? "bg-accent border-border/70 hover:bg-accent/80" 
-                  : "bg-background/40 border-border/40 hover:bg-background/60"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                {onToggle && !isStrategic && (
-                  <Checkbox
-                    checked={checkedMap?.[item.id] || false}
-                    onCheckedChange={(val) => onToggle(item.id, !!val)}
-                  />
-                )}
-                <span className={cn(
-                  "text-xs font-medium uppercase tracking-[0.14em]",
-                  isStrategic ? "text-foreground" : (checkedMap?.[item.id] && "text-muted-foreground line-through opacity-70")
-                )}>{item.unitName}</span>
-              </div>
-              <div className="flex flex-wrap gap-1 justify-end">
-                {item.skills.map((skill, i) => (
-                  <div key={i} className={cn(
-                    "text-xs px-2 py-0.5 rounded-md border flex items-center gap-1",
-                    isStrategic
-                      ? "bg-accent text-accent-foreground border-border/70"
-                      : (skill === "Booty"
-                        ? "bg-accent text-foreground border-border/70"
-                        : "bg-muted/50 text-muted-foreground border-border")
-                  )}>
-                    {skill === "Booty" ? (
-                    <Popover>
-                      <PopoverTrigger className="hover:underline cursor-pointer flex items-center gap-1">
-                        Booty <CheckCircle2Icon className="size-2.5" />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 p-0 overflow-hidden" align="end">
-                        <div className="bg-primary text-primary-foreground text-[10px] font-bold p-2 text-center uppercase tracking-widest">
-                          Booty Table
-                        </div>
-                        <div className="p-0 text-[10px]">
-                          <table className="w-full border-collapse">
-                            <thead>
-                              <tr className="bg-muted text-muted-foreground border-b border-border">
-                                <th className="p-1 text-center border-r border-border">Roll</th>
-                                <th className="p-1 text-left border-r border-border">Item</th>
-                                <th className="p-1 text-center border-r border-border">Roll</th>
-                                <th className="p-1 text-left">Item</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr className="border-b border-border">
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">1-2</td>
-                                <td className="p-1 border-r border-border">+1 ARM</td>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">13</td>
-                                <td className="p-1">Panzerfaust</td>
-                              </tr>
-                              <tr className="border-b border-border">
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">3-4</td>
-                                <td className="p-1 border-r border-border">Light Flamethrower</td>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">14</td>
-                                <td className="p-1">Monofilament CCW</td>
-                              </tr>
-                              <tr className="border-b border-border">
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">5-6</td>
-                                <td className="p-1 border-r border-border">Grenades</td>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">15</td>
-                                <td className="p-1">MOV 8-4</td>
-                              </tr>
-                              <tr className="border-b border-border">
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">7-8</td>
-                                <td className="p-1 border-r border-border">DA CCW</td>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">16</td>
-                                <td className="p-1">Shock/MULTI Rifle</td>
-                              </tr>
-                              <tr className="border-b border-border">
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">9</td>
-                                <td className="p-1 border-r border-border">MSV L1</td>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">17</td>
-                                <td className="p-1">MULTI Sniper</td>
-                              </tr>
-                              <tr className="border-b border-border">
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">10</td>
-                                <td className="p-1 border-r border-border">EXP CCW</td>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">18</td>
-                                <td className="p-1">Immune(ARM)/+4 ARM</td>
-                              </tr>
-                              <tr className="border-b border-border">
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">11</td>
-                                <td className="p-1 border-r border-border">Adhesive L.</td>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">19</td>
-                                <td className="p-1">Mimetism (-6)</td>
-                              </tr>
-                              <tr>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">12</td>
-                                <td className="p-1 border-r border-border">Immune(AP)/+2 ARM</td>
-                                <td className="p-1 text-center font-bold bg-muted/30 border-r border-border">20</td>
-                                <td className="p-1">B+1/HMG</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  ) : (
-                    skill
-                  )}
-                </div>
-              ))}
-            </div>
-          </label>
-        );
-      })}
-      </div>
-    </div>
-  );
-}
 
 export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null } }) {
   const { activeSession, updateActiveSession, createSession } = useGame()
@@ -329,18 +104,20 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
 
   if (!activeSession) {
     return (
-      <Card className="w-full border-dashed">
-        <CardHeader className="text-center">
-          <CardTitle>No Active Session</CardTitle>
-          <CardDescription>Start a new game session to track your progress</CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center pb-6">
-          <Button onClick={() => createSession(`Game ${new Date().toLocaleDateString()}`)}>
-            <ZapIcon className="mr-2 size-4" />
-            Start New Game
-          </Button>
-        </CardContent>
-      </Card>
+      <Panel className="w-full border-dashed text-center">
+        <div className="space-y-2 py-4">
+          <h3 className="font-display text-lg font-semibold tracking-tight">No Active Session</h3>
+          <p className="text-sm text-muted-foreground">
+            Start a new game session to track your progress
+          </p>
+          <div className="flex justify-center pt-2">
+            <Button onClick={() => createSession(`Game ${new Date().toLocaleDateString()}`)}>
+              <ZapIcon className="mr-2 size-4" />
+              Start New Game
+            </Button>
+          </div>
+        </div>
+      </Panel>
     )
   }
 
@@ -385,28 +162,36 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
           : "Continue game flow"
 
   return (
-    <Card className="w-full border-border/70 bg-card/70 shadow-none">
-      <CardHeader>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary/10 rounded-lg p-2">
-              <SwordIcon className="text-primary size-5" />
-            </div>
-            <div>
-              <CardTitle>Infinity Game Flow</CardTitle>
-              <CardDescription>N5 Sequence of Play & Scoring</CardDescription>
-            </div>
+    <Panel className="w-full" density="comfortable">
+      <header className="mb-4 flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <div className="rounded-lg bg-primary/10 p-2">
+            <SwordIcon className="size-5 text-primary" />
           </div>
-
-          <div className="grid gap-3 md:grid-cols-4">
-            <FlowStatusCard label="Status" value={currentStatus} emphasis />
-            <FlowStatusCard label="Mission" value={missionName} />
-            <FlowStatusCard label="Active List" value={selectedArmy?.armyName || "None selected"} />
-            <FlowStatusCard label="Progress" value={`${completedCount}/5 phases`} />
+          <div>
+            <h2 className="font-display text-lg font-semibold tracking-[var(--text-display-tracking)]">
+              Infinity Game Flow
+            </h2>
+            <p className="text-xs text-muted-foreground">N5 Sequence of Play &amp; Scoring</p>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
+
+        <div className="grid gap-3 md:grid-cols-4">
+          <div className="rounded-lg border border-primary/30 bg-primary/8 px-4 py-3">
+            <Readout label="Status" value={currentStatus} size="sm" />
+          </div>
+          <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
+            <Readout label="Mission" value={missionName} size="sm" />
+          </div>
+          <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
+            <Readout label="Active List" value={selectedArmy?.armyName || "None selected"} size="sm" />
+          </div>
+          <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
+            <Readout label="Progress" value={`${completedCount}/5`} unit="phases" size="sm" />
+          </div>
+        </div>
+      </header>
+      <div className="space-y-6">
         <div className="space-y-4">
           {/* 1. Setup & Initiative */}
           <GameGroup
@@ -759,7 +544,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                       <div key={pKey} className="space-y-2">
                         <div className="flex items-center justify-between px-1">
                           <span className="text-[10px] font-bold uppercase text-muted-foreground">{label} ({playerName})</span>
-                          {isPlayerComplete(player) && <CheckCircle2Icon className="size-3 text-green-500" />}
+                          {isPlayerComplete(player) && <StatusPip status="complete" />}
                         </div>
                         <div className="grid gap-1.5">
                           <GameGroup
@@ -917,9 +702,9 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
               </div>
 
               {activeMission?.hasRoles && gameStep.initiative.firstTurn === null && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md flex items-start gap-2 mb-2">
-                  <ZapIcon className="size-4 text-red-500 mt-0.5 shrink-0" />
-                  <div className="text-[10px] text-red-400 font-medium">
+                <div className="mb-2 flex items-start gap-2 rounded-md border border-status-danger/30 bg-status-danger/10 p-3">
+                  <ZapIcon className="mt-0.5 size-4 shrink-0 text-status-danger" />
+                  <div className="text-[10px] font-medium text-status-danger">
                     Turn order must be selected in the <strong>Initiative</strong> section before role-based scoring can be calculated.
                   </div>
                 </div>
@@ -1050,16 +835,16 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
             </div>
           </GameGroup>
         </div>
-      </CardContent>
-      <CardFooter className="bg-muted/30 border-t flex items-center justify-between text-xs text-muted-foreground p-4">
+      </div>
+      <footer className="mt-6 flex items-center justify-between border-t border-border/60 pt-4 text-xs text-muted-foreground">
         <span>{completedCount} of 5 major phases completed</span>
         {completedCount === 5 && (
-          <div className="flex items-center gap-1 text-primary font-medium">
+          <div className="flex items-center gap-1 font-medium text-primary">
             <CheckCircle2Icon className="size-3" />
             Game Finished: {playerOP > opponentOP ? "Victory!" : playerOP === opponentOP ? "Draw" : "Defeat"}
           </div>
         )}
-      </CardFooter>
-    </Card >
+      </footer>
+    </Panel>
   )
 }

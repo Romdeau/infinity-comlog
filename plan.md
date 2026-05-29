@@ -7,10 +7,7 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 - [x] A1: `appearance-provider.tsx` (ThemeId/Mode, resolvedMode, migration, DOM contract, system listener) + test
 - [x] A2: `src/app/themes.ts` theme metadata registry
 - [x] A3: `index.css` restructure: `:root` fallback + 4 theme color token sets (light+dark) + extended `@theme inline`
-- [x] A4: Wire `AppProviders` to `AppearanceProvider`; set `data-theme` in `index.html`; remove `theme-provider.tsx` (ThemeId/Mode, resolvedMode, migration, DOM contract, system listener) + test
-- [ ] A2: `src/app/themes.ts` theme metadata registry
-- [ ] A3: `index.css` restructure: `:root` fallback + 4 theme color token sets (light+dark) + extended `@theme inline`
-- [ ] A4: Wire `AppProviders` to `AppearanceProvider`; set `data-theme` in `index.html`; remove `theme-provider.tsx`
+- [x] A4: Wire `AppProviders` to `AppearanceProvider`; set `data-theme` in `index.html`; remove `theme-provider.tsx`
 
 ## Phase B — Typography & Textures
 - [x] B1: Add fonts via `bun add @fontsource-variable/*`; per-theme `--font-sans/display/mono`
@@ -35,10 +32,10 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 - [x] E3: `army-import-notifications.tsx` restyle (remove text-white)
 
 ## Phase F — Highest-Priority Pages
-- [ ] F1: Split `army-list-view.tsx` → `src/components/list-view/*` (UnitCard, WeaponChart, UnitDetailDialog)
-- [ ] F2: Redesign List View (dossier panels, fire-control table, print neutral palette)
-- [ ] F3: Split `infinity-game-flow.tsx` → `src/components/game-flow/*`; extract Booty data
-- [ ] F4: Redesign Game Sequence (status strip, scoreboard, advisories, StatusPip)
+- [x] F1: Split `army-list-view.tsx` → `src/components/list-view/*` (UnitCard, WeaponChart, UnitDetailDialog)
+- [x] F2: Redesign List View (dossier panels, fire-control table, print neutral palette)
+- [x] F3: Split `infinity-game-flow.tsx` → `src/components/game-flow/*`; extract Booty data
+- [x] F4: Redesign Game Sequence (status strip, scoreboard, advisories, StatusPip)
 
 ## Phase G — Remaining Pages
 - [ ] G1: Army Lists "deployment bay" (army-lists.tsx, army-manager.tsx)
