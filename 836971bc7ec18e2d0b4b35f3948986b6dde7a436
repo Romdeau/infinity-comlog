@@ -1,0 +1,9 @@
+Task: Track B — Typography & Textures
+
+Summary: Added self-hosted variable/static fonts and wired per-theme typography (display/body/mono) plus surface texture utilities. Each theme now diverges in type and surface treatment, not just color. bun run check green (94 tests).
+
+Modified:
+- src/index.css (font imports, per-theme --font-* + motion + panel tokens, .panel-frame/.grid-bg/.scanline/.font-display utilities)
+- package.json, bun.lock (11 fontsource packages)
+
+Why: design-plan §3.5/§4 requires themes to diverge beyond color.
