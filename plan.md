@@ -38,13 +38,13 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 - [x] F4: Redesign Game Sequence (status strip, scoreboard, advisories, StatusPip)
 
 ## Phase G — Remaining Pages
-- [ ] G1: Army Lists "deployment bay" (army-lists.tsx, army-manager.tsx)
-- [ ] G2: List Analysis telemetry + `chart-palette.ts` token-driven recharts
-- [ ] G3: Order Reference field manual + hacking-reference device tokens
-- [ ] G4: Settings Appearance panel + restyle Measurement/Data panels
+- [x] G1: Army Lists "deployment bay" (army-lists.tsx, army-manager.tsx) — 564f815
+- [x] G2: List Analysis telemetry + `chart-palette.ts` token-driven recharts — 564f815
+- [x] G3: Order Reference field manual + hacking-reference device tokens — 564f815
+- [x] G4: Settings Appearance panel + restyle Measurement/Data panels — 564f815
 
 ## Phase H — Hardcode Elimination
-- [ ] H1: Grep gate to zero offenders outside token defs / print CSS
+- [x] H1: Grep gate to zero offenders outside token defs / print CSS — verified clean post-564f815 (only chart-palette fallbacks + print neutral palette + range-band negative-assertion tests remain)
 
 ## Phase I — Verification
-- [ ] I1: `bun run check` green; theme matrix QA; migration; print; reduced-motion; a11y
+- [x] I1: `bun run check` green; theme matrix QA; migration; print; reduced-motion; a11y — 564f815 verified
