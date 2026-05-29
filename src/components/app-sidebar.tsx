@@ -29,7 +29,7 @@ export function AppSidebar() {
   const savedListCount = Object.keys(storedLists).length
 
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar variant="inset" collapsible="icon" className="command-rail">
       <SidebarHeader>
         <SidebarMenu>
             <SidebarMenuItem>
@@ -39,7 +39,9 @@ export function AppSidebar() {
                   <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Logo" className="size-6" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Infinity Comlog</span>
+                  <span className="font-display text-base font-semibold tracking-[var(--text-display-tracking)]">
+                    INFINITY COMLOG
+                  </span>
                   <span className="text-xs text-sidebar-foreground/60">Frontend companion for Infinity N5</span>
                 </div>
               </Link>

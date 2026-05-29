@@ -764,4 +764,30 @@
       animation: none;
       }
     }
+
+  /* Command-rail active item treatment, themed per aesthetic. */
+  .command-rail [data-active="true"] {
+    position: relative;
+    }
+  [data-theme="hardscifi"] .command-rail [data-active="true"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 2px;
+    background: var(--sidebar-primary);
+    box-shadow: 0 0 6px var(--sidebar-primary);
+    }
+  [data-theme="orbital"] .command-rail [data-active="true"] {
+    box-shadow: inset 2px 0 0 var(--sidebar-primary);
+    }
+  [data-theme="rebellion"] .command-rail [data-active="true"] {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, var(--sidebar-primary) 60%, transparent);
+    }
+  [data-theme="drifter"] .command-rail [data-active="true"] {
+    box-shadow: -3px 0 0 0 var(--sidebar-primary);
+    }
 }

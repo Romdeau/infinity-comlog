@@ -30,9 +30,9 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 - [x] D3: Wire into header (dashboard-layout) + mobile + remove old ThemeToggle
 
 ## Phase E — App Shell
-- [ ] E1: `dashboard-layout.tsx` status bar + grid-bg + font-display title
-- [ ] E2: `app-sidebar.tsx` command rail active treatment + logotype
-- [ ] E3: `army-import-notifications.tsx` restyle (remove text-white)
+- [x] E1: `dashboard-layout.tsx` status bar + grid-bg + font-display title
+- [x] E2: `app-sidebar.tsx` command rail active treatment + logotype
+- [x] E3: `army-import-notifications.tsx` restyle (remove text-white)
 
 ## Phase F — Highest-Priority Pages
 - [ ] F1: Split `army-list-view.tsx` → `src/components/list-view/*` (UnitCard, WeaponChart, UnitDetailDialog)
