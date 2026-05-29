@@ -1,5 +1,5 @@
 import { InfinityGameFlow } from "@/components/infinity-game-flow"
-import { PageIntro } from "@/components/page-intro"
+import { PageHeader } from "@/components/system"
 import { SessionManager } from "@/components/session-manager"
 import { useArmy } from "@/context/army-context"
 
@@ -8,7 +8,7 @@ export default function GameSequencePage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <PageIntro
+      <PageHeader
         eyebrow="Live Session"
         title="Track Game Flow"
         description="Manage session state, follow the setup sequence, and keep turn progress visible while you play."

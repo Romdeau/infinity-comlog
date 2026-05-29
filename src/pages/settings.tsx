@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { PageIntro } from "@/components/page-intro"
+import { PageHeader } from "@/components/system"
 import { useArmy } from "@/context/army-context"
 import { useSettings } from "@/context/settings-context"
 import {
@@ -41,7 +41,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <PageIntro
+      <PageHeader
         eyebrow="Preferences"
         title="Settings"
         description="Choose the measurement system you want to use and manage the locally stored list data that powers the rest of the workspace."

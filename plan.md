@@ -17,12 +17,12 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 - [x] B2: `.panel-frame`, `.grid-bg`, `.hud-readout`, `.scanline` utilities + motion tokens + reduced-motion
 
 ## Phase C — Shared Primitives (`src/components/system/`)
-- [ ] C1: `StatusPip` (status→token+icon+label) + test
-- [ ] C2: `Readout` (.hud-readout mono numeric) + test
-- [ ] C3: `Panel` (panel-frame wrapper around Card) + test
-- [ ] C4: `PageHeader` (replaces PageIntro) + test; migrate 6 pages; alias PageIntro then remove
-- [ ] C5: `RangeBand` (tokenized 7-cell range) + test
-- [ ] C6: `StatLine` (9-stat grid) + test
+- [x] C1: `StatusPip` (status→token+icon+label) + test
+- [x] C2: `Readout` (.hud-readout mono numeric) + test
+- [x] C3: `Panel` (panel-frame wrapper around Card) + test
+- [x] C4: `PageHeader` (replaces PageIntro) + test; migrate 6 pages; alias PageIntro then remove
+- [x] C5: `RangeBand` (tokenized 7-cell range) + test
+- [x] C6: `StatLine` (9-stat grid) + test
 
 ## Phase D — Theme Switcher
 - [ ] D1: `ModeToggle` (renamed ThemeToggle, sets mode only)

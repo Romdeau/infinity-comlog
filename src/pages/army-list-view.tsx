@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { PrinterIcon, InfoIcon, Maximize2Icon } from "lucide-react"
 import { PageEmptyState } from "@/components/page-empty-state"
-import { PageIntro } from "@/components/page-intro"
+import { PageHeader } from "@/components/system"
 import { usePrint } from "@/shared/hooks/use-print"
 import { cn } from "@/lib/utils"
 import { MetadataService } from "@/lib/metadata-service";
@@ -29,7 +29,7 @@ export default function ArmyListViewPage() {
   if (!lists.listA && !lists.listB) {
     return (
       <div className="flex flex-1 flex-col gap-6">
-        <PageIntro
+        <PageHeader
           eyebrow="Roster Viewer"
           title="Inspect Active Lists"
           description="Open a cleaner read-only view of each list, print roster details, and scan combat groups or weapon profiles more easily."
@@ -45,7 +45,7 @@ export default function ArmyListViewPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <PageIntro
+      <PageHeader
         eyebrow="Roster Viewer"
         title="Inspect Active Lists"
         description="Review combat groups, unit details, and weapon profiles in a format that is easier to scan at the table or print before a round."

@@ -3,7 +3,7 @@ import { analyzeList, type AnalysisMetric } from "@/features/army/domain/list-an
 import type { EnrichedArmyList } from "@/lib/unit-service"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageEmptyState } from "@/components/page-empty-state"
-import { PageIntro } from "@/components/page-intro"
+import { PageHeader } from "@/components/system"
 import {
   BarChart,
   Bar,
@@ -23,7 +23,7 @@ export default function ListAnalysisPage() {
   if (!lists.listA && !lists.listB) {
     return (
       <div className="flex flex-1 flex-col gap-6">
-        <PageIntro
+        <PageHeader
           eyebrow="Insights"
           title="Analyze List Composition"
           description="Compare order pools, specialists, SWC usage, and troop type spread for the active lists in your current pairing."
@@ -41,7 +41,7 @@ export default function ListAnalysisPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <PageIntro
+      <PageHeader
         eyebrow="Insights"
         title="Analyze List Composition"
         description="Review order efficiency, specialist coverage, and troop investment across your active lists before locking in a round plan."
