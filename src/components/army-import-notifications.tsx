@@ -22,7 +22,7 @@ export function ArmyImportNotifications() {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-1 right-1 size-6 hover:bg-white/20 text-white"
+            className="absolute top-1 right-1 size-6 text-destructive-foreground hover:bg-destructive-foreground/20"
             onClick={clearImportErrors}
           >
             <X className="size-3" />

@@ -1,8 +1,8 @@
 import { ExternalLinkIcon, LayersIcon, MoveIcon, RadioIcon, ShieldCheckIcon, SwordIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { Panel } from "@/components/system"
 import { HackingReference } from "./hacking-reference"
 
 const ACTION_GROUPS = [
@@ -61,14 +61,16 @@ const ACTION_GROUPS = [
 export function TurnReference() {
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-border/70 bg-card/55 p-5 sm:p-6">
+      <Panel>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="flex items-center gap-2 text-ui-label">
               <LayersIcon className="size-3.5" />
               Table Reference
             </div>
-            <h2 className="text-xl font-semibold tracking-tight">Common Skills And Reactive Options</h2>
+            <h2 className="font-display text-xl font-semibold tracking-[var(--text-display-tracking)]">
+              Common Skills And Reactive Options
+            </h2>
             <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
               Keep the most frequently checked Infinity actions within reach during a round, with direct links to the wiki when you need the full wording.
             </p>
@@ -83,7 +85,7 @@ export function TurnReference() {
             </Button>
           </div>
         </div>
-      </section>
+      </Panel>
 
       <div className="space-y-6">
         {ACTION_GROUPS.map((group, index) => (
@@ -94,7 +96,7 @@ export function TurnReference() {
                 <group.icon className="size-4" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-lg font-semibold tracking-tight">{group.title}</h3>
+                <h3 className="font-display text-lg font-semibold tracking-tight">{group.title}</h3>
                 <p className="text-sm text-muted-foreground">{group.description}</p>
               </div>
             </div>
@@ -113,23 +115,19 @@ export function TurnReference() {
 
 function ActionLinkCard({ name, type, url }: { name: string; type: string; url: string }) {
   return (
-    <Card className="border-border/70 bg-background/70 shadow-none transition-colors hover:border-primary/40 hover:bg-muted/20">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <CardTitle className="text-base font-semibold tracking-tight">{name}</CardTitle>
-            <CardDescription>{type}</CardDescription>
-          </div>
-          <ExternalLinkIcon className="mt-0.5 size-4 text-muted-foreground" />
+    <div className="rounded-lg border border-border/70 bg-surface-2 p-4 transition-colors hover:border-primary/40 hover:bg-muted/20">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <div className="font-display text-base font-semibold tracking-tight">{name}</div>
+          <div className="text-xs text-muted-foreground">{type}</div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <Button variant="ghost" size="sm" asChild className="px-0 text-muted-foreground hover:text-primary">
-          <a href={url} target="_blank" rel="noopener noreferrer">
-            Open wiki entry
-          </a>
-        </Button>
-      </CardContent>
-    </Card>
+        <ExternalLinkIcon className="mt-0.5 size-4 text-muted-foreground" />
+      </div>
+      <Button variant="ghost" size="sm" asChild className="mt-2 px-0 text-muted-foreground hover:text-primary">
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          Open wiki entry
+        </a>
+      </Button>
+    </div>
   )
 }

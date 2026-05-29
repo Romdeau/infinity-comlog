@@ -104,7 +104,7 @@ export function SessionManager() {
                 autoFocus
               />
               <Button variant="ghost" size="icon" className="size-7" onClick={() => handleRename(activeSessionId!)}>
-                <CheckIcon className="size-3 text-green-500" />
+                <CheckIcon className="size-3 text-status-complete" />
               </Button>
             </div>
           ) : null}

@@ -1,81 +1,584 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
+/* Body / shared */
 @import "@fontsource-variable/figtree";
+@import "@fontsource-variable/inter";
+@import "@fontsource/b612/400.css";
+@import "@fontsource/b612/700.css";
+@import "@fontsource/barlow/400.css";
+@import "@fontsource/barlow/500.css";
+@import "@fontsource/barlow/600.css";
+
+/* Display */
+@import "@fontsource/chakra-petch/500.css";
+@import "@fontsource/chakra-petch/600.css";
+@import "@fontsource/chakra-petch/700.css";
+@import "@fontsource-variable/oswald";
+@import "@fontsource/saira-condensed/500.css";
+@import "@fontsource/saira-condensed/600.css";
+@import "@fontsource/saira-condensed/700.css";
+@import "@fontsource/bebas-neue/400.css";
+
+/* Mono */
+@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource-variable/spline-sans-mono";
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-    --background: oklch(0.992 0.004 286.32);
-    --foreground: oklch(0.18 0.02 268.04);
-    --card: oklch(0.998 0.002 286.32);
-    --card-foreground: oklch(0.18 0.02 268.04);
-    --popover: oklch(0.998 0.002 286.32);
-    --popover-foreground: oklch(0.18 0.02 268.04);
-    --primary: oklch(0.61 0.22 325.31);
-    --primary-foreground: oklch(0.985 0.01 320.11);
-    --secondary: oklch(0.965 0.006 279.82);
-    --secondary-foreground: oklch(0.24 0.015 270.12);
-    --muted: oklch(0.972 0.006 279.51);
-    --muted-foreground: oklch(0.52 0.02 269.23);
-    --accent: oklch(0.972 0.008 286.04);
-    --accent-foreground: oklch(0.24 0.015 270.12);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.92 0.008 274.18);
-    --input: oklch(0.92 0.008 274.18);
-    --ring: oklch(0.67 0.03 279.41);
-    --chart-1: oklch(0.83 0.13 321);
-    --chart-2: oklch(0.75 0.21 322);
-    --chart-3: oklch(0.67 0.26 322);
-    --chart-4: oklch(0.59 0.26 323);
-    --chart-5: oklch(0.52 0.23 324);
-    --radius: 0.75rem;
-    --sidebar: oklch(0.985 0.004 286.18);
-    --sidebar-foreground: oklch(0.22 0.015 270.12);
-    --sidebar-primary: oklch(0.61 0.22 325.31);
-    --sidebar-primary-foreground: oklch(0.985 0.01 320.11);
-    --sidebar-accent: oklch(0.972 0.008 286.04);
-    --sidebar-accent-foreground: oklch(0.24 0.015 270.12);
-    --sidebar-border: oklch(0.92 0.008 274.18);
-    --sidebar-ring: oklch(0.67 0.03 279.41);
+/* =============================================================================
+   TOKEN CONTRACT
+   Every theme block (light + dark) MUST define the full token set mapped by
+   @theme inline below, so switching themes never leaves a token undefined.
+   Themes diverge in color, typography, radius, surface treatment and motion.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   HARD SCI-FI (default) — "Mission Computer"
+   near-black blue-graphite, cyan/teal primary, steel secondary, amber accent.
+   --------------------------------------------------------------------------- */
+:root,
+[data-theme="hardscifi"] {
+    --background: oklch(0.985 0.004 230);
+    --foreground: oklch(0.2 0.03 245);
+    --card: oklch(0.998 0.003 220);
+    --card-foreground: oklch(0.2 0.03 245);
+    --popover: oklch(0.998 0.003 220);
+    --popover-foreground: oklch(0.2 0.03 245);
+    --primary: oklch(0.6 0.13 215);
+    --primary-foreground: oklch(0.99 0.005 220);
+    --secondary: oklch(0.95 0.012 235);
+    --secondary-foreground: oklch(0.28 0.03 245);
+    --muted: oklch(0.96 0.008 235);
+    --muted-foreground: oklch(0.5 0.025 240);
+    --accent: oklch(0.72 0.15 75);
+    --accent-foreground: oklch(0.22 0.04 60);
+    --destructive: oklch(0.58 0.18 25);
+    --border: oklch(0.88 0.012 230);
+    --input: oklch(0.9 0.012 230);
+    --ring: oklch(0.6 0.13 215);
+
+    --status-complete: oklch(0.62 0.13 165);
+    --status-active: oklch(0.6 0.13 215);
+    --status-pending: oklch(0.6 0.02 240);
+    --status-warning: oklch(0.72 0.15 75);
+    --status-danger: oklch(0.58 0.18 25);
+    --status-info: oklch(0.6 0.1 235);
+
+    --band-plus: oklch(0.62 0.15 150);
+    --band-good: oklch(0.65 0.12 200);
+    --band-neutral: oklch(0.7 0.03 240);
+    --band-bad: oklch(0.7 0.15 65);
+    --band-worst: oklch(0.58 0.19 25);
+    --band-foreground: oklch(0.99 0.005 220);
+
+    --surface-1: oklch(0.97 0.006 230);
+    --surface-2: oklch(0.94 0.01 232);
+    --surface-raised: oklch(1 0 0);
+    --grid-line: oklch(0.6 0.05 215 / 12%);
+
+    --chart-1: oklch(0.6 0.13 215);
+    --chart-2: oklch(0.62 0.13 165);
+    --chart-3: oklch(0.72 0.15 75);
+    --chart-4: oklch(0.55 0.12 250);
+    --chart-5: oklch(0.6 0.15 320);
+    --chart-6: oklch(0.65 0.14 140);
+    --chart-7: oklch(0.58 0.18 25);
+
+    --radius: 0.4rem;
+    --frame-clip: 0.6rem;
+    --text-display-tracking: 0.06em;
+    --text-label-tracking: 0.14em;
+
+    --font-sans: "Figtree Variable", sans-serif;
+    --font-display: "Chakra Petch", "Figtree Variable", sans-serif;
+    --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+    --motion-fast: 110ms;
+    --motion-base: 200ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --panel-border-style: solid;
+    --panel-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 14%, transparent);
+    --grid-cell: 26px;
+
+    --sidebar: oklch(0.97 0.006 230);
+    --sidebar-foreground: oklch(0.24 0.03 245);
+    --sidebar-primary: oklch(0.6 0.13 215);
+    --sidebar-primary-foreground: oklch(0.99 0.005 220);
+    --sidebar-accent: oklch(0.93 0.012 232);
+    --sidebar-accent-foreground: oklch(0.28 0.03 245);
+    --sidebar-border: oklch(0.88 0.012 230);
+    --sidebar-ring: oklch(0.6 0.13 215);
 }
 
-.dark {
-    --background: oklch(0.16 0.016 277.02);
-    --foreground: oklch(0.968 0.004 286.18);
-    --card: oklch(0.21 0.02 278.91);
-    --card-foreground: oklch(0.968 0.004 286.18);
-    --popover: oklch(0.21 0.02 278.91);
-    --popover-foreground: oklch(0.968 0.004 286.18);
-    --primary: oklch(0.7 0.2 323.76);
-    --primary-foreground: oklch(0.16 0.016 277.02);
-    --secondary: oklch(0.28 0.012 279.52);
-    --secondary-foreground: oklch(0.968 0.004 286.18);
-    --muted: oklch(0.26 0.012 278.48);
-    --muted-foreground: oklch(0.71 0.016 277.31);
-    --accent: oklch(0.29 0.016 281.05);
-    --accent-foreground: oklch(0.968 0.004 286.18);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 12%);
-    --input: oklch(1 0 0 / 16%);
-    --ring: oklch(0.74 0.025 284.21);
-    --chart-1: oklch(0.83 0.13 321);
-    --chart-2: oklch(0.75 0.21 322);
-    --chart-3: oklch(0.67 0.26 322);
-    --chart-4: oklch(0.59 0.26 323);
-    --chart-5: oklch(0.52 0.23 324);
-    --sidebar: oklch(0.19 0.018 278.11);
-    --sidebar-foreground: oklch(0.968 0.004 286.18);
-    --sidebar-primary: oklch(0.7 0.2 323.76);
-    --sidebar-primary-foreground: oklch(0.16 0.016 277.02);
-    --sidebar-accent: oklch(0.29 0.016 281.05);
-    --sidebar-accent-foreground: oklch(0.968 0.004 286.18);
-    --sidebar-border: oklch(1 0 0 / 12%);
-    --sidebar-ring: oklch(0.74 0.025 284.21);
+[data-theme="hardscifi"].dark {
+    --background: oklch(0.17 0.022 250);
+    --foreground: oklch(0.93 0.012 220);
+    --card: oklch(0.22 0.026 252);
+    --card-foreground: oklch(0.93 0.012 220);
+    --popover: oklch(0.22 0.026 252);
+    --popover-foreground: oklch(0.93 0.012 220);
+    --primary: oklch(0.74 0.14 200);
+    --primary-foreground: oklch(0.16 0.022 250);
+    --secondary: oklch(0.28 0.02 250);
+    --secondary-foreground: oklch(0.93 0.012 220);
+    --muted: oklch(0.26 0.018 250);
+    --muted-foreground: oklch(0.7 0.02 225);
+    --accent: oklch(0.78 0.15 78);
+    --accent-foreground: oklch(0.18 0.03 60);
+    --destructive: oklch(0.66 0.18 25);
+    --border: oklch(0.7 0.05 215 / 18%);
+    --input: oklch(0.7 0.05 215 / 22%);
+    --ring: oklch(0.74 0.14 200);
+
+    --status-complete: oklch(0.74 0.13 165);
+    --status-active: oklch(0.74 0.14 200);
+    --status-pending: oklch(0.6 0.02 235);
+    --status-warning: oklch(0.78 0.15 78);
+    --status-danger: oklch(0.66 0.18 25);
+    --status-info: oklch(0.72 0.11 230);
+
+    --band-plus: oklch(0.72 0.16 150);
+    --band-good: oklch(0.72 0.13 200);
+    --band-neutral: oklch(0.55 0.03 240);
+    --band-bad: oklch(0.74 0.16 70);
+    --band-worst: oklch(0.62 0.2 25);
+    --band-foreground: oklch(0.16 0.022 250);
+
+    --surface-1: oklch(0.2 0.024 251);
+    --surface-2: oklch(0.25 0.026 252);
+    --surface-raised: oklch(0.27 0.028 253);
+    --grid-line: oklch(0.74 0.1 200 / 10%);
+
+    --chart-1: oklch(0.74 0.14 200);
+    --chart-2: oklch(0.74 0.13 165);
+    --chart-3: oklch(0.78 0.15 78);
+    --chart-4: oklch(0.66 0.13 255);
+    --chart-5: oklch(0.7 0.16 320);
+    --chart-6: oklch(0.72 0.14 140);
+    --chart-7: oklch(0.66 0.18 25);
+
+    --sidebar: oklch(0.2 0.024 251);
+    --sidebar-foreground: oklch(0.93 0.012 220);
+    --sidebar-primary: oklch(0.74 0.14 200);
+    --sidebar-primary-foreground: oklch(0.16 0.022 250);
+    --sidebar-accent: oklch(0.27 0.024 252);
+    --sidebar-accent-foreground: oklch(0.93 0.012 220);
+    --sidebar-border: oklch(0.7 0.05 215 / 18%);
+    --sidebar-ring: oklch(0.74 0.14 200);
 }
 
+/* ---------------------------------------------------------------------------
+   ORBITAL AGENCY (NASApunk) — "Mission Control"
+   cream + slate gray, NASA-blue primary, insignia-red accent, signal-green.
+   --------------------------------------------------------------------------- */
+[data-theme="orbital"] {
+    --background: oklch(0.96 0.008 85);
+    --foreground: oklch(0.25 0.015 250);
+    --card: oklch(0.99 0.004 85);
+    --card-foreground: oklch(0.25 0.015 250);
+    --popover: oklch(0.99 0.004 85);
+    --popover-foreground: oklch(0.25 0.015 250);
+    --primary: oklch(0.48 0.16 255);
+    --primary-foreground: oklch(0.98 0.005 85);
+    --secondary: oklch(0.92 0.006 250);
+    --secondary-foreground: oklch(0.3 0.015 250);
+    --muted: oklch(0.93 0.006 250);
+    --muted-foreground: oklch(0.48 0.012 250);
+    --accent: oklch(0.55 0.2 28);
+    --accent-foreground: oklch(0.98 0.005 85);
+    --destructive: oklch(0.55 0.2 28);
+    --border: oklch(0.82 0.008 250);
+    --input: oklch(0.86 0.008 250);
+    --ring: oklch(0.48 0.16 255);
+
+    --status-complete: oklch(0.58 0.16 145);
+    --status-active: oklch(0.48 0.16 255);
+    --status-pending: oklch(0.55 0.01 250);
+    --status-warning: oklch(0.68 0.16 70);
+    --status-danger: oklch(0.55 0.2 28);
+    --status-info: oklch(0.5 0.13 240);
+
+    --band-plus: oklch(0.58 0.16 145);
+    --band-good: oklch(0.5 0.15 240);
+    --band-neutral: oklch(0.7 0.02 250);
+    --band-bad: oklch(0.68 0.16 70);
+    --band-worst: oklch(0.55 0.2 28);
+    --band-foreground: oklch(0.98 0.005 85);
+
+    --surface-1: oklch(0.94 0.006 85);
+    --surface-2: oklch(0.9 0.008 250);
+    --surface-raised: oklch(1 0 0);
+    --grid-line: oklch(0.48 0.05 255 / 14%);
+
+    --chart-1: oklch(0.48 0.16 255);
+    --chart-2: oklch(0.55 0.2 28);
+    --chart-3: oklch(0.58 0.16 145);
+    --chart-4: oklch(0.68 0.16 70);
+    --chart-5: oklch(0.5 0.08 250);
+    --chart-6: oklch(0.55 0.13 300);
+    --chart-7: oklch(0.62 0.14 200);
+
+    --radius: 0.25rem;
+    --frame-clip: 0rem;
+    --text-display-tracking: 0.04em;
+    --text-label-tracking: 0.12em;
+
+    --font-sans: "B612", "Figtree Variable", sans-serif;
+    --font-display: "Oswald Variable", "B612", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --motion-fast: 140ms;
+    --motion-base: 260ms;
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --panel-border-style: solid;
+    --panel-shadow: inset 0 1px 0 oklch(1 0 0 / 14%), 0 1px 2px oklch(0 0 0 / 14%);
+    --grid-cell: 22px;
+
+    --sidebar: oklch(0.93 0.008 250);
+    --sidebar-foreground: oklch(0.28 0.015 250);
+    --sidebar-primary: oklch(0.48 0.16 255);
+    --sidebar-primary-foreground: oklch(0.98 0.005 85);
+    --sidebar-accent: oklch(0.89 0.008 250);
+    --sidebar-accent-foreground: oklch(0.3 0.015 250);
+    --sidebar-border: oklch(0.82 0.008 250);
+    --sidebar-ring: oklch(0.48 0.16 255);
+}
+
+[data-theme="orbital"].dark {
+    --background: oklch(0.2 0.012 250);
+    --foreground: oklch(0.92 0.006 85);
+    --card: oklch(0.25 0.014 250);
+    --card-foreground: oklch(0.92 0.006 85);
+    --popover: oklch(0.25 0.014 250);
+    --popover-foreground: oklch(0.92 0.006 85);
+    --primary: oklch(0.62 0.16 255);
+    --primary-foreground: oklch(0.16 0.012 250);
+    --secondary: oklch(0.3 0.012 250);
+    --secondary-foreground: oklch(0.92 0.006 85);
+    --muted: oklch(0.28 0.01 250);
+    --muted-foreground: oklch(0.7 0.01 250);
+    --accent: oklch(0.6 0.2 28);
+    --accent-foreground: oklch(0.96 0.005 85);
+    --destructive: oklch(0.62 0.2 28);
+    --border: oklch(0.7 0.03 250 / 22%);
+    --input: oklch(0.7 0.03 250 / 26%);
+    --ring: oklch(0.62 0.16 255);
+
+    --status-complete: oklch(0.68 0.16 145);
+    --status-active: oklch(0.62 0.16 255);
+    --status-pending: oklch(0.6 0.01 250);
+    --status-warning: oklch(0.74 0.15 70);
+    --status-danger: oklch(0.62 0.2 28);
+    --status-info: oklch(0.62 0.13 240);
+
+    --band-plus: oklch(0.68 0.16 145);
+    --band-good: oklch(0.62 0.15 240);
+    --band-neutral: oklch(0.55 0.02 250);
+    --band-bad: oklch(0.74 0.15 70);
+    --band-worst: oklch(0.62 0.2 28);
+    --band-foreground: oklch(0.16 0.012 250);
+
+    --surface-1: oklch(0.23 0.013 250);
+    --surface-2: oklch(0.28 0.014 250);
+    --surface-raised: oklch(0.3 0.015 250);
+    --grid-line: oklch(0.62 0.06 255 / 12%);
+
+    --chart-1: oklch(0.62 0.16 255);
+    --chart-2: oklch(0.62 0.2 28);
+    --chart-3: oklch(0.68 0.16 145);
+    --chart-4: oklch(0.74 0.15 70);
+    --chart-5: oklch(0.6 0.08 250);
+    --chart-6: oklch(0.65 0.13 300);
+    --chart-7: oklch(0.68 0.14 200);
+
+    --sidebar: oklch(0.23 0.013 250);
+    --sidebar-foreground: oklch(0.92 0.006 85);
+    --sidebar-primary: oklch(0.62 0.16 255);
+    --sidebar-primary-foreground: oklch(0.16 0.012 250);
+    --sidebar-accent: oklch(0.3 0.014 250);
+    --sidebar-accent-foreground: oklch(0.92 0.006 85);
+    --sidebar-border: oklch(0.7 0.03 250 / 22%);
+    --sidebar-ring: oklch(0.62 0.16 255);
+}
+
+/* ---------------------------------------------------------------------------
+   REBELLION (Andor-flavored, legally distinct) — "Insurgent Terminal"
+   muted earth + gunmetal, worn amber/orange CRT primary, rust-red warning.
+   --------------------------------------------------------------------------- */
+[data-theme="rebellion"] {
+    --background: oklch(0.93 0.01 75);
+    --foreground: oklch(0.26 0.02 60);
+    --card: oklch(0.96 0.008 75);
+    --card-foreground: oklch(0.26 0.02 60);
+    --popover: oklch(0.96 0.008 75);
+    --popover-foreground: oklch(0.26 0.02 60);
+    --primary: oklch(0.58 0.13 60);
+    --primary-foreground: oklch(0.97 0.01 80);
+    --secondary: oklch(0.88 0.012 70);
+    --secondary-foreground: oklch(0.3 0.02 60);
+    --muted: oklch(0.89 0.01 70);
+    --muted-foreground: oklch(0.48 0.018 60);
+    --accent: oklch(0.62 0.14 55);
+    --accent-foreground: oklch(0.97 0.01 80);
+    --destructive: oklch(0.5 0.17 32);
+    --border: oklch(0.78 0.015 65);
+    --input: oklch(0.82 0.015 65);
+    --ring: oklch(0.58 0.13 60);
+
+    --status-complete: oklch(0.55 0.1 130);
+    --status-active: oklch(0.62 0.14 55);
+    --status-pending: oklch(0.55 0.015 65);
+    --status-warning: oklch(0.62 0.14 55);
+    --status-danger: oklch(0.5 0.17 32);
+    --status-info: oklch(0.56 0.08 200);
+
+    --band-plus: oklch(0.55 0.1 130);
+    --band-good: oklch(0.6 0.1 95);
+    --band-neutral: oklch(0.62 0.02 65);
+    --band-bad: oklch(0.6 0.15 55);
+    --band-worst: oklch(0.5 0.17 32);
+    --band-foreground: oklch(0.97 0.01 80);
+
+    --surface-1: oklch(0.91 0.01 72);
+    --surface-2: oklch(0.86 0.012 70);
+    --surface-raised: oklch(0.98 0.008 80);
+    --grid-line: oklch(0.4 0.04 60 / 14%);
+
+    --chart-1: oklch(0.58 0.13 60);
+    --chart-2: oklch(0.62 0.14 55);
+    --chart-3: oklch(0.6 0.1 95);
+    --chart-4: oklch(0.5 0.17 32);
+    --chart-5: oklch(0.55 0.1 130);
+    --chart-6: oklch(0.5 0.06 60);
+    --chart-7: oklch(0.56 0.08 200);
+
+    --radius: 0.15rem;
+    --frame-clip: 0rem;
+    --text-display-tracking: 0.08em;
+    --text-label-tracking: 0.18em;
+
+    --font-sans: "Barlow", "Figtree Variable", sans-serif;
+    --font-display: "Saira Condensed", "Barlow", sans-serif;
+    --font-mono: "Spline Sans Mono Variable", ui-monospace, monospace;
+    --motion-fast: 90ms;
+    --motion-base: 180ms;
+    --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+    --panel-border-style: solid;
+    --panel-shadow: 0 1px 0 oklch(0 0 0 / 18%);
+    --grid-cell: 0px;
+
+    --sidebar: oklch(0.9 0.012 72);
+    --sidebar-foreground: oklch(0.28 0.02 60);
+    --sidebar-primary: oklch(0.58 0.13 60);
+    --sidebar-primary-foreground: oklch(0.97 0.01 80);
+    --sidebar-accent: oklch(0.85 0.012 70);
+    --sidebar-accent-foreground: oklch(0.3 0.02 60);
+    --sidebar-border: oklch(0.78 0.015 65);
+    --sidebar-ring: oklch(0.58 0.13 60);
+}
+
+[data-theme="rebellion"].dark {
+    --background: oklch(0.18 0.012 60);
+    --foreground: oklch(0.86 0.04 75);
+    --card: oklch(0.22 0.014 60);
+    --card-foreground: oklch(0.86 0.04 75);
+    --popover: oklch(0.22 0.014 60);
+    --popover-foreground: oklch(0.86 0.04 75);
+    --primary: oklch(0.72 0.15 65);
+    --primary-foreground: oklch(0.16 0.012 60);
+    --secondary: oklch(0.27 0.014 60);
+    --secondary-foreground: oklch(0.86 0.04 75);
+    --muted: oklch(0.25 0.012 60);
+    --muted-foreground: oklch(0.66 0.04 70);
+    --accent: oklch(0.7 0.16 55);
+    --accent-foreground: oklch(0.16 0.012 60);
+    --destructive: oklch(0.58 0.18 32);
+    --border: oklch(0.7 0.06 65 / 20%);
+    --input: oklch(0.7 0.06 65 / 24%);
+    --ring: oklch(0.72 0.15 65);
+
+    --status-complete: oklch(0.62 0.11 130);
+    --status-active: oklch(0.72 0.15 65);
+    --status-pending: oklch(0.55 0.02 65);
+    --status-warning: oklch(0.72 0.15 65);
+    --status-danger: oklch(0.58 0.18 32);
+    --status-info: oklch(0.6 0.09 200);
+
+    --band-plus: oklch(0.62 0.11 130);
+    --band-good: oklch(0.68 0.12 95);
+    --band-neutral: oklch(0.5 0.02 65);
+    --band-bad: oklch(0.7 0.16 55);
+    --band-worst: oklch(0.58 0.18 32);
+    --band-foreground: oklch(0.16 0.012 60);
+
+    --surface-1: oklch(0.21 0.013 60);
+    --surface-2: oklch(0.25 0.014 60);
+    --surface-raised: oklch(0.27 0.015 60);
+    --grid-line: oklch(0.72 0.1 65 / 12%);
+
+    --chart-1: oklch(0.72 0.15 65);
+    --chart-2: oklch(0.7 0.16 55);
+    --chart-3: oklch(0.68 0.12 95);
+    --chart-4: oklch(0.58 0.18 32);
+    --chart-5: oklch(0.62 0.11 130);
+    --chart-6: oklch(0.6 0.06 60);
+    --chart-7: oklch(0.6 0.09 200);
+
+    --sidebar: oklch(0.21 0.013 60);
+    --sidebar-foreground: oklch(0.86 0.04 75);
+    --sidebar-primary: oklch(0.72 0.15 65);
+    --sidebar-primary-foreground: oklch(0.16 0.012 60);
+    --sidebar-accent: oklch(0.27 0.014 60);
+    --sidebar-accent-foreground: oklch(0.86 0.04 75);
+    --sidebar-border: oklch(0.7 0.06 65 / 20%);
+    --sidebar-ring: oklch(0.72 0.15 65);
+}
+
+/* ---------------------------------------------------------------------------
+   DRIFTER (Cowboy Bebop-flavored, legally distinct) — "Bounty Terminal"
+   bold blocky retro-future, saturated teal/cyan primary, magenta + yellow.
+   --------------------------------------------------------------------------- */
+[data-theme="drifter"] {
+    --background: oklch(0.95 0.018 85);
+    --foreground: oklch(0.2 0.02 250);
+    --card: oklch(0.98 0.01 85);
+    --card-foreground: oklch(0.2 0.02 250);
+    --popover: oklch(0.98 0.01 85);
+    --popover-foreground: oklch(0.2 0.02 250);
+    --primary: oklch(0.6 0.14 200);
+    --primary-foreground: oklch(0.99 0.005 200);
+    --secondary: oklch(0.91 0.02 85);
+    --secondary-foreground: oklch(0.25 0.02 250);
+    --muted: oklch(0.92 0.016 85);
+    --muted-foreground: oklch(0.46 0.02 250);
+    --accent: oklch(0.62 0.24 350);
+    --accent-foreground: oklch(0.99 0.005 350);
+    --destructive: oklch(0.58 0.22 28);
+    --border: oklch(0.3 0.02 250);
+    --input: oklch(0.85 0.016 85);
+    --ring: oklch(0.62 0.24 350);
+
+    --status-complete: oklch(0.62 0.16 160);
+    --status-active: oklch(0.6 0.14 200);
+    --status-pending: oklch(0.55 0.02 250);
+    --status-warning: oklch(0.78 0.16 90);
+    --status-danger: oklch(0.58 0.22 28);
+    --status-info: oklch(0.62 0.24 350);
+
+    --band-plus: oklch(0.62 0.16 160);
+    --band-good: oklch(0.6 0.14 200);
+    --band-neutral: oklch(0.65 0.02 250);
+    --band-bad: oklch(0.78 0.16 90);
+    --band-worst: oklch(0.58 0.22 28);
+    --band-foreground: oklch(0.99 0.005 200);
+
+    --surface-1: oklch(0.93 0.016 85);
+    --surface-2: oklch(0.89 0.018 85);
+    --surface-raised: oklch(1 0 0);
+    --grid-line: oklch(0.2 0.02 250 / 12%);
+
+    --chart-1: oklch(0.6 0.14 200);
+    --chart-2: oklch(0.62 0.24 350);
+    --chart-3: oklch(0.78 0.16 90);
+    --chart-4: oklch(0.62 0.16 160);
+    --chart-5: oklch(0.55 0.18 280);
+    --chart-6: oklch(0.58 0.22 28);
+    --chart-7: oklch(0.5 0.13 230);
+
+    --radius: 0.1rem;
+    --frame-clip: 0rem;
+    --text-display-tracking: 0.02em;
+    --text-label-tracking: 0.1em;
+
+    --font-sans: "Inter Variable", "Figtree Variable", sans-serif;
+    --font-display: "Bebas Neue", "Inter Variable", sans-serif;
+    --font-mono: "Space Mono", ui-monospace, monospace;
+    --motion-fast: 80ms;
+    --motion-base: 160ms;
+    --ease-standard: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --panel-border-style: solid;
+    --panel-shadow: 4px 4px 0 0 var(--foreground);
+    --grid-cell: 0px;
+
+    --sidebar: oklch(0.92 0.018 85);
+    --sidebar-foreground: oklch(0.22 0.02 250);
+    --sidebar-primary: oklch(0.6 0.14 200);
+    --sidebar-primary-foreground: oklch(0.99 0.005 200);
+    --sidebar-accent: oklch(0.88 0.018 85);
+    --sidebar-accent-foreground: oklch(0.25 0.02 250);
+    --sidebar-border: oklch(0.3 0.02 250);
+    --sidebar-ring: oklch(0.62 0.24 350);
+}
+
+[data-theme="drifter"].dark {
+    --background: oklch(0.17 0.02 270);
+    --foreground: oklch(0.94 0.012 85);
+    --card: oklch(0.22 0.024 270);
+    --card-foreground: oklch(0.94 0.012 85);
+    --popover: oklch(0.22 0.024 270);
+    --popover-foreground: oklch(0.94 0.012 85);
+    --primary: oklch(0.72 0.15 195);
+    --primary-foreground: oklch(0.15 0.02 270);
+    --secondary: oklch(0.28 0.022 270);
+    --secondary-foreground: oklch(0.94 0.012 85);
+    --muted: oklch(0.26 0.02 270);
+    --muted-foreground: oklch(0.7 0.016 85);
+    --accent: oklch(0.7 0.24 350);
+    --accent-foreground: oklch(0.15 0.02 270);
+    --destructive: oklch(0.66 0.22 28);
+    --border: oklch(0.85 0.04 85 / 24%);
+    --input: oklch(0.85 0.04 85 / 18%);
+    --ring: oklch(0.7 0.24 350);
+
+    --status-complete: oklch(0.72 0.17 160);
+    --status-active: oklch(0.72 0.15 195);
+    --status-pending: oklch(0.55 0.02 270);
+    --status-warning: oklch(0.84 0.16 90);
+    --status-danger: oklch(0.66 0.22 28);
+    --status-info: oklch(0.7 0.24 350);
+
+    --band-plus: oklch(0.72 0.17 160);
+    --band-good: oklch(0.72 0.15 195);
+    --band-neutral: oklch(0.5 0.02 270);
+    --band-bad: oklch(0.84 0.16 90);
+    --band-worst: oklch(0.66 0.22 28);
+    --band-foreground: oklch(0.15 0.02 270);
+
+    --surface-1: oklch(0.2 0.022 270);
+    --surface-2: oklch(0.25 0.024 270);
+    --surface-raised: oklch(0.27 0.026 270);
+    --grid-line: oklch(0.72 0.1 195 / 12%);
+
+    --chart-1: oklch(0.72 0.15 195);
+    --chart-2: oklch(0.7 0.24 350);
+    --chart-3: oklch(0.84 0.16 90);
+    --chart-4: oklch(0.72 0.17 160);
+    --chart-5: oklch(0.65 0.18 280);
+    --chart-6: oklch(0.66 0.22 28);
+    --chart-7: oklch(0.6 0.13 230);
+
+    --sidebar: oklch(0.2 0.022 270);
+    --sidebar-foreground: oklch(0.94 0.012 85);
+    --sidebar-primary: oklch(0.72 0.15 195);
+    --sidebar-primary-foreground: oklch(0.15 0.02 270);
+    --sidebar-accent: oklch(0.27 0.024 270);
+    --sidebar-accent-foreground: oklch(0.94 0.012 85);
+    --sidebar-border: oklch(0.85 0.04 85 / 24%);
+    --sidebar-ring: oklch(0.7 0.24 350);
+}
+
+/* ---------------------------------------------------------------------------
+   Tailwind theme mapping. Font/motion/texture tokens are defined per theme.
+   --------------------------------------------------------------------------- */
 @theme inline {
-    --font-sans: 'Figtree Variable', sans-serif;
+    --font-sans: var(--font-sans);
+    --font-display: var(--font-display);
+    --font-mono: var(--font-mono);
+
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -84,11 +587,34 @@
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
+
+    --color-chart-7: var(--chart-7);
+    --color-chart-6: var(--chart-6);
     --color-chart-5: var(--chart-5);
     --color-chart-4: var(--chart-4);
     --color-chart-3: var(--chart-3);
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
+
+    --color-status-complete: var(--status-complete);
+    --color-status-active: var(--status-active);
+    --color-status-pending: var(--status-pending);
+    --color-status-warning: var(--status-warning);
+    --color-status-danger: var(--status-danger);
+    --color-status-info: var(--status-info);
+
+    --color-band-plus: var(--band-plus);
+    --color-band-good: var(--band-good);
+    --color-band-neutral: var(--band-neutral);
+    --color-band-bad: var(--band-bad);
+    --color-band-worst: var(--band-worst);
+    --color-band-foreground: var(--band-foreground);
+
+    --color-surface-1: var(--surface-1);
+    --color-surface-2: var(--surface-2);
+    --color-surface-raised: var(--surface-raised);
+    --color-grid-line: var(--grid-line);
+
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -107,6 +633,7 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
@@ -133,10 +660,134 @@
 
 @layer utilities {
   .text-ui-label {
-    @apply text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground;
+    @apply text-xs font-medium uppercase text-muted-foreground;
+    letter-spacing: var(--text-label-tracking);
     }
 
   .text-ui-micro {
     @apply text-xs text-muted-foreground;
+    }
+
+  .hud-readout {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    }
+
+  .font-display {
+    font-family: var(--font-display);
+    }
+
+  /* Themeable panel chrome: border treatment, clipped corners, glow. */
+  .panel-frame {
+    border: 1px var(--panel-border-style, solid) var(--border);
+    box-shadow: var(--panel-shadow);
+    background: var(--card);
+    }
+  [data-theme="hardscifi"] .panel-frame {
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--frame-clip)) 0,
+      100% var(--frame-clip),
+      100% 100%,
+      0 100%
+    );
+    border-color: color-mix(in oklab, var(--primary) 38%, var(--border));
+    }
+  [data-theme="orbital"] .panel-frame {
+    border-width: 2px;
+    border-radius: var(--radius);
+    }
+  [data-theme="rebellion"] .panel-frame {
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--primary) 30%, var(--border));
+    }
+  [data-theme="drifter"] .panel-frame {
+    border-width: 2px;
+    border-color: var(--foreground);
+    }
+
+  /* Themeable app-shell background texture. */
+  .grid-bg {
+    background-color: var(--background);
+    }
+  [data-theme="hardscifi"] .grid-bg,
+  [data-theme="orbital"] .grid-bg {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: var(--grid-cell) var(--grid-cell);
+    }
+  [data-theme="rebellion"] .grid-bg {
+    background-image: radial-gradient(
+      var(--grid-line) 0.5px,
+      transparent 0.5px
+    );
+    background-size: 4px 4px;
+    }
+  [data-theme="drifter"] .grid-bg {
+    background-image: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--accent) 8%, transparent) 0 2px,
+      transparent 2px 14px
+    );
+    }
+
+  /* Subtle scanline sweep for active sci-fi panels. */
+  .scanline {
+    position: relative;
+    overflow: hidden;
+    }
+  .scanline::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in oklab, var(--primary) 8%, transparent),
+      transparent
+    );
+    background-size: 100% 8px;
+    animation: scanline-sweep 6s linear infinite;
+    opacity: 0.4;
+    }
+
+  @keyframes scanline-sweep {
+    from { background-position: 0 -100%; }
+    to { background-position: 0 200%; }
+    }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scanline::after {
+      animation: none;
+      }
+    }
+
+  /* Command-rail active item treatment, themed per aesthetic. */
+  .command-rail [data-active="true"] {
+    position: relative;
+    }
+  [data-theme="hardscifi"] .command-rail [data-active="true"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 2px;
+    background: var(--sidebar-primary);
+    box-shadow: 0 0 6px var(--sidebar-primary);
+    }
+  [data-theme="orbital"] .command-rail [data-active="true"] {
+    box-shadow: inset 2px 0 0 var(--sidebar-primary);
+    }
+  [data-theme="rebellion"] .command-rail [data-active="true"] {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, var(--sidebar-primary) 60%, transparent);
+    }
+  [data-theme="drifter"] .command-rail [data-active="true"] {
+    box-shadow: -3px 0 0 0 var(--sidebar-primary);
     }
 }

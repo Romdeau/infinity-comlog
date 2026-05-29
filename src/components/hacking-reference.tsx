@@ -48,10 +48,10 @@ export function HackingReference() {
               <AccordionItem key={deviceName} value={deviceName} className="border rounded-lg overflow-hidden border-border bg-card/50">
                 <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className={`size-2 rounded-full ${deviceName.includes("Killer") ? "bg-red-500" :
-                      deviceName.includes("EVO") ? "bg-green-500" :
-                        deviceName.includes("Plus") ? "bg-blue-500" :
-                          deviceName.includes("Upgrade") ? "bg-orange-500" :
+                    <div className={`size-2 rounded-full ${deviceName.includes("Killer") ? "bg-status-danger" :
+                      deviceName.includes("EVO") ? "bg-status-complete" :
+                        deviceName.includes("Plus") ? "bg-status-info" :
+                          deviceName.includes("Upgrade") ? "bg-status-warning" :
                             "bg-primary"
                       }`} />
                     <span className="text-sm font-bold uppercase tracking-wider">{deviceName}</span>

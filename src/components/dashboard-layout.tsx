@@ -18,17 +18,23 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { StatusPip } from "@/components/system"
 import { defaultRoutePath } from "@/app/routes"
 import { getRouteMeta } from "@/app/routes"
 import { settingsNavItem } from "@/app/navigation"
+import { useArmy } from "@/context/army-context"
+import { useGame } from "@/context/game-context"
 import { AppSidebar } from "./app-sidebar"
 import { ArmyImportNotifications } from "./army-import-notifications"
-import { ThemeToggle } from "./theme-toggle"
+import { ModeToggle } from "./mode-toggle"
+import { ThemePicker } from "./theme-picker"
 
 export function DashboardLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const page = getRouteMeta(location.pathname)
+  const { lists } = useArmy()
+  const { activeSession } = useGame()
 
   return (
     <SidebarProvider>
@@ -52,9 +58,16 @@ export function DashboardLayout() {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
-            <div className="ml-auto flex items-center gap-2 md:hidden">
-              <ThemeToggle />
-              <Button variant="outline" size="icon" onClick={() => navigate(settingsNavItem.url)} aria-label="Open settings">
+            <div className="ml-auto flex items-center gap-2">
+              <ThemePicker />
+              <ModeToggle />
+              <Button
+                variant="outline"
+                size="icon"
+                className="md:hidden"
+                onClick={() => navigate(settingsNavItem.url)}
+                aria-label="Open settings"
+              >
                 <Settings2Icon className="size-4" />
               </Button>
             </div>
@@ -62,7 +75,9 @@ export function DashboardLayout() {
           <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-end md:justify-between md:px-6">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-semibold tracking-tight">{page.title}</h1>
+                <h1 className="font-display text-2xl font-semibold tracking-[var(--text-display-tracking)]">
+                  {page.title}
+                </h1>
                 {page.status && (
                   <Badge variant="outline" className="text-xs">
                     {page.status}
@@ -71,9 +86,22 @@ export function DashboardLayout() {
               </div>
               <p className="max-w-2xl text-sm text-muted-foreground">{page.description}</p>
             </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+              <StatusPip
+                status={lists.listA ? "complete" : "pending"}
+                label={lists.listA ? "List A loaded" : "List A empty"}
+              />
+              <StatusPip
+                status={lists.listB ? "complete" : "pending"}
+                label={lists.listB ? "List B loaded" : "List B empty"}
+              />
+              {activeSession && (
+                <StatusPip status="active" label={`Session: ${activeSession.name}`} />
+              )}
+            </div>
           </div>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:p-6 lg:p-8">
+        <main className="grid-bg flex flex-1 flex-col gap-4 p-4 md:p-6 lg:p-8">
           <Suspense fallback={
             <div className="flex flex-col gap-4">
               <Skeleton className="h-8 w-[200px]" />
