@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useArmy } from "@/context/army-context"
-import { useSettings } from "@/context/settings-context"
+import { useSettings, type MeasurementUnit } from "@/context/settings-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -9,9 +8,11 @@ import { Button } from "@/components/ui/button"
 import { PrinterIcon, InfoIcon, Maximize2Icon } from "lucide-react"
 import { PageEmptyState } from "@/components/page-empty-state"
 import { PageIntro } from "@/components/page-intro"
+import { usePrint } from "@/shared/hooks/use-print"
 import { cn } from "@/lib/utils"
 import { MetadataService } from "@/lib/metadata-service";
-import { WEAPON_DATA } from "@/lib/weapon-data";
+import { WEAPON_DATA, type WeaponMode } from "@/lib/weapon-data";
+import type { EnrichedArmyList, EnrichedTrooper } from "@/lib/unit-service"
 import {
   Dialog,
   DialogContent,
@@ -23,10 +24,7 @@ import {
 export default function ArmyListViewPage() {
   const { lists } = useArmy()
   const { settings } = useSettings()
-
-  const handlePrint = () => {
-    window.print()
-  }
+  const handlePrint = usePrint()
 
   if (!lists.listA && !lists.listB) {
     return (
@@ -105,25 +103,42 @@ export default function ArmyListViewPage() {
   )
 }
 
-function getUnitProfiles(member: any) {
-  return Array.isArray(member?.profiles) ? member.profiles : []
+type EnrichedProfile = EnrichedTrooper["profiles"][number]
+type WeaponRef = EnrichedProfile["weapons"][number]
+type WeaponChartRow = WeaponMode & { id: number }
+type RangeDistance = NonNullable<WeaponMode["distance"]>
+
+const RANGE_BAND_KEYS = ["short", "med", "long", "max"] as const satisfies readonly (keyof RangeDistance)[]
+
+function getUnitProfiles(member: EnrichedTrooper): EnrichedProfile[] {
+  return Array.isArray(member.profiles) ? member.profiles : []
 }
 
-function getProfileWeaponIds(profile: any) {
+function getProfileWeapons(profile: EnrichedProfile): WeaponRef[] {
+  return Array.isArray(profile.weapons) ? profile.weapons : []
+}
+
+function getResolvedSkillNames(profile: EnrichedProfile) {
+  return Array.isArray(profile.resolvedSkills) ? profile.resolvedSkills : []
+}
+
+function getResolvedEquipmentNames(profile: EnrichedProfile) {
+  return Array.isArray(profile.resolvedEquip) ? profile.resolvedEquip : []
+}
+
+function getProfileWeaponIds(profile: EnrichedProfile) {
   const resolvedWeaponIds = Array.isArray(profile?.resolvedWeapons)
-    ? profile.resolvedWeapons.map((weapon: any) => weapon?.id).filter((id: unknown): id is number => typeof id === "number")
+    ? profile.resolvedWeapons.map((weapon) => weapon?.id).filter((id: unknown): id is number => typeof id === "number")
     : []
 
   if (resolvedWeaponIds.length > 0) {
     return resolvedWeaponIds
   }
 
-  return Array.isArray(profile?.weapons)
-    ? profile.weapons.map((weapon: any) => weapon?.id).filter((id: unknown): id is number => typeof id === "number")
-    : []
+  return getProfileWeapons(profile).map((weapon) => weapon.id)
 }
 
-function ListView({ list, unit }: { list: any, unit: "metric" | "imperial" }) {
+function ListView({ list, unit }: { list: EnrichedArmyList, unit: MeasurementUnit }) {
   return (
     <div className="space-y-8">
       <div className="hidden print:block border-b-2 border-primary pb-4 mb-6">
@@ -138,14 +153,14 @@ function ListView({ list, unit }: { list: any, unit: "metric" | "imperial" }) {
         </div>
       </div>
 
-      {list.combatGroups.map((group: any, gIdx: number) => (
+      {list.combatGroups.map((group, gIdx) => (
         <div key={gIdx} className="space-y-4">
           <div className="flex items-center gap-2 border-b-2 border-muted pb-1">
             <h2 className="text-lg font-black uppercase tracking-tight">Combat Group {group.groupNumber}</h2>
             <Badge variant="secondary" className="font-bold">{group.members.length} Units</Badge>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 print:grid-cols-2">
-            {group.members.map((member: any, mIdx: number) => (
+            {group.members.map((member, mIdx) => (
               <UnitCard key={`${gIdx}-${mIdx}`} unit={member} />
             ))}
           </div>
@@ -163,19 +178,19 @@ function ListView({ list, unit }: { list: any, unit: "metric" | "imperial" }) {
   )
 }
 
-function WeaponChart({ list, unit }: { list: any, unit: "metric" | "imperial" }) {
+function WeaponChart({ list, unit }: { list: EnrichedArmyList, unit: MeasurementUnit }) {
   // Collect all unique weapons from the list
   const weaponIds = new Set<number>();
-  list.combatGroups.forEach((group: any) => {
-    group.members.forEach((member: any) => {
-      getUnitProfiles(member).forEach((profile: any) => {
-        getProfileWeaponIds(profile).forEach((id: number) => weaponIds.add(id));
+  list.combatGroups.forEach((group) => {
+    group.members.forEach((member) => {
+      getUnitProfiles(member).forEach((profile) => {
+        getProfileWeaponIds(profile).forEach((id) => weaponIds.add(id));
       });
     });
   });
 
   const sortedWeapons = Array.from(weaponIds)
-    .flatMap(id => {
+    .flatMap((id): WeaponChartRow[] => {
       const modes = WEAPON_DATA[id];
       if (!modes) return [];
       return modes.map(m => ({ id, ...m }));
@@ -258,7 +273,7 @@ function WeaponChart({ list, unit }: { list: any, unit: "metric" | "imperial" })
   );
 }
 
-function RangeBands({ distance, unit }: { distance: any, unit: "metric" | "imperial" }) {
+function RangeBands({ distance, unit }: { distance: WeaponMode["distance"], unit: MeasurementUnit }) {
   if (!distance) return <div className="h-full bg-muted/10" />;
 
   const isMetric = unit === "metric";
@@ -271,12 +286,12 @@ function RangeBands({ distance, unit }: { distance: any, unit: "metric" | "imper
     // Find the band that covers this range
     // Bands are usually: short (0-20), med (20-40), long (40-60/80), max (60/80-120)
     // We check which band's max is >= our cm
-    const bands = ['short', 'med', 'long', 'max'];
-    for (const band of bands) {
+    for (const band of RANGE_BAND_KEYS) {
       if (distance[band] && distance[band].max >= cm) {
         // Check if it's actually within the band (greater than previous band's max)
-        const prevBandIdx = bands.indexOf(band) - 1;
-        const prevMax = prevBandIdx >= 0 ? (distance[bands[prevBandIdx]]?.max || 0) : 0;
+        const prevBandIdx = RANGE_BAND_KEYS.indexOf(band) - 1;
+        const prevBand = prevBandIdx >= 0 ? RANGE_BAND_KEYS[prevBandIdx] : null;
+        const prevMax = prevBand ? (distance[prevBand]?.max || 0) : 0;
         if (cm > prevMax) {
           return distance[band].mod;
         }
@@ -312,7 +327,9 @@ function RangeBands({ distance, unit }: { distance: any, unit: "metric" | "imper
   );
 }
 
-function UnitCard({ unit }: { unit: any }) {
+function UnitCard({ unit }: { unit: EnrichedTrooper }) {
+  const profiles = getUnitProfiles(unit)
+
   return (
     <Card className="overflow-hidden flex flex-col h-full border-muted-foreground/20 shadow-sm hover:shadow-md transition-shadow break-inside-avoid card py-0">
       <CardHeader className="bg-muted/30 px-3 pt-2.5 !pb-2 border-b border-muted-foreground/10">
@@ -369,9 +386,14 @@ function UnitCard({ unit }: { unit: any }) {
         </div>
       </CardHeader>
       <CardContent className="p-0 flex-1 flex-col">
-        {unit.profiles ? unit.profiles.map((profile: any, pIdx: number) => (
+        {profiles.length > 0 ? profiles.map((profile, pIdx) => {
+          const resolvedSkills = getResolvedSkillNames(profile)
+          const resolvedEquip = getResolvedEquipmentNames(profile)
+          const weapons = getProfileWeapons(profile)
+
+          return (
           <div key={pIdx} className={cn("flex flex-col", pIdx > 0 && "border-t-2 border-dashed border-muted-foreground/20 mt-2 pt-2")}>
-            {unit.profiles.length > 1 && (
+            {profiles.length > 1 && (
               <div className="px-3 py-1 text-[9px] font-black uppercase bg-primary/5 text-primary/70 tracking-widest">
                 Profile: {profile.name || `Option ${pIdx + 1}`}
               </div>
@@ -403,13 +425,13 @@ function UnitCard({ unit }: { unit: any }) {
 
             <div className="p-2.5 space-y-2.5">
               {/* Skills */}
-              {profile.resolvedSkills && profile.resolvedSkills.length > 0 && (
+              {resolvedSkills.length > 0 && (
                 <div className="space-y-0.5">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Skills</div>
                   <div className="flex flex-wrap gap-x-1.5 gap-y-0.5">
-                    {profile.resolvedSkills.map((s: string, idx: number) => (
+                    {resolvedSkills.map((s, idx) => (
                       <span key={idx} className="text-[10px] font-bold text-foreground/90">
-                        {s}{idx < profile.resolvedSkills.length - 1 ? "," : ""}
+                        {s}{idx < resolvedSkills.length - 1 ? "," : ""}
                       </span>
                     ))}
                   </div>
@@ -417,13 +439,13 @@ function UnitCard({ unit }: { unit: any }) {
               )}
 
               {/* Equipment */}
-              {profile.resolvedEquip && profile.resolvedEquip.length > 0 && (
+              {resolvedEquip.length > 0 && (
                 <div className="space-y-0.5">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Equipment</div>
                   <div className="flex flex-wrap gap-x-1.5 gap-y-0.5">
-                    {profile.resolvedEquip.map((e: string, idx: number) => (
+                    {resolvedEquip.map((e, idx) => (
                       <span key={idx} className="text-[10px] font-bold text-foreground/80 italic">
-                        {e}{idx < profile.resolvedEquip.length - 1 ? "," : ""}
+                        {e}{idx < resolvedEquip.length - 1 ? "," : ""}
                       </span>
                     ))}
                   </div>
@@ -431,11 +453,11 @@ function UnitCard({ unit }: { unit: any }) {
               )}
 
               {/* Weapons */}
-              {profile.weapons && profile.weapons.length > 0 && (
+              {weapons.length > 0 && (
                 <div className="space-y-0.5">
                   <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Weapons</div>
                   <div className="grid gap-1.5">
-                    {profile.weapons.map((w: any, idx: number) => {
+                    {weapons.map((w, idx) => {
                       const modes = WEAPON_DATA[w.id];
                       if (!modes) return (
                         <div key={idx} className="text-[10px] font-black text-primary/90 uppercase tracking-tight">
@@ -477,7 +499,8 @@ function UnitCard({ unit }: { unit: any }) {
               )}
             </div>
           </div>
-        )) : (
+          )
+        }) : (
           <div className="p-4 text-center text-xs text-muted-foreground italic">
             No profile data available. Please re-import your list.
           </div>
@@ -487,8 +510,10 @@ function UnitCard({ unit }: { unit: any }) {
   )
 }
 
-function UnitDetailDialog({ unit, children }: { unit: any, children: React.ReactNode }) {
+function UnitDetailDialog({ unit, children }: { unit: EnrichedTrooper, children: React.ReactNode }) {
   const { settings } = useSettings()
+  const profiles = getUnitProfiles(unit)
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -534,8 +559,13 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
 
         <div className="flex-1 overflow-y-auto p-4 bg-muted/5">
           <div className="max-w-[1600px] mx-auto space-y-6">
-            {unit.profiles?.map((profile: any, pIdx: number) => (
-              <div key={pIdx} className="space-y-6 bg-background border rounded-lg p-5 shadow-sm">
+            {profiles.map((profile, pIdx) => {
+              const resolvedSkills = getResolvedSkillNames(profile)
+              const resolvedEquip = getResolvedEquipmentNames(profile)
+              const weapons = getProfileWeapons(profile)
+
+              return (
+                <div key={pIdx} className="space-y-6 bg-background border rounded-lg p-5 shadow-sm">
                 <div className="flex items-center justify-between border-b pb-3">
                   <div className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
                     <div className="size-2 bg-primary rounded-full" />
@@ -571,7 +601,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                         <div className="h-px flex-1 bg-muted" />
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
-                        {profile.resolvedSkills?.map((s: string, idx: number) => (
+                        {resolvedSkills.map((s, idx) => (
                           <Badge key={idx} variant="secondary" className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary/5 text-primary border-primary/10">
                             {s}
                           </Badge>
@@ -586,7 +616,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                         <div className="h-px flex-1 bg-muted" />
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
-                        {profile.resolvedEquip?.map((e: string, idx: number) => (
+                        {resolvedEquip.map((e, idx) => (
                           <Badge key={idx} variant="outline" className="text-[10px] font-bold italic px-2 py-0.5 rounded border-muted-foreground/20">
                             {e}
                           </Badge>
@@ -602,7 +632,7 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                       <div className="h-px flex-1 bg-muted" />
                     </h4>
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-                      {profile.weapons?.map((w: any, idx: number) => {
+                      {weapons.map((w, idx) => {
                         const modes = WEAPON_DATA[w.id];
                         if (!modes) return (
                           <div key={idx} className="p-3 border rounded bg-muted/10 font-black uppercase tracking-widest text-[10px]">
@@ -668,7 +698,8 @@ function UnitDetailDialog({ unit, children }: { unit: any, children: React.React
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </DialogContent>

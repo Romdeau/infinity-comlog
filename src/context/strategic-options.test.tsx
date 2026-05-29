@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { render, act, cleanup } from "@testing-library/react";
 import { GameProvider, useGame } from "./game-context";
 
@@ -11,7 +10,7 @@ const TestComponent = () => {
       <button onClick={() => createSession("Test Session")}>Create Session</button>
       {activeSession && (
         <div data-testid="strategic-options">
-          {JSON.stringify((activeSession.state as any).strategicOptions)}
+          {JSON.stringify(activeSession.state.strategicOptions)}
         </div>
       )}
     </div>

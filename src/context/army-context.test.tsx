@@ -81,6 +81,60 @@ describe('ArmyContext', () => {
     expect(storedList.importTimestamp).toBeGreaterThan(0);
   });
 
+  it('stores an assigned active list and persists the active slot id', () => {
+    const { result } = renderHook(() => useArmy(), { wrapper });
+
+    const mockEnrichedList = {
+      armyName: 'Assigned Test List',
+      sectoralId: 101,
+      sectoralName: 'PanOceania',
+      points: 300,
+      combatGroups: [],
+      rawCode: 'assigned-base64'
+    };
+
+    React.act(() => {
+      result.current.setLists({ listA: mockEnrichedList, listB: null });
+    });
+
+    const storedIds = Object.keys(result.current.storedLists);
+    expect(storedIds.length).toBe(1);
+    expect(result.current.lists.listA?.armyName).toBe('Assigned Test List');
+
+    const activePair = JSON.parse(window.localStorage.getItem('comlog_active_pair') || '{}');
+    expect(activePair.a).toBe(storedIds[0]);
+    expect(activePair.b).toBeNull();
+  });
+
+  it('rejects incompatible active pairs in context actions', () => {
+    const { result } = renderHook(() => useArmy(), { wrapper });
+
+    const listA = {
+      armyName: 'List A',
+      sectoralId: 101,
+      sectoralName: 'PanOceania',
+      points: 300,
+      combatGroups: [],
+    };
+    const listB = {
+      armyName: 'List B',
+      sectoralId: 102,
+      sectoralName: 'Nomads',
+      points: 300,
+      combatGroups: [],
+    };
+
+    let validation: ReturnType<typeof result.current.setLists> | undefined;
+    React.act(() => {
+      validation = result.current.setLists({ listA, listB });
+    });
+
+    expect(validation).toMatchObject({ valid: false, reason: 'sectoral' });
+    expect(result.current.lists.listA).toBeNull();
+    expect(result.current.lists.listB).toBeNull();
+    expect(window.localStorage.getItem('comlog_stored_lists')).toBeNull();
+  });
+
   it('should auto-migrate legacy lists on mount', async () => {
     const legacyList = {
       armyName: 'Legacy List',
@@ -107,6 +161,18 @@ describe('ArmyContext', () => {
     expect(storedList.schemaVersion).toBe(1);
     expect(storedList.rawBase64).toBe('');
     expect(storedList.validationHash).toBeTruthy();
+  });
+
+  it('clears active pair IDs that no longer exist in stored lists', async () => {
+    window.localStorage.setItem('comlog_active_pair', JSON.stringify({ a: 'missing-a', b: 'missing-b' }));
+
+    const { result } = renderHook(() => useArmy(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.lists.listA).toBeNull();
+      expect(result.current.lists.listB).toBeNull();
+      expect(JSON.parse(window.localStorage.getItem('comlog_active_pair') || '{}')).toEqual({ a: null, b: null });
+    });
   });
 
   it('should re-parse lists with outdated schema version on mount', async () => {

@@ -1,20 +1,17 @@
 # Infinity Comlog
 
-A specialized utility for players of Corvus Belli's **Infinity N5**. This application provides a streamlined game sequence tracker and a quick reference for common skills and AROs, directly linked to the official wiki.
+A specialized utility for players of Corvus Belli's **Infinity N5**. It manages active army lists, provides roster and analysis views, tracks game sessions from mission setup through final scoring, and keeps common references close at hand.
 
-**[🚀 Launch the Infinity Comlog](https://romdeau.github.io/infinity-comlog/)**
+**[Launch the Infinity Comlog](https://romdeau.github.io/infinity-comlog/)**
 
----
+## For AI Assistants & Contributors
 
-## 🤖 For AI Assistants & Contributors
+Before making changes, read **[PROJECT_GUIDELINES.md](./PROJECT_GUIDELINES.md)** for:
 
-**⚠️ Important**: Before making any changes to this project, please read **[PROJECT_GUIDELINES.md](./PROJECT_GUIDELINES.md)** for:
-- Git workflow (feature branches, conventional commits)
-- Required tooling (`bun` only - not npm/yarn)
-- Component architecture standards
-- Tech stack details
-
----
+- Git workflow expectations.
+- Required tooling: use `bun`, not npm or yarn.
+- Component architecture standards.
+- Tech stack details.
 
 ## Documentation
 
@@ -26,10 +23,12 @@ A specialized utility for players of Corvus Belli's **Infinity N5**. This applic
 
 ## Features
 
-- **Infinity Game Flow**: A step-by-step checklist for the N5 game sequence, from scenario selection to final scoring.
-- **Turn Reference**: Categorized quick-links for Movement, Combat, Technical actions, and AROs.
-- **Official Wiki Integration**: All skills link directly to the relevant entries in the Infinity the Wiki for fast rules verification.
-- **Premium UI**: Built with a sleek, modern aesthetic using React, Vite, and shadcn/ui.
+- **Army Lists**: Import Infinity Army codes, save lists locally, and maintain compatible active List A/List B pairings.
+- **List View**: Inspect combat groups, unit details, weapon profiles, and print-friendly rosters.
+- **List Analysis**: Compare order pools, specialists, SWC usage, and troop type investment.
+- **Game Sequence**: Create persistent game sessions, walk through mission setup and turns, and calculate OP/TP scoring.
+- **References**: Browse order reference content and hacking programs backed by project metadata.
+- **Settings**: Switch measurement units and refresh locally saved lists after data updates.
 
 ## Local Development
 
@@ -46,7 +45,12 @@ To run this project locally, you will need [Bun](https://bun.sh/) installed.
    ```
 
 3. **Open the app**:
-   Navigate to `http://localhost:5173/` in your browser.
+    Navigate to `http://localhost:5173/` in your browser.
+
+4. **Run the full verification gate**:
+   ```bash
+   bun run check
+   ```
 
 ---
 

@@ -1,18 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ArmyList, type Trooper, type CombatGroup } from './army-parser';
 import { MetadataService, type FactionFilters, type MeasurementUnit } from './metadata-service';
+import {
+  loadFactionData,
+  type FactionItemRef,
+  type FactionPayload,
+} from './faction-data-service';
 
-export interface UnitData {
-  units: any[];
-  filters?: FactionFilters;
-  version: string;
-}
-
-interface ProfileGroup {
-  id: number;
-  profiles: any[];
-  options: any[];
-}
+export type UnitData = FactionPayload & { filters?: FactionFilters };
 
 export interface EnrichedTrooper extends Trooper {
   name: string;
@@ -34,9 +28,9 @@ export interface EnrichedTrooper extends Trooper {
     bts: number;
     w: number;
     s: number;
-    skills: any[];
-    weapons: any[];
-    equip: any[];
+    skills: FactionItemRef[];
+    weapons: FactionItemRef[];
+    equip: FactionItemRef[];
     isStr: boolean;
     // Resolved names for UI
     resolvedSkills: string[];
@@ -86,6 +80,13 @@ export function migrateToStoredList(list: EnrichedArmyList | StoredArmyList): St
   }
 
   // It's a legacy list
+  const legacyNames = list as EnrichedArmyList & { name?: unknown; listName?: unknown };
+  const legacyName = typeof legacyNames.name === 'string'
+    ? legacyNames.name
+    : typeof legacyNames.listName === 'string'
+      ? legacyNames.listName
+      : `List ${list.rawCode}`;
+
   return {
     ...list,
     rawBase64: '', // Unknown for legacy lists
@@ -93,7 +94,7 @@ export function migrateToStoredList(list: EnrichedArmyList | StoredArmyList): St
     importTimestamp: Date.now(),
     validationHash: generateValidationHash(list),
     // Extract name if possible, or use defaults
-    name: (list as any).name || (list as any).listName || `List ${list.rawCode}`
+    name: legacyName
   };
 }
 
@@ -103,22 +104,13 @@ class UnitService {
   async getFactionData(factionId: number): Promise<UnitData | null> {
     if (this.cache[factionId]) return this.cache[factionId];
 
-    try {
-      // In a real app, this would be a fetch to a static asset or API
-      // Since this is a Vite project, we can try to fetch the local JSON
-      // We must prepend BASE_URL to handle the subpath deployment (e.g. /infinity-comlog/)
-      const rawBaseUrl = import.meta.env?.BASE_URL || '/';
-      const baseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl : `${rawBaseUrl}/`;
-      const response = await fetch(`${baseUrl}data/factions/${factionId}.json`);
-      if (!response.ok) throw new Error(`Faction ${factionId} not found`);
+    const data = await loadFactionData(factionId);
+    if (data) this.cache[factionId] = data;
+    return data;
+  }
 
-      const data = await response.json();
-      this.cache[factionId] = data;
-      return data;
-    } catch (e) {
-      console.error(`Failed to load unit data for faction ${factionId}:`, e);
-      return null;
-    }
+  clearCacheForTest() {
+    this.cache = {};
   }
 
   async enrichArmyList(list: ArmyList, unitPref: MeasurementUnit = "imperial"): Promise<EnrichedArmyList> {
@@ -159,7 +151,7 @@ class UnitService {
 
   private enrichTrooper(trooper: Trooper, factionData: UnitData, unitPref: MeasurementUnit): EnrichedTrooper {
     // Corvus Belli army codes use unit ID (stable global ID) to identify units.
-    const unit = factionData.units.find((u: any) => u.id === trooper.id);
+    const unit = factionData.units.find((u) => (u.id ?? u.idArmy) === trooper.id);
 
     if (!unit) {
       return {
@@ -186,18 +178,18 @@ class UnitService {
     }
 
     // Find profile group by ID, fallback to index-based if not found
-    let profileGroup = unit.profileGroups.find((pg: ProfileGroup) => pg.id === trooper.groupId);
+    let profileGroup = unit.profileGroups.find((pg) => pg.id === trooper.groupId);
     if (!profileGroup) {
       profileGroup = unit.profileGroups[trooper.groupId - 1] || unit.profileGroups[0];
     }
 
     // Find option by ID, fallback to index-based if not found
-    let option = profileGroup.options.find((o: any) => o.id === trooper.optionId);
+    let option = profileGroup.options.find((o) => o.id === trooper.optionId);
     if (!option) {
       option = profileGroup.options[trooper.optionId - 1] || profileGroup.options[0];
     }
 
-    const enrichedProfiles = profileGroup.profiles.map((p: any) => {
+    const enrichedProfiles = profileGroup.profiles.map((p) => {
       const skills = [...(p.skills || []), ...(option?.skills || [])];
       const weapons = [...(p.weapons || []), ...(option?.weapons || [])];
       const equip = [...(p.equip || []), ...(option?.equip || [])];
@@ -205,21 +197,21 @@ class UnitService {
       return {
         name: p.name,
         mov: this.formatMove(p.move, unitPref),
-        cc: p.cc,
-        bs: p.bs,
-        ph: p.ph,
-        wip: p.wip,
-        arm: p.arm,
-        bts: p.bts,
-        w: p.w,
-        s: p.s,
+        cc: p.cc || 0,
+        bs: p.bs || 0,
+        ph: p.ph || 0,
+        wip: p.wip || 0,
+        arm: p.arm || 0,
+        bts: p.bts || 0,
+        w: p.w || 0,
+        s: p.s || 0,
         isStr: !!p.str,
         skills,
         weapons,
         equip,
         resolvedSkills: MetadataService.resolveSkills(skills, factionData.filters, unitPref),
         resolvedEquip: MetadataService.resolveEquip(equip, factionData.filters, unitPref),
-        resolvedWeapons: weapons.map((w: any) => ({
+        resolvedWeapons: weapons.map((w) => ({
           id: w.id,
           name: MetadataService.getWeaponName(w.id),
           traits: (w.extra || []).map((ext: number) => MetadataService.getWeaponName(ext) || ext.toString())
@@ -227,20 +219,20 @@ class UnitService {
       };
     });
 
-    const isLieutenant = enrichedProfiles.some((p: any) => 
-      p.skills.some((s: any) => s.id === 119) || // Lieutenant skill ID
+    const isLieutenant = enrichedProfiles.some((p) =>
+      p.skills.some((s) => s.id === 119) || // Lieutenant skill ID
       p.resolvedSkills.some((s: string) => s.toLowerCase().includes('lieutenant'))
     );
 
     const result: EnrichedTrooper = {
       ...trooper,
       name: option?.name || unit.name,
-      isc: unit.isc,
+      isc: unit.isc || '',
       logo: profileGroup.profiles[0]?.logo || unit.logo || option?.logo,
       type: this.formatType(profileGroup.profiles[0]?.type),
       training: option?.orders?.[0]?.type || 'REGULAR',
       points: option?.points || 0,
-      swc: option?.swc || '0',
+      swc: option?.swc?.toString() || '0',
       isLieutenant,
       profiles: enrichedProfiles
     };
@@ -248,7 +240,7 @@ class UnitService {
     return result;
   }
 
-  private formatMove(move: number[], unit: MeasurementUnit): string {
+  private formatMove(move: number[] | undefined, unit: MeasurementUnit): string {
     if (!move || move.length < 2) return "0-0";
     
     if (unit === "metric") {
@@ -262,7 +254,7 @@ class UnitService {
     return `${m1}-${m2}`;
   }
 
-  private formatType(typeId: number): string {
+  private formatType(typeId: number | undefined): string {
     const types: Record<number, string> = {
       1: 'LI',
       2: 'MI',
@@ -272,6 +264,7 @@ class UnitService {
       6: 'SK',
       7: 'WB'
     };
+    if (typeId === undefined) return 'Type 0';
     return types[typeId] || `Type ${typeId}`;
   }
 }

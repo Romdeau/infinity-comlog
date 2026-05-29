@@ -1,7 +1,10 @@
 import * as React from "react"
 import { useLocalStorage } from "@/hooks/use-local-storage"
+import { STORAGE_KEYS } from "@/shared/storage/storage-keys"
+import { validateSettingsStorage } from "@/shared/storage/storage-schemas"
+import type { MeasurementUnit } from "@/shared/types/metadata"
 
-export type MeasurementUnit = "metric" | "imperial"
+export type { MeasurementUnit }
 
 export interface AppSettings {
   measurementUnit: MeasurementUnit
@@ -19,14 +22,18 @@ interface SettingsContextType {
 const SettingsContext = React.createContext<SettingsContextType | undefined>(undefined)
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useLocalStorage<AppSettings>("comlog_settings", DEFAULT_SETTINGS)
+  const [settings, setSettings] = useLocalStorage<AppSettings>(STORAGE_KEYS.settings, DEFAULT_SETTINGS, {
+    validate: validateSettingsStorage,
+  })
 
-  const updateSettings = (newSettings: Partial<AppSettings>) => {
+  const updateSettings = React.useCallback((newSettings: Partial<AppSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }))
-  }
+  }, [setSettings])
+
+  const value = React.useMemo(() => ({ settings, updateSettings }), [settings, updateSettings])
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSettings }}>
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   )

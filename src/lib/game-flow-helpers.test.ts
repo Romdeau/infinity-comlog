@@ -1,6 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
+import type { GameSession, PlayerTurnState } from "@/context/game-context-core";
 import { isTacticalComplete, calculateTP, isInitiativeComplete, isSetupComplete, isPlayerComplete, getPlayerByTurnOrder } from "./game-flow-helpers";
+
+const completePlayerTurn = (overrides: Partial<PlayerTurnState> = {}): PlayerTurnState => ({
+  doneOverride: false,
+  tactical: { doneOverride: false, tokens: true, retreat: true, lol: true, count: true },
+  impetuous: true,
+  orders: { done: true },
+  states: true,
+  end: true,
+  ...overrides,
+});
 
 describe("Game Flow Helpers", () => {
   describe("getPlayerByTurnOrder", () => {
@@ -48,27 +58,11 @@ describe("Game Flow Helpers", () => {
 
   describe("isPlayerComplete", () => {
     it("returns true when all player turn substeps are done", () => {
-      const p = {
-        doneOverride: false,
-        tactical: { tokens: true, retreat: true, lol: true, count: true },
-        impetuous: true,
-        orders: { done: true },
-        states: true,
-        end: true,
-      };
-      expect(isPlayerComplete(p as any)).toBe(true);
+      expect(isPlayerComplete(completePlayerTurn())).toBe(true);
     });
 
     it("returns false if orders are not done", () => {
-      const p = {
-        doneOverride: false,
-        tactical: { tokens: true, retreat: true, lol: true, count: true },
-        impetuous: true,
-        orders: { done: false },
-        states: true,
-        end: true,
-      };
-      expect(isPlayerComplete(p as any)).toBe(false);
+      expect(isPlayerComplete(completePlayerTurn({ orders: { done: false } }))).toBe(false);
     });
   });
   
@@ -123,25 +117,54 @@ describe("Game Flow Helpers", () => {
 
   describe("isSetupComplete", () => {
     it("returns true when everything is setup", () => {
-        const state = {
+        const state: GameSession["state"] = {
             scenario: "mission-1",
+            classifiedsCount: 1,
             scenarioPicked: true,
             listPicked: true,
             classifiedsDrawn: true,
+            initiationDoneOverride: false,
+            setupDoneOverride: false,
             initiationSubSteps: {
                 rollOff: true,
                 deployment: true,
                 strategicUse: true,
-                commandTokens: true,
             },
             initiative: {
                 winner: 'player' as const,
                 choice: 'initiative' as const,
                 firstTurn: 'player' as const,
                 firstDeployment: 'opponent' as const,
-            }
+            },
+            strategicOptions: {
+                p1Reserve: false,
+                p1Speedball: false,
+                p2OrderReduction: false,
+                p2CtLimit: false,
+                p2SuppressiveFire: false,
+                p2Speedball: false,
+            },
+            deploymentDetails: {
+                hidden: false,
+                infiltration: false,
+                forward: false,
+                heldBack: 1,
+                booty: false,
+                deployedUnits: {},
+            },
+            turns: {
+                turn1: { doneOverride: false, p1: completePlayerTurn(), p2: completePlayerTurn(), objectives: { player: {}, opponent: {} } },
+                turn2: { doneOverride: false, p1: completePlayerTurn(), p2: completePlayerTurn(), objectives: { player: {}, opponent: {} } },
+                turn3: { doneOverride: false, p1: completePlayerTurn(), p2: completePlayerTurn(), objectives: { player: {}, opponent: {} } },
+            },
+            scoring: {
+                doneOverride: false,
+                player: { op: 0, vp: 0, classifieds: 0, objectives: {} },
+                opponent: { op: 0, vp: 0, classifieds: 0, objectives: {} },
+            },
+            selectedList: "listA",
         };
-        expect(isSetupComplete(state as any)).toBe(true);
+        expect(isSetupComplete(state)).toBe(true);
     });
   });
 });

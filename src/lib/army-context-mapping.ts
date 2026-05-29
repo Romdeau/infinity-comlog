@@ -1,5 +1,5 @@
-import { SKILL_MAP, EQUIP_MAP } from "./constants";
 import { type EnrichedTrooper } from "./unit-service";
+import { MetadataService } from "./metadata-service";
 
 export type GamePhase = "setup" | "tactical" | "impetuous" | "orders" | "states" | "end";
 
@@ -91,14 +91,14 @@ export function getRelevantSkillsForPhase(
     unit.profiles?.forEach((profile) => {
       profile.skills?.forEach((skill: { id: number }) => {
         if (relevantSkillIds.includes(skill.id)) {
-          const name = SKILL_MAP[skill.id];
+          const name = MetadataService.getSkillName(skill.id);
           if (name) skills.add(name);
         }
       });
       
       profile.equip?.forEach((equip: { id: number }) => {
         if (relevantEquipIds.includes(equip.id)) {
-          const name = EQUIP_MAP[equip.id];
+          const name = MetadataService.getEquipmentName(equip.id);
           if (name) skills.add(name);
         }
       });

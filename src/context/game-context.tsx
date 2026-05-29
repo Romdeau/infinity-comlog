@@ -1,6 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { useLocalStorage } from "@/hooks/use-local-storage"
+import { STORAGE_KEYS } from "@/shared/storage/storage-keys"
+import { validateActiveSessionIdStorage, validateSessionsStorage } from "@/shared/storage/storage-schemas"
 import { GameContext, type GameContextType, type GameSession, type PlayerTurnState, useGame } from "./game-context-core"
 
 export { useGame }
@@ -150,8 +152,12 @@ const migrateSession = (session: GameSession): GameSession => ({
 })
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-  const [sessions, setSessions] = useLocalStorage<Record<string, GameSession>>("comlog_sessions", {})
-  const [activeSessionId, setActiveSessionId] = useLocalStorage<string | null>("comlog_active_session_id", null)
+  const [sessions, setSessions] = useLocalStorage<Record<string, GameSession>>(STORAGE_KEYS.sessions, {}, {
+    validate: validateSessionsStorage,
+  })
+  const [activeSessionId, setActiveSessionId] = useLocalStorage<string | null>(STORAGE_KEYS.activeSessionId, null, {
+    validate: validateActiveSessionIdStorage,
+  })
   const hydratedSessions = React.useMemo(
     () => Object.fromEntries(Object.entries(sessions).map(([id, session]) => [id, migrateSession(session)])),
     [sessions]
@@ -168,9 +174,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, [hydratedSessions, sessions, setSessions])
 
-  const activeSession = activeSessionId ? hydratedSessions[activeSessionId] || null : null
+  React.useEffect(() => {
+    if (activeSessionId && !hydratedSessions[activeSessionId]) {
+      setActiveSessionId(null)
+    }
+  }, [activeSessionId, hydratedSessions, setActiveSessionId])
 
-  const createSession = (name: string) => {
+  const activeSession = React.useMemo(
+    () => activeSessionId ? hydratedSessions[activeSessionId] || null : null,
+    [activeSessionId, hydratedSessions]
+  )
+
+  const createSession = React.useCallback((name: string) => {
     const id = crypto.randomUUID()
     const newSession: GameSession = {
       id,
@@ -182,9 +197,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setSessions(prev => ({ ...prev, [id]: newSession }))
     setActiveSessionId(id)
     return id
-  }
+  }, [setActiveSessionId, setSessions])
 
-  const renameSession = (id: string, name: string) => {
+  const renameSession = React.useCallback((id: string, name: string) => {
     setSessions(prev => {
       const session = prev[id]
       if (!session) return prev
@@ -193,9 +208,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         [id]: { ...session, name, updatedAt: Date.now() }
       }
     })
-  }
+  }, [setSessions])
 
-  const updateActiveSession = (updater: (prev: GameSession['state']) => GameSession['state']) => {
+  const updateActiveSession = React.useCallback((updater: (prev: GameSession['state']) => GameSession['state']) => {
     if (!activeSessionId) return
     setSessions(prev => {
       const session = prev[activeSessionId]
@@ -210,32 +225,34 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         }
       }
     })
-  }
+  }, [activeSessionId, setSessions])
 
-  const switchSession = (id: string | null) => {
+  const switchSession = React.useCallback((id: string | null) => {
     setActiveSessionId(id)
-  }
+  }, [setActiveSessionId])
 
-  const deleteSession = (id: string) => {
+  const deleteSession = React.useCallback((id: string) => {
     setSessions(prev => {
       const next = { ...prev }
       delete next[id]
       return next
     })
     if (activeSessionId === id) setActiveSessionId(null)
-  }
+  }, [activeSessionId, setActiveSessionId, setSessions])
+
+  const value = React.useMemo<GameContextType>(() => ({
+    sessions: hydratedSessions,
+    activeSessionId,
+    activeSession,
+    createSession,
+    renameSession,
+    updateActiveSession,
+    switchSession,
+    deleteSession,
+  }), [activeSession, activeSessionId, createSession, deleteSession, hydratedSessions, renameSession, switchSession, updateActiveSession])
 
   return (
-        <GameContext.Provider value={{
-      sessions: hydratedSessions,
-      activeSessionId,
-      activeSession,
-      createSession,
-      renameSession,
-      updateActiveSession,
-      switchSession,
-      deleteSession
-    }}>
+    <GameContext.Provider value={value}>
       {children}
     </GameContext.Provider>
   )

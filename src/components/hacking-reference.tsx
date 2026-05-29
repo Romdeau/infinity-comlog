@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import {
   Dialog,
@@ -16,76 +15,10 @@ import {
 } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { ExternalLinkIcon, RadioIcon, ZapIcon } from "lucide-react"
-import metadata from "@/data/metadata.json"
-
-interface HackingProgram {
-  name: string
-  deviceIds: number[]
-  target: string
-  burst: string
-  damage: string
-  attack: string
-  opponent: string
-  special: string
-  skillType: string
-  wiki?: string
-}
-
-// Map metadata hacking programs to the UI format
-const HACKING_PROGRAMS: HackingProgram[] = ((metadata as any).hack || []).map((prog: any) => {
-  return {
-    name: (prog.name || "Unknown").replace(/\u00a0/g, ' '), // Clean up non-breaking spaces
-    deviceIds: prog.devices || [],
-    target: Array.isArray(prog.target) && prog.target.length > 0 ? prog.target.join(", ") : "Any",
-    burst: prog.burst || "-",
-    damage: prog.damage || "-",
-    attack: prog.attack || "-",
-    opponent: prog.opponent || "-",
-    special: prog.special || "-",
-    skillType: Array.isArray(prog.skillType) ? prog.skillType.join(" / ").toUpperCase() : "-",
-    wiki: `https://infinitythewiki.com/${(prog.name || "").replace(/\u00a0/g, '_').replace(/ /g, '_')}`
-  }
-})
-
-// Get device names from metadata
-const DEVICES = ((metadata as any).equips || []).reduce((acc: Record<number, string>, equip: any) => {
-  if (equip.name.toLowerCase().includes("hacking device")) {
-    acc[equip.id] = equip.name
-  }
-  return acc
-}, {} as Record<number, string>)
+import { getHackingProgramsByDevice, hackingDeviceOrder } from "@/lib/metadata-selectors"
 
 export function HackingReference() {
-  // Group programs by device
-  // Note: A program can belong to multiple devices. 
-  // Programs with no devices are grouped under "Upgrade / Other"
-  const groupedByDevice = React.useMemo(() => {
-    const groups: Record<string, HackingProgram[]> = {}
-
-    HACKING_PROGRAMS.forEach(prog => {
-      if (prog.deviceIds.length === 0) {
-        const key = "Upgrade / Other"
-        if (!groups[key]) groups[key] = []
-        groups[key].push(prog)
-      } else {
-        prog.deviceIds.forEach(id => {
-          const deviceName = DEVICES[id] || `Device ${id}`
-          if (!groups[deviceName]) groups[deviceName] = []
-          groups[deviceName].push(prog)
-        })
-      }
-    })
-
-    return groups
-  }, [])
-
-  const deviceOrder = [
-    "EVO Hacking Device",
-    "Hacking Device Plus",
-    "Hacking Device",
-    "Killer Hacking Device",
-    "Upgrade / Other"
-  ]
+  const groupedByDevice = React.useMemo(() => getHackingProgramsByDevice(), [])
 
   return (
     <Dialog>
@@ -110,8 +43,8 @@ export function HackingReference() {
             </DialogDescription>
           </DialogHeader>
 
-          <Accordion type="multiple" defaultValue={deviceOrder} className="space-y-4">
-            {deviceOrder.map(deviceName => groupedByDevice[deviceName] && (
+          <Accordion type="multiple" defaultValue={hackingDeviceOrder} className="space-y-4">
+            {hackingDeviceOrder.map(deviceName => groupedByDevice[deviceName] && (
               <AccordionItem key={deviceName} value={deviceName} className="border rounded-lg overflow-hidden border-border bg-card/50">
                 <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">

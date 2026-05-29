@@ -7,6 +7,14 @@ This project uses official Infinity Army unit data to provide contextual assista
 - `src/data/metadata.json`: Global metadata used by the app. The faction sync script reads this file to determine which faction IDs to fetch.
 - `public/data/factions/`: One JSON file per faction, named `{factionId}.json`.
 
+## Runtime Loading
+
+- App code loads faction JSON through `src/lib/faction-data-service.ts`.
+- `getFactionDataUrl()` always prefixes URLs with `import.meta.env.BASE_URL`, so faction files work under the GitHub Pages `/infinity-comlog/` subpath.
+- `unitService` is the canonical app enrichment path for parser output.
+- The old `ArmyListService` compatibility module has been removed to keep one army enrichment path.
+- Tests can use `setFactionDataForTest()` and `clearFactionDataCacheForTest()` for deterministic faction payloads.
+
 ## What Is Automated Today
 
 - `public/data/factions/*.json` can be regenerated from the Corvus Belli API.
