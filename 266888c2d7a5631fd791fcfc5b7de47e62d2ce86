@@ -1,0 +1,14 @@
+Track E — App Shell command-console redesign.
+
+Files:
+- dashboard-layout.tsx: font-display title (tracking var), live status strip
+  (StatusPip for List A/B + activeSession), .grid-bg on main. Added useArmy
+  (lists.listA/listB) + useGame (activeSession) imports.
+- app-sidebar.tsx: font-display logotype 'INFINITY COMLOG'; added
+  className='command-rail' to <Sidebar>.
+- index.css: per-theme [data-active=true] treatments scoped under
+  .command-rail (hardscifi glow bar via ::before; orbital inset lamp;
+  rebellion stencil outline; drifter left color block).
+- army-import-notifications.tsx: text-white/bg-white/20 -> destructive-foreground tokens.
+
+Verification: bun run check green (lint clean, 113 tests, build ok).
