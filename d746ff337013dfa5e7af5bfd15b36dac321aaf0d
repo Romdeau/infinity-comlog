@@ -1,0 +1,9 @@
+Task: Track D — Theme Switcher
+
+Summary: Replaced single ThemeToggle with ModeToggle (luminance) + ThemePicker (aesthetic). Wired into header and sidebar; removed theme-toggle.tsx. bun run check green (113 tests). Settings full appearance panel deferred to Track G (§9.6).
+
+Created: src/components/mode-toggle.tsx, src/components/theme-picker.tsx (+ test)
+Modified: src/components/dashboard-layout.tsx, src/components/app-sidebar.tsx
+Removed: src/components/theme-toggle.tsx
+
+Why: theme identity and color mode are orthogonal axes (design-plan §7).
