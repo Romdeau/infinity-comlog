@@ -25,9 +25,9 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 - [x] C6: `StatLine` (9-stat grid) + test
 
 ## Phase D — Theme Switcher
-- [ ] D1: `ModeToggle` (renamed ThemeToggle, sets mode only)
-- [ ] D2: `ThemePicker` (lists THEMES, swatches, applies themeId) + test
-- [ ] D3: Wire into header (dashboard-layout) + mobile + remove old ThemeToggle
+- [x] D1: `ModeToggle` (renamed ThemeToggle, sets mode only)
+- [x] D2: `ThemePicker` (lists THEMES, swatches, applies themeId) + test
+- [x] D3: Wire into header (dashboard-layout) + mobile + remove old ThemeToggle
 
 ## Phase E — App Shell
 - [ ] E1: `dashboard-layout.tsx` status bar + grid-bg + font-display title

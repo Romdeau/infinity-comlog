@@ -20,7 +20,8 @@ import { useArmy } from "@/context/army-context"
 import { cn } from "@/lib/utils"
 import { defaultRoutePath } from "@/app/routes"
 import { navGroups, settingsNavItem } from "@/app/navigation"
-import { ThemeToggle } from "./theme-toggle"
+import { ModeToggle } from "./mode-toggle"
+import { ThemePicker } from "./theme-picker"
 
 export function AppSidebar() {
   const location = useLocation()
@@ -96,9 +97,10 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem className="flex items-center justify-center gap-2 px-2 py-1 group-data-[collapsible=icon]:px-0">
-            <ThemeToggle />
+            <ThemePicker />
+            <ModeToggle />
             <span className="text-xs text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">
-              Theme
+              Appearance
             </span>
           </SidebarMenuItem>
           <SidebarMenuItem className="px-2 py-1 group-data-[collapsible=icon]:hidden">

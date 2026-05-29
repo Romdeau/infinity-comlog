@@ -23,7 +23,8 @@ import { getRouteMeta } from "@/app/routes"
 import { settingsNavItem } from "@/app/navigation"
 import { AppSidebar } from "./app-sidebar"
 import { ArmyImportNotifications } from "./army-import-notifications"
-import { ThemeToggle } from "./theme-toggle"
+import { ModeToggle } from "./mode-toggle"
+import { ThemePicker } from "./theme-picker"
 
 export function DashboardLayout() {
   const location = useLocation()
@@ -52,9 +53,16 @@ export function DashboardLayout() {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
-            <div className="ml-auto flex items-center gap-2 md:hidden">
-              <ThemeToggle />
-              <Button variant="outline" size="icon" onClick={() => navigate(settingsNavItem.url)} aria-label="Open settings">
+            <div className="ml-auto flex items-center gap-2">
+              <ThemePicker />
+              <ModeToggle />
+              <Button
+                variant="outline"
+                size="icon"
+                className="md:hidden"
+                onClick={() => navigate(settingsNavItem.url)}
+                aria-label="Open settings"
+              >
                 <Settings2Icon className="size-4" />
               </Button>
             </div>
