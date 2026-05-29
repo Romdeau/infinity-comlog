@@ -1,0 +1,15 @@
+Task: Track C — Shared Primitives
+
+Summary: Added six theme-aware presentational primitives in src/components/system/ (StatusPip, Readout, Panel, PageHeader, RangeBand, StatLine) with 17 tests. Migrated all six pages from PageIntro to PageHeader and removed page-intro.tsx. bun run check green (111 tests).
+
+Created:
+- src/components/system/{status-pip,readout,panel,page-header,range-band,stat-line}.tsx (+ .test.tsx each)
+- src/components/system/index.ts (barrel)
+
+Modified:
+- all six pages (PageHeader import/usage)
+
+Removed:
+- src/components/page-intro.tsx
+
+Why: centralize layout/status/stat primitives so themes restyle centrally and §1.5 hardcodes can be eliminated via tokens.
