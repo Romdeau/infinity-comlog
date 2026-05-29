@@ -1,0 +1,18 @@
+Task: Track A — Appearance Foundation
+
+Summary: Introduced the orthogonal theme+mode appearance system replacing the legacy binary ThemeProvider. Themes diverge in color (and slots for type/radius/motion). Migration preserves returning users' mode preference. App verified working on default hardscifi theme; bun run check (lint+test+build) green, 94 tests pass.
+
+Created:
+- src/components/appearance-provider.tsx (+ .test.tsx, 5 tests)
+- src/app/themes.ts
+
+Modified:
+- src/index.css (multi-theme token architecture, new semantic tokens, @theme inline extension)
+- src/app/app-providers.tsx (AppearanceProvider)
+- src/components/theme-toggle.tsx (useAppearance.setMode)
+- index.html (data-theme=hardscifi class=dark, FOUC guard)
+
+Removed:
+- src/components/theme-provider.tsx
+
+Why: Foundation for shipping 4 complete aesthetic themes; the old provider conflated color mode and theme identity.
