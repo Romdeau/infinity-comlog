@@ -72,8 +72,9 @@ describe('ListAnalysisPage', () => {
     render(<ListAnalysisPage />);
     // Check for the header
     expect(screen.getByText(/Test Army Analysis/i)).toBeTruthy();
-    // Check for "Order Pool" card title
+    // Check for the summary heading
     expect(screen.getAllByRole('heading', { name: /Analyze List Composition/i }).length).toBeGreaterThan(0);
-    expect(screen.getByText('Order Pool', { selector: '[data-slot="card-title"]' })).toBeTruthy();
+    // Order Pool metric is shown as a Readout label
+    expect(screen.getByText('Order Pool')).toBeTruthy();
   });
 });

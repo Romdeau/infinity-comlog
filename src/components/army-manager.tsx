@@ -8,7 +8,7 @@ import { type EnrichedArmyList, type StoredArmyList, unitService } from "@/lib/u
 import { validateActivePairAssignment } from "@/features/army/domain/pair-validation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Panel } from "@/components/system"
 import { useClipboard } from "@/shared/hooks/use-clipboard"
 import { cn } from "@/lib/utils"
 import {
@@ -98,19 +98,17 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
   return (
     <div className={cn("grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)]", containerClassName)}>
       <div className="space-y-6">
-        <Card>
-          <CardHeader className="gap-3">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                <ArrowRightLeft className="size-4" />
-              </div>
-              <div>
-                <CardTitle>Active Pair</CardTitle>
-                <CardDescription>Keep two compatible lists ready for viewing, analysis, and live play.</CardDescription>
-              </div>
+        <Panel>
+          <div className="mb-4 flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
+              <ArrowRightLeft className="size-4" />
             </div>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="font-display text-base font-semibold tracking-tight">Active Pair</div>
+              <p className="text-sm text-muted-foreground">Keep two compatible lists ready for viewing, analysis, and live play.</p>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
             <ActiveListPanel
               slotLabel="List A"
               icon={ShieldCheck}
@@ -133,22 +131,20 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
                 setValidationError(null)
               }}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
 
-        <Card>
-          <CardHeader className="gap-3">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                <BookCopy className="size-4" />
-              </div>
-              <div>
-                <CardTitle>Import List</CardTitle>
-                <CardDescription>Paste an Infinity Army code and choose which active slot it should replace.</CardDescription>
-              </div>
+        <Panel>
+          <div className="mb-4 flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
+              <BookCopy className="size-4" />
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            <div>
+              <div className="font-display text-base font-semibold tracking-tight">Import List</div>
+              <p className="text-sm text-muted-foreground">Paste an Infinity Army code and choose which active slot it should replace.</p>
+            </div>
+          </div>
+          <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">Import into</span>
               <TargetButton
@@ -188,49 +184,45 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
             )}
 
             <ArmyListImporter onListParsed={handleListParsed} />
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
       </div>
 
-      <Card className="h-fit">
-        <CardHeader className="gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                <LibraryIcon className="size-4" />
-              </div>
-              <div>
-                <CardTitle>Saved Library</CardTitle>
-                <CardDescription>Reuse imported lists without pasting the code again.</CardDescription>
-              </div>
+      <Panel className="h-fit">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
+              <LibraryIcon className="size-4" />
             </div>
-            <Badge variant="secondary">{storedEntries.length}</Badge>
+            <div>
+              <div className="font-display text-base font-semibold tracking-tight">Saved Library</div>
+              <p className="text-sm text-muted-foreground">Reuse imported lists without pasting the code again.</p>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {storedEntries.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border/70 bg-muted/20 px-4 py-10 text-center text-sm text-muted-foreground">
-              <LibraryIcon className="mx-auto mb-3 size-8 opacity-30" />
-              <p className="font-medium text-foreground">No saved lists yet</p>
-              <p className="mt-1">Import a list and it will be available here for quick reassignment.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {storedEntries.map(([id, list]) => (
-                <LibraryListItem
-                  key={id}
-                  list={list}
-                  isActiveA={isSameList(listA, list)}
-                  isActiveB={isSameList(listB, list)}
-                  onAssignA={() => applyListToSlot("listA", list)}
-                  onAssignB={() => applyListToSlot("listB", list)}
-                  onDelete={() => deleteList(id)}
-                />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          <Badge variant="secondary">{storedEntries.length}</Badge>
+        </div>
+        {storedEntries.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border/70 bg-muted/20 px-4 py-10 text-center text-sm text-muted-foreground">
+            <LibraryIcon className="mx-auto mb-3 size-8 opacity-30" />
+            <p className="font-medium text-foreground">No saved lists yet</p>
+            <p className="mt-1">Import a list and it will be available here for quick reassignment.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {storedEntries.map(([id, list]) => (
+              <LibraryListItem
+                key={id}
+                list={list}
+                isActiveA={isSameList(listA, list)}
+                isActiveB={isSameList(listB, list)}
+                onAssignA={() => applyListToSlot("listA", list)}
+                onAssignB={() => applyListToSlot("listB", list)}
+                onDelete={() => deleteList(id)}
+              />
+            ))}
+          </div>
+        )}
+      </Panel>
     </div>
   )
 }
@@ -413,20 +405,20 @@ function ArmyListDisplay({ list, onClear }: { list: EnrichedArmyList; onClear: (
 
       <div className="grid grid-cols-2 gap-3 rounded-xl border border-border/60 bg-muted/20 p-3 text-sm">
         <div>
-          <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Faction</div>
+          <div className="text-ui-label">Faction</div>
           <div className="mt-1 font-medium text-foreground">{list.sectoralName}</div>
           {list.parentName && list.parentName !== list.sectoralName && (
             <div className="text-xs text-muted-foreground">{list.parentName}</div>
           )}
         </div>
         <div className="text-right">
-          <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Points</div>
+          <div className="text-ui-label">Points</div>
           <div className="mt-1 font-semibold text-foreground">{list.points}</div>
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Combat Groups</div>
+        <div className="text-ui-label">Combat Groups</div>
         {list.combatGroups.map((group) => (
           <div key={group.groupNumber} className="rounded-xl border border-border/60 bg-muted/15 p-3">
             <div className="mb-2 flex items-center justify-between gap-2">
