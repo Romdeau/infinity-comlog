@@ -13,8 +13,8 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 - [ ] A4: Wire `AppProviders` to `AppearanceProvider`; set `data-theme` in `index.html`; remove `theme-provider.tsx`
 
 ## Phase B — Typography & Textures
-- [ ] B1: Add fonts via `bun add @fontsource-variable/*`; per-theme `--font-sans/display/mono`
-- [ ] B2: `.panel-frame`, `.grid-bg`, `.hud-readout`, `.scanline` utilities + motion tokens + reduced-motion
+- [x] B1: Add fonts via `bun add @fontsource-variable/*`; per-theme `--font-sans/display/mono`
+- [x] B2: `.panel-frame`, `.grid-bg`, `.hud-readout`, `.scanline` utilities + motion tokens + reduced-motion
 
 ## Phase C — Shared Primitives (`src/components/system/`)
 - [ ] C1: `StatusPip` (status→token+icon+label) + test

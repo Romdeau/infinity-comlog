@@ -1,7 +1,33 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
+/* Body / shared */
 @import "@fontsource-variable/figtree";
+@import "@fontsource-variable/inter";
+@import "@fontsource/b612/400.css";
+@import "@fontsource/b612/700.css";
+@import "@fontsource/barlow/400.css";
+@import "@fontsource/barlow/500.css";
+@import "@fontsource/barlow/600.css";
+
+/* Display */
+@import "@fontsource/chakra-petch/500.css";
+@import "@fontsource/chakra-petch/600.css";
+@import "@fontsource/chakra-petch/700.css";
+@import "@fontsource-variable/oswald";
+@import "@fontsource/saira-condensed/500.css";
+@import "@fontsource/saira-condensed/600.css";
+@import "@fontsource/saira-condensed/700.css";
+@import "@fontsource/bebas-neue/400.css";
+
+/* Mono */
+@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource-variable/spline-sans-mono";
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -68,6 +94,16 @@
     --frame-clip: 0.6rem;
     --text-display-tracking: 0.06em;
     --text-label-tracking: 0.14em;
+
+    --font-sans: "Figtree Variable", sans-serif;
+    --font-display: "Chakra Petch", "Figtree Variable", sans-serif;
+    --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+    --motion-fast: 110ms;
+    --motion-base: 200ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --panel-border-style: solid;
+    --panel-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 14%, transparent);
+    --grid-cell: 26px;
 
     --sidebar: oklch(0.97 0.006 230);
     --sidebar-foreground: oklch(0.24 0.03 245);
@@ -192,6 +228,16 @@
     --text-display-tracking: 0.04em;
     --text-label-tracking: 0.12em;
 
+    --font-sans: "B612", "Figtree Variable", sans-serif;
+    --font-display: "Oswald Variable", "B612", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --motion-fast: 140ms;
+    --motion-base: 260ms;
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --panel-border-style: solid;
+    --panel-shadow: inset 0 1px 0 oklch(1 0 0 / 14%), 0 1px 2px oklch(0 0 0 / 14%);
+    --grid-cell: 22px;
+
     --sidebar: oklch(0.93 0.008 250);
     --sidebar-foreground: oklch(0.28 0.015 250);
     --sidebar-primary: oklch(0.48 0.16 255);
@@ -314,6 +360,16 @@
     --frame-clip: 0rem;
     --text-display-tracking: 0.08em;
     --text-label-tracking: 0.18em;
+
+    --font-sans: "Barlow", "Figtree Variable", sans-serif;
+    --font-display: "Saira Condensed", "Barlow", sans-serif;
+    --font-mono: "Spline Sans Mono Variable", ui-monospace, monospace;
+    --motion-fast: 90ms;
+    --motion-base: 180ms;
+    --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+    --panel-border-style: solid;
+    --panel-shadow: 0 1px 0 oklch(0 0 0 / 18%);
+    --grid-cell: 0px;
 
     --sidebar: oklch(0.9 0.012 72);
     --sidebar-foreground: oklch(0.28 0.02 60);
@@ -438,6 +494,16 @@
     --text-display-tracking: 0.02em;
     --text-label-tracking: 0.1em;
 
+    --font-sans: "Inter Variable", "Figtree Variable", sans-serif;
+    --font-display: "Bebas Neue", "Inter Variable", sans-serif;
+    --font-mono: "Space Mono", ui-monospace, monospace;
+    --motion-fast: 80ms;
+    --motion-base: 160ms;
+    --ease-standard: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --panel-border-style: solid;
+    --panel-shadow: 4px 4px 0 0 var(--foreground);
+    --grid-cell: 0px;
+
     --sidebar: oklch(0.92 0.018 85);
     --sidebar-foreground: oklch(0.22 0.02 250);
     --sidebar-primary: oklch(0.6 0.14 200);
@@ -506,20 +572,8 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Typography token defaults (Track B overrides per theme).
+   Tailwind theme mapping. Font/motion/texture tokens are defined per theme.
    --------------------------------------------------------------------------- */
-:root {
-    --font-sans: "Figtree Variable", sans-serif;
-    --font-display: "Figtree Variable", sans-serif;
-    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
-
-    --motion-fast: 120ms;
-    --motion-base: 220ms;
-    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-
-    --panel-shadow: 0 1px 2px oklch(0 0 0 / 8%);
-}
-
 @theme inline {
     --font-sans: var(--font-sans);
     --font-display: var(--font-display);
@@ -618,5 +672,96 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
+    }
+
+  .font-display {
+    font-family: var(--font-display);
+    }
+
+  /* Themeable panel chrome: border treatment, clipped corners, glow. */
+  .panel-frame {
+    border: 1px var(--panel-border-style, solid) var(--border);
+    box-shadow: var(--panel-shadow);
+    background: var(--card);
+    }
+  [data-theme="hardscifi"] .panel-frame {
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--frame-clip)) 0,
+      100% var(--frame-clip),
+      100% 100%,
+      0 100%
+    );
+    border-color: color-mix(in oklab, var(--primary) 38%, var(--border));
+    }
+  [data-theme="orbital"] .panel-frame {
+    border-width: 2px;
+    border-radius: var(--radius);
+    }
+  [data-theme="rebellion"] .panel-frame {
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--primary) 30%, var(--border));
+    }
+  [data-theme="drifter"] .panel-frame {
+    border-width: 2px;
+    border-color: var(--foreground);
+    }
+
+  /* Themeable app-shell background texture. */
+  .grid-bg {
+    background-color: var(--background);
+    }
+  [data-theme="hardscifi"] .grid-bg,
+  [data-theme="orbital"] .grid-bg {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: var(--grid-cell) var(--grid-cell);
+    }
+  [data-theme="rebellion"] .grid-bg {
+    background-image: radial-gradient(
+      var(--grid-line) 0.5px,
+      transparent 0.5px
+    );
+    background-size: 4px 4px;
+    }
+  [data-theme="drifter"] .grid-bg {
+    background-image: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--accent) 8%, transparent) 0 2px,
+      transparent 2px 14px
+    );
+    }
+
+  /* Subtle scanline sweep for active sci-fi panels. */
+  .scanline {
+    position: relative;
+    overflow: hidden;
+    }
+  .scanline::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in oklab, var(--primary) 8%, transparent),
+      transparent
+    );
+    background-size: 100% 8px;
+    animation: scanline-sweep 6s linear infinite;
+    opacity: 0.4;
+    }
+
+  @keyframes scanline-sweep {
+    from { background-position: 0 -100%; }
+    to { background-position: 0 200%; }
+    }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scanline::after {
+      animation: none;
+      }
     }
 }
