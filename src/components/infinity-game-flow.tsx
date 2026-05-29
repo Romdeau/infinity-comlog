@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Card,
   CardContent,
@@ -36,6 +35,80 @@ import missions from "@/data/missions.json"
 import { useGame, type GameSession } from "@/context/game-context"
 import { calculateTP, isTacticalComplete, isPlayerComplete, isTurnComplete, isSetupComplete, getPlayerByTurnOrder } from "@/lib/game-flow-helpers"
 import { getRelevantSkillsForPhase, type GamePhase, type ContextualHint } from "@/lib/army-context-mapping"
+import { calculateObjectivePoints, getAssignedMissionRole, getRoundObjectiveProgress, objectiveAppliesToRole } from "@/features/game/scoring/scoring-service"
+import type { MissionDefinition, MissionObjective } from "@/shared/types/missions"
+import { scoringSides, turnKeys, turnPlayerKeys, type ScoringSide, type TurnKey, type TurnPlayerKey } from "@/shared/types/game"
+
+type GameState = GameSession["state"]
+type GameTurn = GameState["turns"][TurnKey]
+type PlayerTurn = GameTurn[TurnPlayerKey]
+type RoundObjective = Extract<MissionObjective, { type: "round-end" | "round-end-boolean" | "round-end-manual" }>
+
+const missionDefinitions = missions as MissionDefinition[]
+
+function isRoundObjective(objective: MissionObjective): objective is RoundObjective {
+  return objective.type === "round-end" || objective.type === "round-end-boolean" || objective.type === "round-end-manual"
+}
+
+function updateTurn(state: GameState, turnKey: TurnKey, updater: (turn: GameTurn) => GameTurn): GameState {
+  return {
+    ...state,
+    turns: {
+      ...state.turns,
+      [turnKey]: updater(state.turns[turnKey]),
+    },
+  }
+}
+
+function updateTurnPlayer(state: GameState, turnKey: TurnKey, playerKey: TurnPlayerKey, updater: (player: PlayerTurn) => PlayerTurn): GameState {
+  return updateTurn(state, turnKey, (turn) => ({
+    ...turn,
+    [playerKey]: updater(turn[playerKey]),
+  }))
+}
+
+function toggleRoundObjective(state: GameState, turnKey: TurnKey, side: ScoringSide, objective: RoundObjective): GameState {
+  return updateTurn(state, turnKey, (turn) => {
+    const currentObjectives = turn.objectives[side]
+    const current = currentObjectives[objective.id]
+    const nextValue = objective.type === "round-end-manual"
+      ? (typeof current === "number" && current >= objective.max ? 0 : (typeof current === "number" ? current : 0) + 1)
+      : !current
+
+    return {
+      ...turn,
+      objectives: {
+        ...turn.objectives,
+        [side]: {
+          ...currentObjectives,
+          [objective.id]: nextValue,
+        },
+      },
+    }
+  })
+}
+
+function toggleScoringObjective(state: GameState, side: ScoringSide, objective: MissionObjective): GameState {
+  const currentObjectives = state.scoring[side].objectives
+  const current = currentObjectives[objective.id]
+  const nextValue = objective.type === "manual"
+    ? (typeof current === "number" && current >= objective.max ? 0 : (typeof current === "number" ? current : 0) + 1)
+    : !current
+
+  return {
+    ...state,
+    scoring: {
+      ...state.scoring,
+      [side]: {
+        ...state.scoring[side],
+        objectives: {
+          ...currentObjectives,
+          [objective.id]: nextValue,
+        },
+      },
+    },
+  }
+}
 
 function FlowStatusCard({ label, value, emphasis = false }: { label: string; value: string; emphasis?: boolean }) {
   return (
@@ -272,8 +345,8 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
   }
 
   const gameStep = activeSession.state
-  const setGameStep = (updater: GameSession['state'] | ((prev: GameSession['state']) => GameSession['state'])) => {
-    updateActiveSession((prev: GameSession['state']) => {
+  const setGameStep = (updater: GameState | ((prev: GameState) => GameState)) => {
+    updateActiveSession((prev) => {
       if (typeof updater === 'function') {
         return updater(prev)
       }
@@ -282,55 +355,10 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
   }
 
   // Helper to get active mission details
-  const activeMission = missions.find(m => m.id === gameStep.scenario)
+  const activeMission = missionDefinitions.find(m => m.id === gameStep.scenario)
 
-
-
-
-
-  // Calculate OP based on objectives
-  const calculateOP = (role: 'player' | 'opponent') => {
-    if (!activeMission) return gameStep.scoring[role].op
-
-    let total = 0
-    const objProgress = gameStep.scoring[role].objectives
-
-    // Determine player's role (Attacker/Defender)
-    let assignedRole: string | undefined = undefined
-    if (activeMission.hasRoles) {
-      if (gameStep.initiative.firstTurn !== null) {
-        const isPlayer = role === 'player'
-        const isFirst =
-          (isPlayer && gameStep.initiative.firstTurn === 'player') ||
-          (!isPlayer && gameStep.initiative.firstTurn === 'opponent')
-        assignedRole = isFirst ? 'attacker' : 'defender'
-      }
-    }
-
-    // Add classifieds points
-    total += gameStep.scoring[role].classifieds || 0
-
-    activeMission.objectives.forEach((obj: { id: string; type: string; op: number; role?: string }) => {
-      if (obj.role && obj.role !== assignedRole) return
-
-      if (obj.type === 'manual') {
-        total += ((objProgress[obj.id] as number) || 0) * obj.op
-      } else if (obj.type === 'boolean' || obj.type === 'game-end') {
-        if (objProgress[obj.id]) total += obj.op
-      } else if (obj.type === 'round-end-boolean' || obj.type === 'round-end-manual') {
-        // Sum from turns
-        Object.keys(gameStep.turns).forEach(tKey => {
-          const val = (gameStep.turns as any)[tKey].objectives[role][obj.id]
-          if (obj.type === 'round-end-boolean' && val === true) total += obj.op
-          else if (obj.type === 'round-end-manual' && typeof val === 'number') total += val * obj.op
-        })
-      }
-    })
-    return Math.min(10, total)
-  }
-
-  const playerOP = calculateOP('player')
-  const opponentOP = calculateOP('opponent')
+  const playerOP = calculateObjectivePoints(activeMission, gameStep, 'player')
+  const opponentOP = calculateObjectivePoints(activeMission, gameStep, 'opponent')
 
   const completedCount = [
     isSetupComplete(gameStep),
@@ -400,7 +428,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                       <SelectValue placeholder="Select Mission..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {missions.map(m => (
+                      {missionDefinitions.map(m => (
                         <SelectItem key={m.id} value={m.id} className="text-xs">{m.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -705,8 +733,8 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
           </GameGroup>
 
           {/* 2-4. Turns */}
-          {[1, 2, 3].map((turnNum) => {
-            const tKey = `turn${turnNum}` as keyof typeof gameStep.turns
+          {turnKeys.map((tKey, turnIndex) => {
+            const turnNum = turnIndex + 1
             const turn = gameStep.turns[tKey]
 
             return (
@@ -721,10 +749,11 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                 }))}
               >
                 <div className="space-y-4">
-                  {['p1', 'p2'].map((pKey) => {
-                    const player = (turn as any)[pKey]
+                  {turnPlayerKeys.map((pKey) => {
+                    const player = turn[pKey]
                     const label = pKey === 'p1' ? "First Player" : "Second Player"
                     const playerName = getPlayerByTurnOrder(gameStep.initiative, pKey === 'p1' ? 1 : 2) === 'player' ? "You" : "Opponent"
+                    const scoringSide: ScoringSide = playerName === "You" ? "player" : "opponent"
 
                     return (
                       <div key={pKey} className="space-y-2">
@@ -738,57 +767,47 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                             size="sm"
                             value={`${tKey}-${pKey}-tactical`}
                             checked={isTacticalComplete(player.tactical) || player.tactical.doneOverride}
-                            onCheckedChange={(val) => setGameStep(prev => {
-                              const newTurns = { ...prev.turns }
-                              const t = (newTurns as any)[tKey]
-                              t[pKey].tactical.doneOverride = !!val
-                              return { ...prev, turns: newTurns }
-                            })}
+                            onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                              ...current,
+                              tactical: { ...current.tactical, doneOverride: !!val },
+                            })))}
                           >
                             <div className="grid gap-1">
                               <GameStep
                                 label="Command Tokens"
                                 size="sm"
                                 checked={player.tactical.tokens}
-                                onCheckedChange={(val) => setGameStep(prev => {
-                                  const newTurns = { ...prev.turns }
-                                  const t = (newTurns as any)[tKey]
-                                  t[pKey].tactical.tokens = !!val
-                                  return { ...prev, turns: newTurns }
-                                })}
+                                onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                                  ...current,
+                                  tactical: { ...current.tactical, tokens: !!val },
+                                })))}
                               />
                               <GameStep
                                 label="Retreat! Check"
                                 size="sm"
                                 checked={player.tactical.retreat}
-                                onCheckedChange={(val) => setGameStep(prev => {
-                                  const newTurns = { ...prev.turns }
-                                  const t = (newTurns as any)[tKey]
-                                  t[pKey].tactical.retreat = !!val
-                                  return { ...prev, turns: newTurns }
-                                })}
+                                onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                                  ...current,
+                                  tactical: { ...current.tactical, retreat: !!val },
+                                })))}
                               />
                               <GameStep
                                 label="Loss of Control"
                                 size="sm"
                                 checked={player.tactical.lol}
-                                onCheckedChange={(val) => setGameStep(prev => {
-                                  const newTurns = { ...prev.turns }
-                                  const t = (newTurns as any)[tKey]
-                                  t[pKey].tactical.lol = !!val
-                                  return { ...prev, turns: newTurns }
-                                })}
+                                onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                                  ...current,
+                                  tactical: { ...current.tactical, lol: !!val },
+                                })))}
                               />
                               <GameStep
                                 label="Order Count"
                                 size="sm"
                                 checked={player.tactical.count}
-                                onCheckedChange={(val) => setGameStep(prev => {
-                                  const newTurns = { ...prev.turns }
-                                  const t = (newTurns as any)[tKey]
-                                  t[pKey].tactical.count = !!val
-                                  return { ...prev, turns: newTurns }
-                                })}
+                                onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                                  ...current,
+                                  tactical: { ...current.tactical, count: !!val },
+                                })))}
                               />
                             </div>
                             <ContextualHints phase="tactical" hints={getHints('tactical', playerName === "Opponent")} />
@@ -797,12 +816,10 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                             label="Impetuous Phase"
                             size="sm"
                             checked={player.impetuous}
-                            onCheckedChange={(val) => setGameStep(prev => {
-                              const newTurns = { ...prev.turns }
-                              const t = (newTurns as any)[tKey]
-                              t[pKey].impetuous = !!val
-                              return { ...prev, turns: newTurns }
-                            })}
+                            onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                              ...current,
+                              impetuous: !!val,
+                            })))}
                           >
                             {playerName === "You" && <ContextualHints phase="impetuous" hints={getHints('impetuous')} />}
                           </GameStep>
@@ -810,12 +827,10 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                             label="Orders Phase"
                             size="sm"
                             checked={player.orders.done}
-                            onCheckedChange={(val) => setGameStep(prev => {
-                              const newTurns = { ...prev.turns }
-                              const t = (newTurns as any)[tKey]
-                              t[pKey].orders.done = !!val
-                              return { ...prev, turns: newTurns }
-                            })}
+                            onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                              ...current,
+                              orders: { ...current.orders, done: !!val },
+                            })))}
                           >
                              {playerName === "You" && <ContextualHints phase="orders" hints={getHints('orders')} />}
                           </GameStep>
@@ -823,12 +838,10 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                             label="States Phase"
                             size="sm"
                             checked={player.states}
-                            onCheckedChange={(val) => setGameStep(prev => {
-                              const newTurns = { ...prev.turns }
-                              const t = (newTurns as any)[tKey]
-                              t[pKey].states = !!val
-                              return { ...prev, turns: newTurns }
-                            })}
+                            onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                              ...current,
+                              states: !!val,
+                            })))}
                           >
                             {playerName === "You" && <ContextualHints phase="states" hints={getHints('states')} />}
                           </GameStep>
@@ -836,12 +849,10 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                             label="End of Turn"
                             size="sm"
                             checked={player.end}
-                            onCheckedChange={(val) => setGameStep(prev => {
-                              const newTurns = { ...prev.turns }
-                              const t = (newTurns as any)[tKey]
-                              t[pKey].end = !!val
-                              return { ...prev, turns: newTurns }
-                            })}
+                            onCheckedChange={(val) => setGameStep(prev => updateTurnPlayer(prev, tKey, pKey, (current) => ({
+                              ...current,
+                              end: !!val,
+                            })))}
                           />
                         </div>
 
@@ -851,10 +862,9 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                             <div className="text-[9px] font-bold uppercase text-muted-foreground px-1">Round {turnNum} Objectives</div>
                             <div className="grid gap-1.5">
                               {activeMission.objectives
-                                .filter((obj: any) => obj.type.startsWith('round-end'))
-                                .map((obj: any) => {
-                                  const role = playerName === "You" ? "player" : "opponent"
-                                  const val = (turn as any).objectives[role][obj.id]
+                                .filter(isRoundObjective)
+                                .map((obj) => {
+                                  const val = turn.objectives[scoringSide][obj.id]
 
                                   return (
                                     <div key={obj.id} className="flex items-center justify-between gap-2 px-1">
@@ -866,15 +876,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                                           )}
                                           onClick={() => {
                                             setGameStep(prev => {
-                                              const newTurns = { ...prev.turns }
-                                              const t = (newTurns as any)[tKey]
-                                              if (obj.type === 'round-end-manual') {
-                                                const current = t.objectives[role][obj.id] || 0
-                                                t.objectives[role][obj.id] = current >= obj.max ? 0 : current + 1
-                                              } else {
-                                                t.objectives[role][obj.id] = !t.objectives[role][obj.id]
-                                              }
-                                              return { ...prev, turns: newTurns }
+                                              return toggleRoundObjective(prev, tKey, scoringSide, obj)
                                             })
                                           }}
                                         >
@@ -923,22 +925,12 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                 </div>
               )}
 
-              {['player', 'opponent'].map((role) => {
+              {scoringSides.map((role) => {
                 const isPlayer = role === 'player'
                 const op = isPlayer ? playerOP : opponentOP
                 const rivalOp = isPlayer ? opponentOP : playerOP
 
-                let assignedRole: string | undefined = undefined
-                if (activeMission?.hasRoles) {
-                  if (gameStep.initiative.firstTurn === null) {
-                    assignedRole = undefined
-                  } else {
-                    const isFirst =
-                      (isPlayer && gameStep.initiative.firstTurn === 'player') ||
-                      (!isPlayer && gameStep.initiative.firstTurn === 'opponent')
-                    assignedRole = isFirst ? 'attacker' : 'defender'
-                  }
-                }
+                const assignedRole = getAssignedMissionRole(activeMission, gameStep, role)
 
                 return (
                   <div key={role} className="space-y-3">
@@ -960,7 +952,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                         min={0}
                         max={300}
                         className="h-8 text-center text-xs px-1 bg-muted/50 focus:bg-background"
-                        value={gameStep.scoring[role as 'player' | 'opponent'].vp}
+                        value={gameStep.scoring[role].vp}
                         onFocus={(e) => e.target.select()}
                         onChange={(e) => {
                           const val = e.target.value
@@ -968,7 +960,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                             ...prev,
                             scoring: {
                               ...prev.scoring,
-                              [role]: { ...prev.scoring[role as 'player' | 'opponent'], vp: val === "" ? 0 : parseInt(val) }
+                              [role]: { ...prev.scoring[role], vp: val === "" ? 0 : parseInt(val) }
                             }
                           }))
                         }}
@@ -983,7 +975,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                             min={0}
                             max={10}
                             className="h-6 w-12 text-center text-[10px] px-1 bg-muted/30 focus:bg-background"
-                            value={gameStep.scoring[role as 'player' | 'opponent'].classifieds}
+                            value={gameStep.scoring[role].classifieds}
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => {
                                 const val = e.target.value
@@ -991,7 +983,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                                     ...prev,
                                     scoring: {
                                         ...prev.scoring,
-                                        [role]: { ...prev.scoring[role as 'player' | 'opponent'], classifieds: val === "" ? 0 : parseInt(val) }
+                                        [role]: { ...prev.scoring[role], classifieds: val === "" ? 0 : parseInt(val) }
                                     }
                                 }))
                             }}
@@ -1002,18 +994,13 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                     {activeMission && (
                       <div className="pl-4 pr-1 py-1 space-y-2 border-l-2 border-muted/30 ml-2">
                         {activeMission.objectives
-                          .filter((obj: any) => !obj.role || obj.role === assignedRole)
-                          .map((obj: any) => {
-                            const isRoundEnd = obj.type.startsWith('round-end')
+                          .filter((obj) => objectiveAppliesToRole(obj, assignedRole))
+                          .map((obj) => {
+                            const isRoundEnd = isRoundObjective(obj)
                             // Sum progress for round-end objectives
-                            let roundProgress = 0
-                            if (isRoundEnd) {
-                              Object.keys(gameStep.turns).forEach(tKey => {
-                                const val = (gameStep.turns as any)[tKey].objectives[role][obj.id]
-                                if (typeof val === 'number') roundProgress += val
-                                else if (val === true) roundProgress += 1
-                              })
-                            }
+                            const roundProgress = isRoundEnd
+                              ? getRoundObjectiveProgress(gameStep, role, obj.id)
+                              : 0
 
                             return (
                               <div key={obj.id} className="flex items-start justify-between gap-2 opacity-90">
@@ -1021,32 +1008,17 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                                   <div
                                     className={cn(
                                       "size-4 rounded border border-primary/20 flex items-center justify-center transition-colors",
-                                      (isRoundEnd ? roundProgress > 0 : gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id])
+                                      (isRoundEnd ? roundProgress > 0 : gameStep.scoring[role].objectives[obj.id])
                                         ? "bg-primary/40 text-primary-foreground border-primary/40"
                                         : "bg-muted/30",
                                       isRoundEnd && "cursor-default" // Readonly for round end
                                     )}
                                     onClick={() => {
                                       if (isRoundEnd) return // Managed in turn tracker
-                                      setGameStep(prev => {
-                                        const objectives = { ...prev.scoring[role as 'player' | 'opponent'].objectives }
-                                        if (obj.type === 'manual') {
-                                          const current = (objectives[obj.id] as number) || 0
-                                          objectives[obj.id] = current >= (obj.max || 1) ? 0 : current + 1
-                                        } else {
-                                          objectives[obj.id] = !objectives[obj.id]
-                                        }
-                                        return {
-                                          ...prev,
-                                          scoring: {
-                                            ...prev.scoring,
-                                            [role]: { ...prev.scoring[role as 'player' | 'opponent'], objectives }
-                                          }
-                                        }
-                                      })
+                                      setGameStep(prev => toggleScoringObjective(prev, role, obj))
                                     }}
                                   >
-                                    {(isRoundEnd ? roundProgress > 0 : gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id]) ? (
+                                    {(isRoundEnd ? roundProgress > 0 : gameStep.scoring[role].objectives[obj.id]) ? (
                                       <CheckCircle2Icon className="size-3" />
                                     ) : null}
                                   </div>
@@ -1060,7 +1032,7 @@ export function InfinityGameFlow({ armyLists }: { armyLists: { listA: EnrichedAr
                                 {(obj.type === 'manual' || obj.type === 'round-end-manual') && (
                                   <div className="flex items-center gap-1">
                                     <span className="text-[9px] font-bold text-primary/60">
-                                      {(isRoundEnd ? roundProgress : gameStep.scoring[role as 'player' | 'opponent'].objectives[obj.id]) || 0}/{isRoundEnd ? (obj.max * 3) : obj.max}
+                                      {(isRoundEnd ? roundProgress : gameStep.scoring[role].objectives[obj.id]) || 0}/{isRoundEnd ? (obj.max * 3) : obj.max}
                                     </span>
                                   </div>
                                 )}

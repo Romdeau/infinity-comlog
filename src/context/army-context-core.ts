@@ -1,10 +1,11 @@
 import * as React from "react"
 import { type EnrichedArmyList, type StoredArmyList } from "@/lib/unit-service"
+import type { PairValidationResult } from "@/features/army/domain/pair-validation"
 
 export interface ArmyContextType {
   // The currently active pair for the game
   lists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }
-  setLists: (lists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }) => void
+  setLists: (lists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }) => PairValidationResult
 
   // The library of all imported lists
   storedLists: Record<string, StoredArmyList>

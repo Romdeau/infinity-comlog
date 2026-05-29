@@ -21,6 +21,7 @@ The `weapons` array is the most complex part of the global metadata.
 ### Skills, Equipment, and Tables
 - **Skills/Equips**: Simple ID-to-Name mappings.
 - **Tables**: `martialArts`, `metachemistry`, and `booty` contain the result rows for their respective game tables.
+- **Hacking Programs**: The `hack` array is transformed through `src/lib/metadata-selectors.ts` before the UI consumes it.
 
 ---
 
@@ -57,6 +58,12 @@ The service "enriches" the raw IDs from the parser by:
 3. Navigating the `profileGroups` and `options` to find the exact loadout.
 4. Formatting raw values (e.g., converting `move` from cm to inches).
 5. Determining if the unit uses `STR` or `VITA`.
+
+### `MetadataService` (`src/lib/metadata-service.ts`)
+The metadata service is the current lookup boundary for global labels.
+- It resolves skill, equipment, weapon, ammunition, and hacking-program data from `metadata.json`.
+- Contextual game hints use `MetadataService` instead of duplicate skill/equipment maps.
+- `src/lib/metadata-selectors.ts` builds typed UI view models such as hacking programs grouped by device.
 
 ### `WeaponData` Registry (`src/lib/weapon-data.ts`)
 The `WEAPON_DATA` registry is a checked-in derived file used to render weapon modes efficiently in the UI.

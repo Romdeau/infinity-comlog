@@ -1,6 +1,88 @@
-import { describe, it, expect, afterEach } from "bun:test";
-import { render, cleanup } from "@testing-library/react";
-import { ContextualHints } from "./infinity-game-flow";
+import { describe, it, expect, afterEach } from "vitest";
+import { fireEvent, render, cleanup, screen } from "@testing-library/react";
+import { ContextualHints, InfinityGameFlow } from "./infinity-game-flow";
+import { GameContext, type GameSession } from "@/context/game-context-core";
+
+const createMockTurn = () => ({
+  doneOverride: false,
+  tactical: { doneOverride: false, tokens: false, retreat: false, lol: false, count: false },
+  impetuous: false,
+  orders: { done: false },
+  states: false,
+  end: false,
+});
+
+const createMockSession = (stateOverrides: Partial<GameSession["state"]> = {}): GameSession => ({
+  id: "test-session",
+  name: "Test Session",
+  createdAt: 1,
+  updatedAt: 1,
+  state: {
+    scenario: "",
+    classifiedsCount: 1,
+    scenarioPicked: false,
+    listPicked: false,
+    classifiedsDrawn: false,
+    initiationDoneOverride: false,
+    setupDoneOverride: false,
+    initiationSubSteps: {
+      rollOff: false,
+      deployment: false,
+      strategicUse: false,
+    },
+    initiative: {
+      winner: "player",
+      choice: "initiative",
+      firstTurn: null,
+      firstDeployment: null,
+    },
+    strategicOptions: {
+      p1Reserve: false,
+      p1Speedball: false,
+      p2OrderReduction: false,
+      p2CtLimit: false,
+      p2SuppressiveFire: false,
+      p2Speedball: false,
+    },
+    deploymentDetails: {
+      hidden: false,
+      infiltration: false,
+      forward: false,
+      heldBack: 1,
+      booty: false,
+      deployedUnits: {},
+    },
+    turns: {
+      turn1: { doneOverride: false, p1: createMockTurn(), p2: createMockTurn(), objectives: { player: {}, opponent: {} } },
+      turn2: { doneOverride: false, p1: createMockTurn(), p2: createMockTurn(), objectives: { player: {}, opponent: {} } },
+      turn3: { doneOverride: false, p1: createMockTurn(), p2: createMockTurn(), objectives: { player: {}, opponent: {} } },
+    },
+    scoring: {
+      doneOverride: false,
+      player: { op: 0, vp: 0, classifieds: 0, objectives: {} },
+      opponent: { op: 0, vp: 0, classifieds: 0, objectives: {} },
+    },
+    selectedList: "none",
+    ...stateOverrides,
+  },
+});
+
+const renderGameFlow = (session: GameSession) => {
+  render(
+    <GameContext.Provider value={{
+      sessions: { [session.id]: session },
+      activeSessionId: session.id,
+      activeSession: session,
+      createSession: () => session.id,
+      renameSession: () => {},
+      updateActiveSession: () => {},
+      switchSession: () => {},
+      deleteSession: () => {},
+    }}>
+      <InfinityGameFlow armyLists={{ listA: null, listB: null }} />
+    </GameContext.Provider>
+  );
+};
 
 describe("ContextualHints Component", () => {
   afterEach(() => {
@@ -68,5 +150,28 @@ describe("ContextualHints Component", () => {
     
     const unitText = getByText("Checked Unit");
     expect(unitText.className).toContain("line-through");
+  });
+
+  it("shows different final scoring objectives for attacker and defender roles", () => {
+    const session = createMockSession({
+      scenario: "critical-intervention",
+      selectedList: "listA",
+      listPicked: true,
+      initiative: {
+        winner: "player",
+        choice: "initiative",
+        firstTurn: "player",
+        firstDeployment: "opponent",
+      },
+    });
+
+    renderGameFlow(session);
+
+    fireEvent.click(screen.getByText("5. Final Scoring"));
+
+    expect(screen.getByText("attacker")).toBeTruthy();
+    expect(screen.getByText("defender")).toBeTruthy();
+    expect(screen.getByText("Unlock the Data Console")).toBeTruthy();
+    expect(screen.getByText("Prevent Attacker from Extracting Data Pack")).toBeTruthy();
   });
 });

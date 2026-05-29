@@ -1,4 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import metadata from '../data/metadata.json';
+import type { MetadataPayload } from './metadata-service';
+
 export interface Trooper {
   id: number;
   groupId: number;
@@ -22,14 +24,14 @@ export interface ArmyList {
   rawCode?: string;
 }
 
-import metadata from '../data/metadata.json';
+const typedMetadata = metadata as MetadataPayload;
 
 const getFactionInfo = (id: number) => {
-  const factions = (metadata as any).factions;
-  const faction = factions.find((f: any) => f.id === id);
+  const factions = typedMetadata.factions;
+  const faction = factions.find((f) => f.id === id);
   if (!faction) return null;
 
-  const parent = factions.find((f: any) => f.id === faction.parent);
+  const parent = factions.find((f) => f.id === faction.parent);
   return {
     parentName: parent ? parent.name : faction.name,
     logo: faction.logo

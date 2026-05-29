@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
 import { ArmyParser } from '@/lib/army-parser';
-import { ArmyListService, FactionData } from '@/lib/army-list-service';
+import { clearFactionDataCacheForTest, setFactionDataForTest, type FactionPayload } from '@/lib/faction-data-service';
+import { unitService } from '@/lib/unit-service';
 import { SettingsProvider } from '@/context/settings-context';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -21,7 +22,7 @@ global.ResizeObserver = class ResizeObserver {
 };
 
 describe('Kestrel List Verification', () => {
-  let faction107: FactionData;
+  let faction107: FactionPayload;
 
   beforeAll(() => {
     // Load the real JSON file
@@ -29,9 +30,9 @@ describe('Kestrel List Verification', () => {
     const jsonContent = fs.readFileSync(jsonPath, 'utf-8');
     faction107 = JSON.parse(jsonContent);
 
-    // Mock ArmyListService.getFactionData to return real data
-    // We mock the static method directly to avoid fetch issues
-    vi.spyOn(ArmyListService, 'getFactionData').mockResolvedValue(faction107);
+    clearFactionDataCacheForTest();
+    unitService.clearCacheForTest();
+    setFactionDataForTest(107, faction107);
   });
 
   it('Parses and Hydrates Kestrel List correctly (Unit 935 -> Tech-Bee)', async () => {
@@ -43,16 +44,14 @@ describe('Kestrel List Verification', () => {
     expect(parsed.sectoralId).toBe(107); // Kestrel ID
 
     // 2. Hydrate
-    const hydrated = await ArmyListService.hydrate(parsed);
+    const hydrated = await unitService.enrichArmyList(parsed);
 
     // 3. Verify Data
     // Find unit 935
     const techBee = hydrated.combatGroups.flatMap(g => g.members).find(m => m.id === 935);
     expect(techBee).toBeDefined();
-    // It matches "Tech-Bees" in the JSON but the test expects "Tech-Bee" or similar.
-    // The JSON output showed "TECH-BEES, Maintenance Battalions".
-    expect(techBee?.unitName).toContain('TECH-BEES');
-    expect(techBee?.unitName).not.toContain('Unit 935');
+    expect(techBee?.name).toContain('TECH-BEE');
+    expect(techBee?.name).not.toContain('Unit 935');
 
     // 4. Render UI
     mockUseArmy.mockReturnValue({
@@ -65,7 +64,6 @@ describe('Kestrel List Verification', () => {
       </SettingsProvider>
     );
     
-    // Check if "TECH-BEES" is visible
-    expect(getAllByText(/TECH-BEES/i).length).toBeGreaterThan(0);
+    expect(getAllByText(/TECH-BEE/i).length).toBeGreaterThan(0);
   });
 });

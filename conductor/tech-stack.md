@@ -13,14 +13,25 @@
 - **Charts:** Recharts
 
 ## Routing & State
-- **Routing:** React Router DOM (v6)
+- **Routing:** React Router DOM (v7)
 - **State Management:** React Context API
 
 ## Deployment & Tooling
 - **Linting:** ESLint
-- **Formatting:** TypeScript-ESLint
-- **Deployment:** GitHub Pages (Subpath: `/infinity-comlog/`)
+- **Type-Aware Rules:** TypeScript-ESLint via the shared ESLint config
+- **Testing:** Vitest with Happy DOM, run through Bun scripts
+- **Deployment:** GitHub Pages artifact deployment (Subpath: `/infinity-comlog/`)
 - **Critical Requirement:** Always use `import.meta.env.BASE_URL` for assets in the `public/` folder.
+
+## Project Commands
+- **Install:** `bun install`
+- **Development Server:** `bun run dev`
+- **Lint:** `bun run lint`
+- **Tests:** `bun run test`
+- **Watch Tests:** `bun run test:watch`
+- **Coverage:** `bun run test:coverage`
+- **Full Check:** `bun run check`
+- **Build:** `bun run build`
 
 ## Environment Details
 - **Cross-Platform:** Developed on macOS and Windows (via WSL Ubuntu-24.04).

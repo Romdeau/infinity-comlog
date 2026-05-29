@@ -11,6 +11,9 @@ import {
 import { ArmyParser } from "@/lib/army-parser"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { useSettings } from "@/context/settings-context"
+import { STORAGE_KEYS } from "@/shared/storage/storage-keys"
+import { migrateActivePairStorage, validateActivePairStorage, validateStoredListsStorage } from "@/shared/storage/storage-schemas"
+import { validateActivePair, type PairValidationResult } from "@/features/army/domain/pair-validation"
 import { ArmyContext, type ArmyContextType, useArmy } from "./army-context-core"
 
 export { useArmy }
@@ -18,11 +21,17 @@ export type { ArmyContextType }
 
 export function ArmyProvider({ children }: { children: React.ReactNode }) {
   const { settings } = useSettings()
-  const [storedLists, setStoredLists] = useLocalStorage<Record<string, StoredArmyList>>("comlog_stored_lists", {})
-  const [activePairIds, setActivePairIds] = useLocalStorage<{ a: string | null; b: string | null }>("comlog_active_pair", { a: null, b: null })
+  const [storedLists, setStoredLists] = useLocalStorage<Record<string, StoredArmyList>>(STORAGE_KEYS.storedLists, {}, {
+    validate: validateStoredListsStorage,
+  })
+  const [activePairIds, setActivePairIds] = useLocalStorage<{ a: string | null; b: string | null }>(STORAGE_KEYS.activePair, { a: null, b: null }, {
+    validate: validateActivePairStorage,
+    migrate: migrateActivePairStorage,
+    writeMigrated: true,
+  })
   const [importErrors, setImportErrors] = React.useState<string[]>([])
 
-  const clearImportErrors = () => setImportErrors([])
+  const clearImportErrors = React.useCallback(() => setImportErrors([]), [])
 
   // Auto-validation/Re-enrichment for stale or invalid lists
   React.useEffect(() => {
@@ -95,7 +104,21 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
     listB: activePairIds.b ? storedLists[activePairIds.b] || null : null
   }), [activePairIds, storedLists])
 
-  const setLists = (newLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }) => {
+  React.useEffect(() => {
+    const nextPair = {
+      a: activePairIds.a && storedLists[activePairIds.a] ? activePairIds.a : null,
+      b: activePairIds.b && storedLists[activePairIds.b] ? activePairIds.b : null,
+    }
+
+    if (nextPair.a !== activePairIds.a || nextPair.b !== activePairIds.b) {
+      setActivePairIds(nextPair)
+    }
+  }, [activePairIds.a, activePairIds.b, setActivePairIds, storedLists])
+
+  const setLists = React.useCallback((newLists: { listA: EnrichedArmyList | null; listB: EnrichedArmyList | null }): PairValidationResult => {
+    const validation = validateActivePair(newLists)
+    if (!validation.valid) return validation
+
     // When setting active lists, we ensure they are in the store first
     const newStored = { ...storedLists }
 
@@ -141,9 +164,10 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
 
     setStoredLists(newStored)
     setActivePairIds({ a: aId, b: bId })
-  }
+    return { valid: true }
+  }, [setActivePairIds, setStoredLists, storedLists])
 
-  const saveList = (list: EnrichedArmyList, rawBase64?: string) => {
+  const saveList = React.useCallback((list: EnrichedArmyList, rawBase64?: string) => {
     const id = crypto.randomUUID()
     const stored = migrateToStoredList(list);
     if (rawBase64) {
@@ -152,9 +176,9 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
       stored.rawBase64 = list.rawCode;
     }
     setStoredLists(prev => ({ ...prev, [id]: stored }))
-  }
+  }, [setStoredLists])
 
-  const deleteList = (listId: string) => {
+  const deleteList = React.useCallback((listId: string) => {
     setStoredLists(prev => {
       const next = { ...prev }
       delete next[listId]
@@ -163,9 +187,9 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
     // If it was active, clear it
     if (activePairIds.a === listId) setActivePairIds(p => ({ ...p, a: null }))
     if (activePairIds.b === listId) setActivePairIds(p => ({ ...p, b: null }))
-  }
+  }, [activePairIds.a, activePairIds.b, setActivePairIds, setStoredLists])
 
-  const reimportAllLists = async () => {
+  const reimportAllLists = React.useCallback(async () => {
     let changed = false;
     const newStored = { ...storedLists };
     const errors: string[] = [];
@@ -200,11 +224,22 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
     if (errors.length > 0) {
       setImportErrors(errors);
     }
-  }
+  }, [settings.measurementUnit, setStoredLists, storedLists])
+
+  const value = React.useMemo<ArmyContextType>(() => ({
+    lists,
+    setLists,
+    storedLists,
+    saveList,
+    deleteList,
+    reimportAllLists,
+    importErrors,
+    clearImportErrors,
+  }), [clearImportErrors, deleteList, importErrors, lists, reimportAllLists, saveList, setLists, storedLists])
 
 
   return (
-    <ArmyContext.Provider value={{ lists, setLists, storedLists, saveList, deleteList, reimportAllLists, importErrors, clearImportErrors }}>
+    <ArmyContext.Provider value={value}>
       {children}
     </ArmyContext.Provider>
   )

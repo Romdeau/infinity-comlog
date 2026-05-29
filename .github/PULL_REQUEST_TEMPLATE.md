@@ -4,9 +4,8 @@
 - 
 
 ## Validation
-- [ ] `bun run build`
-- [ ] `bun run lint`
-- [ ] `bun test`
+- [ ] `bun run check`
+- [ ] `bun run test:coverage` if this changes substantial domain logic
 
 ## Notes
 - 

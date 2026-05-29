@@ -18,7 +18,8 @@ import { Badge } from "@/components/ui/badge"
 import { Link, useLocation } from "react-router-dom"
 import { useArmy } from "@/context/army-context"
 import { cn } from "@/lib/utils"
-import { navGroups, settingsNavItem } from "@/lib/navigation"
+import { defaultRoutePath } from "@/app/routes"
+import { navGroups, settingsNavItem } from "@/app/navigation"
 import { ThemeToggle } from "./theme-toggle"
 
 export function AppSidebar() {
@@ -32,7 +33,7 @@ export function AppSidebar() {
         <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
-              <Link to="/army-lists">
+              <Link to={defaultRoutePath}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary/10 text-sidebar-primary">
                   <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Logo" className="size-6" />
                 </div>

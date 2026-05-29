@@ -2,37 +2,38 @@
  * Simple hook for local storage persistence.
  * Designed to be compatible with future account systems by abstracting the storage key.
  */
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { readJson, writeJson, type StorageMigration, type StorageValidator, type StorageWarningReporter } from "@/shared/storage/storage-adapter";
 
-export function useLocalStorage<T>(key: string, initialValue: T) {
+type UseLocalStorageOptions<T> = {
+  validate?: StorageValidator<T>
+  migrate?: StorageMigration
+  writeMigrated?: boolean
+  onWarning?: StorageWarningReporter
+}
+
+export function useLocalStorage<T>(key: string, initialValue: T, options: UseLocalStorageOptions<T> = {}) {
+  const { validate, migrate, writeMigrated, onWarning } = options
+
   // Get from local storage then parse stored json or return initialValue
   const readValue = (): T => {
-    if (typeof window === "undefined") {
-      return initialValue;
-    }
-
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? (JSON.parse(item) as T) : initialValue;
-    } catch (error) {
-      console.warn(`Error reading localStorage key “${key}”:`, error);
-      return initialValue;
-    }
+    return readJson(key, initialValue, { validate, migrate, writeMigrated, onWarning })
   };
 
   const [storedValue, setStoredValue] = useState<T>(readValue);
 
-  const setValue = (value: T | ((val: T) => T)) => {
-    try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+  const setValue = useCallback((value: T | ((val: T) => T)) => {
+    setStoredValue((previousValue) => {
+      try {
+        const valueToStore = value instanceof Function ? value(previousValue) : value;
+        writeJson(key, valueToStore, { onWarning });
+        return valueToStore;
+      } catch (error) {
+        console.warn(`Error setting localStorage key “${key}”:`, error);
+        return previousValue;
       }
-    } catch (error) {
-      console.warn(`Error setting localStorage key “${key}”:`, error);
-    }
-  };
+    });
+  }, [key, onWarning]);
 
   return [storedValue, setValue] as const;
 }

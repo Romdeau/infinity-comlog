@@ -13,6 +13,27 @@ export interface MetadataEquip {
   wiki?: string;
 }
 
+export interface MetadataHackingProgram {
+  name?: string;
+  devices?: number[];
+  target?: string[];
+  burst?: string;
+  damage?: string;
+  attack?: string;
+  opponent?: string;
+  special?: string;
+  skillType?: string[];
+}
+
+export interface MetadataPayload {
+  factions: Array<{ id: number; name: string; parent?: number; logo?: string }>;
+  ammunitions: MetadataAmmunition[];
+  weapons: MetadataWeapon[];
+  skills: MetadataSkill[];
+  equips?: MetadataEquip[];
+  hack?: MetadataHackingProgram[];
+}
+
 export interface MetadataWeapon {
   id: number;
   type: string;
@@ -53,15 +74,15 @@ export class MetadataService {
 
   static {
     // Initialize Skills
-    const skills = metadata.skills as MetadataSkill[];
+    const typedMetadata = metadata as MetadataPayload;
+    const skills = typedMetadata.skills;
     skills.forEach(s => {
       // Normalize name: replace non-breaking spaces with standard spaces
       this.skillsMap[s.id] = { ...s, name: s.name.replace(/\u00A0/g, ' ') };
     });
 
     // Initialize Equipment
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const equips = (metadata as any).equips as MetadataEquip[];
+    const equips = typedMetadata.equips || [];
     if (equips) {
       equips.forEach(e => {
         const normalizedName = e.name.replace(/\u00A0/g, ' ');
@@ -75,7 +96,7 @@ export class MetadataService {
     }
 
     // Initialize Weapons & Equipment
-    (metadata.weapons as MetadataWeapon[]).forEach(w => {
+    typedMetadata.weapons.forEach(w => {
       // Normalize name: replace non-breaking spaces with standard spaces
       if (!this.weaponsMap[w.id]) {
         this.weaponsMap[w.id] = [];
@@ -84,7 +105,7 @@ export class MetadataService {
     });
 
     // Initialize Ammunition
-    (metadata.ammunitions as MetadataAmmunition[]).forEach(a => {
+    typedMetadata.ammunitions.forEach(a => {
       this.ammoMap[a.id] = { ...a, name: a.name.replace(/\u00A0/g, ' ') };
     });
   }
@@ -119,6 +140,17 @@ export class MetadataService {
     if (modes?.[0]?.name) return modes[0].name;
 
     return `Equip ${id}`;
+  }
+
+  static getHackingPrograms(): MetadataHackingProgram[] {
+    return ((metadata as MetadataPayload).hack || []).map((program) => ({
+      ...program,
+      name: program.name?.replace(/\u00A0/g, ' '),
+    }));
+  }
+
+  static getHackingDevices(): MetadataEquip[] {
+    return Object.values(this.equipsMap).filter((equip) => equip.name.toLowerCase().includes("hacking device"));
   }
 
   static getAmmoName(id: number): string {

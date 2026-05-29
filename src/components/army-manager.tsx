@@ -2,11 +2,14 @@ import * as React from "react"
 
 import { ArmyListImporter } from "./army-list-importer"
 import { useArmy } from "@/context/army-context"
+import { useSettings } from "@/context/settings-context"
 import { type ArmyList } from "@/lib/army-parser"
 import { type EnrichedArmyList, type StoredArmyList, unitService } from "@/lib/unit-service"
+import { validateActivePairAssignment } from "@/features/army/domain/pair-validation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useClipboard } from "@/shared/hooks/use-clipboard"
 import { cn } from "@/lib/utils"
 import {
   AlertCircle,
@@ -27,37 +30,24 @@ interface ArmyManagerProps {
 
 type ActiveListKey = "listA" | "listB"
 
-type PairableList = Pick<EnrichedArmyList, "armyName" | "sectoralId" | "sectoralName" | "points">
-
 export function ArmyManager({ containerClassName }: ArmyManagerProps) {
   const { lists, setLists, storedLists, deleteList } = useArmy()
+  const { settings } = useSettings()
   const { listA, listB } = lists
   const [importTarget, setImportTarget] = React.useState<ActiveListKey>("listA")
   const [loadingTarget, setLoadingTarget] = React.useState<ActiveListKey | null>(null)
   const [validationError, setValidationError] = React.useState<string | null>(null)
 
   const setActiveList = React.useCallback((key: ActiveListKey, list: EnrichedArmyList | null) => {
-    setLists({
+    return setLists({
       ...lists,
       [key]: list,
     })
   }, [lists, setLists])
 
-  const getPairValidationMessage = React.useCallback((candidate: PairableList, key: ActiveListKey) => {
-    const otherKey = key === "listA" ? "listB" : "listA"
-    const otherList = lists[otherKey]
-
-    if (!otherList) return null
-
-    if (otherList.sectoralId !== candidate.sectoralId) {
-      return `This list does not match ${otherKey === "listA" ? "List A" : "List B"}. Both active lists need to use the same sectoral (${otherList.sectoralName}).`
-    }
-
-    if (otherList.points !== candidate.points) {
-      return `This list does not match ${otherKey === "listA" ? "List A" : "List B"}. Both active lists need the same points value (${otherList.points}).`
-    }
-
-    return null
+  const getPairValidationMessage = React.useCallback((candidate: EnrichedArmyList | ArmyList, key: ActiveListKey) => {
+    const result = validateActivePairAssignment(key, candidate, lists)
+    return result.valid ? null : result.message
   }, [lists])
 
   const applyListToSlot = React.useCallback((key: ActiveListKey, list: EnrichedArmyList) => {
@@ -70,7 +60,11 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
     }
 
     setValidationError(null)
-    setActiveList(key, list)
+    const result = setActiveList(key, list)
+    if (!result.valid) {
+      setValidationError(result.message)
+      return false
+    }
     return true
   }, [getPairValidationMessage, setActiveList])
 
@@ -90,9 +84,10 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
     setLoadingTarget(importTarget)
 
     try {
-      const enriched = await unitService.enrichArmyList(list)
+      const enriched = await unitService.enrichArmyList(list, settings.measurementUnit)
       enriched.rawCode = rawCode
-      setActiveList(importTarget, enriched)
+      const result = setActiveList(importTarget, enriched)
+      if (!result.valid) setValidationError(result.message)
     } finally {
       setLoadingTarget(null)
     }
@@ -371,15 +366,11 @@ function LibraryListItem({
 }
 
 function ArmyListDisplay({ list, onClear }: { list: EnrichedArmyList; onClear: () => void }) {
-  const [copied, setCopied] = React.useState(false)
+  const { copied, copyText } = useClipboard()
 
   const handleExport = () => {
     const code = list.rawCode || ("rawBase64" in list ? (list as StoredArmyList).rawBase64 : "") || ""
-    if (!code) return
-
-    navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    void copyText(code)
   }
 
   return (

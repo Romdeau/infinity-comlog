@@ -1,24 +1,24 @@
-# Google TypeScript Style Guide Summary
+# TypeScript Style Guide
 
-This document summarizes key rules and best practices from the Google TypeScript Style Guide, which is enforced by the `gts` tool.
+This project uses the existing ESLint and TypeScript configuration as the enforceable style source. Google TypeScript Style and `gts` are not configured.
 
 ## 1. Language Features
 - **Variable Declarations:** Always use `const` or `let`. **`var` is forbidden.** Use `const` by default.
-- **Modules:** Use ES6 modules (`import`/`export`). **Do not use `namespace`.**
-- **Exports:** Use named exports (`export {MyClass};`). **Do not use default exports.**
+- **Modules:** Use ES modules (`import`/`export`). Do not use `namespace`.
+- **Exports:** Match the existing file pattern. Route/page components currently use default exports.
 - **Classes:**
   - **Do not use `#private` fields.** Use TypeScript's `private` visibility modifier.
   - Mark properties never reassigned outside the constructor with `readonly`.
   - **Never use the `public` modifier** (it's the default). Restrict visibility with `private` or `protected` where possible.
 - **Functions:** Prefer function declarations for named functions. Use arrow functions for anonymous functions/callbacks.
-- **String Literals:** Use single quotes (`'`). Use template literals (`` ` ``) for interpolation and multi-line strings.
+- **String Literals:** Match nearby code. The app currently uses both single and double quotes; do not reformat unrelated code.
 - **Equality Checks:** Always use triple equals (`===`) and not equals (`!==`).
 - **Type Assertions:** **Avoid type assertions (`x as SomeType`) and non-nullability assertions (`y!`)**. If you must use them, provide a clear justification.
 
 ## 2. Disallowed Features
 - **`any` Type:** **Avoid `any`**. Prefer `unknown` or a more specific type.
 - **Wrapper Objects:** Do not instantiate `String`, `Boolean`, or `Number` wrapper classes.
-- **Automatic Semicolon Insertion (ASI):** Do not rely on it. **Explicitly end all statements with a semicolon.**
+- **Automatic Semicolon Insertion (ASI):** Match nearby code. Do not do formatting-only semicolon churn.
 - **`const enum`:** Do not use `const enum`. Use plain `enum` instead.
 - **`eval()` and `Function(...string)`:** Forbidden.
 
@@ -40,4 +40,7 @@ This document summarizes key rules and best practices from the Google TypeScript
 - **Redundancy:** **Do not declare types in `@param` or `@return` blocks** (e.g., `/** @param {string} user */`). This is redundant in TypeScript.
 - **Add Information:** Comments must add information, not just restate the code.
 
-*Source: [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html)*
+## Tooling
+- Lint with `bun run lint`.
+- Run the full local gate with `bun run check`.
+- Tests use Vitest, not `bun:test`.

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { getRelevantSkillsForPhase } from "./army-context-mapping";
 
 describe("Army Context Mapping", () => {

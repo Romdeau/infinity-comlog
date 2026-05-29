@@ -2,7 +2,7 @@ import { useArmy } from "@/context/army-context"
 import { AlertCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function GlobalNotifications() {
+export function ArmyImportNotifications() {
   const { importErrors, clearImportErrors } = useArmy()
 
   if (importErrors.length === 0) return null
