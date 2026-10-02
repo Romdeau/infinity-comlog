@@ -1,3 +1,4 @@
+import { armyCodeFixtures } from '@/test/army-codes';
 import { renderHook, waitFor } from '@testing-library/react';
 import * as React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -15,10 +16,7 @@ describe('ArmyContext', () => {
         json: () => Promise.resolve({
           version: "1.0",
           units: [{
-            idArmy: 1, // Matches a dummy unit if needed, but the parser might produce IDs we don't know. 
-            // We need to match what the parser produces for the test base64. 
-            // For the specific base64 used in tests ("gr8Kb3BlcmF0aW9ucw..."), it's a PanO list. 
-            // However, just ensuring it returns *some* data is better than the error.
+            idArmy: 1, // Persistence tests use a minimal payload; real selections are checked in army-parser.test.ts.
             name: "Fusilier",
             isc: "Fusilier",
             profileGroups: [{
@@ -173,7 +171,7 @@ describe('ArmyContext', () => {
       sectoralName: 'PanOceania',
       points: 300,
       combatGroups: [],
-      rawBase64: 'gr8Kb3BlcmF0aW9ucwEggSwCAQoAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgA=',
+      rawBase64: armyCodeFixtures[2].code,
       schemaVersion: 0, // Outdated
       importTimestamp: 1000,
       validationHash: 'old-hash'
@@ -200,7 +198,7 @@ describe('ArmyContext', () => {
       sectoralName: 'PanOceania',
       points: 300,
       combatGroups: [],
-      rawBase64: 'gr8Kb3BlcmF0aW9ucwEggSwCAQoAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgA=',
+      rawBase64: armyCodeFixtures[2].code,
       schemaVersion: 1,
       importTimestamp: 1000,
       validationHash: 'wrong-hash'
@@ -227,7 +225,7 @@ describe('ArmyContext', () => {
       sectoralName: 'PanOceania',
       points: 300,
       combatGroups: [],
-      rawBase64: 'gr8Kb3BlcmF0aW9ucwEggSwCAQoAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgA=',
+      rawBase64: armyCodeFixtures[2].code,
       schemaVersion: 1,
       importTimestamp: 1000,
       validationHash: 'manual-reimport-test'

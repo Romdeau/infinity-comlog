@@ -52,3 +52,45 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 
 ## Phase I — Verification
 - [x] I1: `bun run check` green; theme matrix QA; migration; print; reduced-motion; a11y — 564f815 verified
+
+## Datafile renewal fix
+
+Implementation commit: `643bc67`.
+
+- [x] Support the user-supplied Team Ops export, including selected stat and skill upgrades.
+
+- [x] Replace old test exports with four current user-supplied codes and verify parsing and enrichment.
+
+- [x] Reproduce the API failure and inspect the official Army app requests.
+- [x] Fix the request origin, automate metadata renewal, and test failure handling.
+- [x] Run a live data refresh and the project verification gate.
+
+The old Origin header returns HTTP 403. The live Army app uses
+https://infinityuniverse.com, which returns both metadata and faction JSON.
+Faction 901 now has a valid unit payload upstream.
+
+Verified on 2026-10-02: all 58 faction downloads succeeded; metadata refreshed;
+118 tests, lint, production build, and sync-script type checking passed.
+Browser verification imported the Kestrel fixture with 15 named units and no
+import warnings, then displayed unit profiles and weapons in List View.
+
+Follow-up: current exports exposed the additional schema-3 special-table marker.
+The parser now tries schemas 3, 2, and 1 with complete-input validation. All four
+new fixtures resolve every unit/profile/option; older exports remain covered.
+`bun run check` passes with 125 tests. Coverage was attempted but the installed
+Bun runtime rejects the V8 coverage API. Browser verification on this worktree's
+port 5187 confirmed group sizes 8/7, 9/6, 11/6, and 10/5 with no unknown units.
+Port 5173 was found to serve an older checkout and is not used as final evidence.
+
+Team Ops follow-up: decode and retain special-table JSON attributes, apply stat,
+movement, skill, weapon, and equipment choices without mutating cached profiles.
+Verified the supplied 10/5-entry list in the browser, including BTS 5 on KAIZOKU-1,
+Mimetism (-3) on KAIZOKU HEAVY, and Tactical Awareness on KOBARUTO SPECBOT_1.
+Selections persist through reload and re-enrichment. `bun run check` passes with
+129 tests. Coverage remains unavailable under the installed Bun runtime as noted above.
+
+PR #40 conflict resolution: merged the updated main toolchain, retaining both
+data-sync commands and the current army-code fixture import. Native Windows
+verification passes lint, app/test typechecking, 129 tests, production build,
+and dependency audit. The updated Node runtime also enables V8 coverage;
+the focused parser regression suite reports 96.2% parser line coverage.

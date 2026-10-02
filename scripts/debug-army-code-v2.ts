@@ -1,3 +1,4 @@
+import { armyCodeFixtures } from '../src/test/army-codes';
 
 import { ArmyParser } from '../src/lib/army-parser.ts';
 import { unitService } from '../src/lib/unit-service.ts';
@@ -15,7 +16,7 @@ import path from 'path';
   return null;
 };
 
-const code = 'axZrZXN0cmVsLWNvbG9uaWFsLWZvcmNlDkNvbXByZWhlbnNpYmxlgSwCAQEACQAhAQQAABABAgAAhxEBBAAAhwwBAwAAhxUBAgAAhxUBAgAAhxUBBQAAg6cBAgAAEwEBAAIBAAYAhxIBAwAALgECAACHCwEJAACGIgEEAACHIAEFAACHIAEFAA%3D%3D';
+const code = armyCodeFixtures[0].code;
 
 async function run() {
   const parser = new ArmyParser(code);

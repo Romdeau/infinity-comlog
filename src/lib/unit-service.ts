@@ -190,9 +190,28 @@ class UnitService {
     }
 
     const enrichedProfiles = profileGroup.profiles.map((p) => {
+      // Each list entry owns its upgrades. Never modify the cached base profile.
+      p = { ...p, move: p.move ? [...p.move] : undefined };
       const skills = [...(p.skills || []), ...(option?.skills || [])];
       const weapons = [...(p.weapons || []), ...(option?.weapons || [])];
       const equip = [...(p.equip || []), ...(option?.equip || [])];
+      for (const attr of trooper.teamOps || []) {
+        if (attr.type === 'stat') {
+          if (attr.stat === 'move0' || attr.stat === 'move1') {
+            const index = attr.stat === 'move0' ? 0 : 1;
+            if (p.move && p.move[index] !== 255) p.move[index] = attr.q;
+          } else {
+            const base = p[attr.stat];
+            if (base !== undefined && base !== 255) p[attr.stat] = base + attr.q;
+          }
+        } else {
+          const items = attr.type === 'skill' ? skills : attr.type === 'weapon' ? weapons : equip;
+          if (!items.some(item => item.id === attr.id &&
+            (item.q ?? 1) === (attr.q ?? 1) && JSON.stringify(item.extra || []) === JSON.stringify(attr.extra || []))) {
+            items.push({ id: attr.id, q: attr.q ?? 1, ...(attr.extra ? { extra: [...attr.extra] } : {}) });
+          }
+        }
+      }
 
       return {
         name: p.name,

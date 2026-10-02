@@ -13,6 +13,8 @@
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
     "data:sync:factions": "bun scripts/fetch-faction-data.ts",
+    "data:sync:metadata": "bun scripts/fetch-metadata.ts",
+    "data:sync": "bun run data:sync:metadata && bun run data:sync:factions",
     "lint:fix": "bun run lint --fix",
     "lint:cached": "bun run lint --cache --cache-strategy content",
     "typecheck": "tsc -b && tsc -p tsconfig.test.json",

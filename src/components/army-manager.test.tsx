@@ -1,3 +1,4 @@
+import { armyCodeFixtures } from '@/test/army-codes';
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
@@ -96,7 +97,7 @@ describe("ArmyManager pair validation", () => {
     });
 
     fireEvent.change(screen.getByLabelText(/Paste Army Code/i), {
-      target: { value: "gr8Kb3BlcmF0aW9ucwEggSwCAQoAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgAAgMkBAgA=" },
+      target: { value: armyCodeFixtures[2].code },
     });
     fireEvent.click(screen.getByRole("button", { name: /parse & import list/i }));
 

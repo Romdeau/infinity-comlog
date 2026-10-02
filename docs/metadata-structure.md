@@ -83,4 +83,4 @@ These components consume the `EnrichedTrooper` object.
 ---
 
 ## 5. Maintenance
-When Corvus Belli updates the game (e.g., a new N5 patch), refresh `src/data/metadata.json` as needed, then re-fetch the faction files using `bun run data:sync:factions`.
+When Corvus Belli updates the game (e.g., a new N5 patch), run `bun run data:sync` to refresh both `src/data/metadata.json` and the faction files.
