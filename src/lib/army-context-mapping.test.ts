@@ -1,31 +1,41 @@
 import { describe, it, expect } from "vitest";
 import { getRelevantSkillsForPhase } from "./army-context-mapping";
+import type { EnrichedTrooper } from "./unit-service";
+
+function makeUnit(name: string, profiles: Partial<EnrichedTrooper["profiles"][number]>[]): EnrichedTrooper {
+  return {
+    id: 1, groupId: 1, optionId: 1,
+    name, isc: name, type: "LI", training: "Regular",
+    points: 10, swc: "0", isLieutenant: false,
+    profiles: profiles.map(profile => ({
+      mov: "4-4", cc: 10, bs: 10, ph: 10, wip: 10,
+      arm: 0, bts: 0, w: 1, s: 2, isStr: false,
+      skills: [], weapons: [], equip: [],
+      resolvedSkills: [], resolvedEquip: [], resolvedWeapons: [],
+      ...profile,
+    })),
+  };
+}
 
 describe("Army Context Mapping", () => {
   const mockUnits = [
     {
       id: "u1",
-      unit: {
-        name: "Unit A",
-        profiles: [
+      unit: makeUnit("Unit A", [
           {
             skills: [{ id: 62 }, { id: 213 }], // Regeneration, Tactical Awareness
             equip: []
           }
-        ]
-      }
+      ])
     },
     {
       id: "u2",
-      unit: {
-        name: "Unit B",
-        profiles: [
+      unit: makeUnit("Unit B", [
           {
             skills: [{ id: 256 }], // Impetuous
             equip: [{ id: 24 }] // Holomask
           }
-        ]
-      }
+      ])
     }
   ];
 
@@ -53,10 +63,7 @@ describe("Army Context Mapping", () => {
     const units = [
         {
           id: "u3",
-          unit: {
-            name: "Specialist",
-            profiles: [{ skills: [{ id: 1000 }], equip: [{ id: 106 }] }]
-          }
+          unit: makeUnit("Specialist", [{ skills: [{ id: 1000 }], equip: [{ id: 106 }] }])
         }
     ];
     const results = getRelevantSkillsForPhase(units, "orders");
@@ -67,13 +74,10 @@ describe("Army Context Mapping", () => {
      const multiProfileUnit = [
         {
           id: "u4",
-          unit: {
-            name: "Unit C",
-            profiles: [
+          unit: makeUnit("Unit C", [
               { skills: [{ id: 62 }] }, // Regeneration
               { skills: [{ id: 62 }] }  // Regeneration again
-            ]
-          }
+          ])
         }
      ];
      const results = getRelevantSkillsForPhase(multiProfileUnit, "states");

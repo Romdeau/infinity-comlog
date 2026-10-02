@@ -18,7 +18,7 @@
 
 ## Deployment & Tooling
 - **Linting:** ESLint
-- **Type-Aware Rules:** TypeScript-ESLint via the shared ESLint config
+- **TypeScript Rules:** TypeScript-ESLint recommended rules via the shared ESLint config
 - **Testing:** Vitest with Happy DOM, run through Bun scripts
 - **Deployment:** GitHub Pages artifact deployment (Subpath: `/infinity-comlog/`)
 - **Critical Requirement:** Always use `import.meta.env.BASE_URL` for assets in the `public/` folder.
@@ -34,6 +34,10 @@
 - **Build:** `bun run build`
 
 ## Environment Details
-- **Cross-Platform:** Developed on macOS and Windows (via WSL Ubuntu-24.04).
-- **WSL Constraint:** On Windows, all `bun` commands MUST be executed via WSL. Use PowerShell for `git` operations.
-- **Node/NPM Prohibited:** Strictly use `bun`. Never use `npm` or `yarn`.
+- **Cross-Platform:** macOS, Linux, and native Windows. WSL is optional; install dependencies inside the environment where commands will run.
+- **Runtime:** Bun 1.4.0 for package management and scripts; Node.js 24 LTS for Vite, Vitest, and V8 coverage. Bun runs their Node executables through package scripts.
+- **Package commands:** Strictly use `bun`. Never use `npm` or `yarn`.
+
+## Dependency maintenance, 2026-10-02
+
+Update the existing stack, including Vitest 5. Retain TypeScript 6 until TypeScript-ESLint supports the TypeScript 7 compiler API. Native Windows is supported so local checks do not require a second toolchain in WSL. Keep CI and local runtime versions aligned, remove obsolete Bun test registration, and provide cached linting, autofix, standalone typechecking, and coverage reports.

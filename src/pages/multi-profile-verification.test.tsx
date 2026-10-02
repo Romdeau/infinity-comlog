@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
 import { clearFactionDataCacheForTest, setFactionDataForTest, type FactionPayload } from '@/lib/faction-data-service';
-import { ArmyList } from '@/lib/army-parser';
+import type { ArmyList } from '@/lib/army-parser';
 import { unitService } from '@/lib/unit-service';
 import { SettingsProvider } from '@/context/settings-context';
 

@@ -33,7 +33,6 @@ describe('migrateToStoredList', () => {
     sectoralId: 101,
     combatGroups: [],
     version: 1,
-    // @ts-expect-error - legacy lists might not have name
     name: 'Legacy List' 
   } as unknown as EnrichedArmyList;
 

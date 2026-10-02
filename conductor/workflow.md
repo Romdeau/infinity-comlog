@@ -1,8 +1,8 @@
 # Project Workflow
 
 ## Critical Constraints
-- **Package Manager**: Strictly use `bun`. Never use `npm`, `yarn`, or `node`.
-- **Environment**: On Windows, use WSL for `bun` and PowerShell for `git`.
+- **Package Manager**: Strictly use `bun` for installs and scripts. Never use `npm` or `yarn`. Node runs the tools invoked by package scripts.
+- **Environment**: Native Windows and WSL are supported. Install dependencies in the environment where checks run; use PowerShell for Windows `git` operations.
 - **Subpath Deployment**: Always use `import.meta.env.BASE_URL` for assets.
 - **Git Context**: Only perform `git commit` or `git push` when completing a task or phase as specified in this workflow, or when explicitly asked.
 

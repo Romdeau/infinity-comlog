@@ -5,15 +5,6 @@ import { ArmyProvider, useArmy } from './army-context';
 
 import { SettingsProvider } from './settings-context';
 
-// Mock crypto.randomUUID
-if (!global.crypto) {
-  // @ts-expect-error - polyfilling for node
-  global.crypto = {};
-}
-if (!global.crypto.randomUUID) {
-  global.crypto.randomUUID = vi.fn(() => 'test-uuid-' + Math.random());
-}
-
 describe('ArmyContext', () => {
   beforeEach(() => {
     window.localStorage.clear();

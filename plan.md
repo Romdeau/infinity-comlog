@@ -3,6 +3,10 @@
 Source of truth for the multi-theme redesign described in `design-plan.md`.
 Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commit SHA).
 
+## Dependency and tooling maintenance, 2026-10-02
+
+- [~] Audit and update dependencies, remove obsolete overrides and test setup, improve local checks and CI, verify, and push the signed changes to GitHub.
+
 ## Phase A — Appearance Foundation
 - [x] A1: `appearance-provider.tsx` (ThemeId/Mode, resolvedMode, migration, DOM contract, system listener) + test
 - [x] A2: `src/app/themes.ts` theme metadata registry

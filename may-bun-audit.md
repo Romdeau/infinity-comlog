@@ -1,5 +1,7 @@
 # May Bun Audit Remediation Task
 
+Historical report. See the [October 2026 audit](docs/dependency-audit-2026-10.md) for current results. The old overrides and remaining advisories documented below have been resolved by parent and transitive dependency updates. Use `bun run test` for the current Vitest suite.
+
 Generated on 2026-05-28 with Bun 1.3.14 after the May package update.
 
 ## Objective
