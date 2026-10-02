@@ -1,9 +1,9 @@
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
+import { fetchArmyData } from './army-api';
 
 const METADATA_PATH = join(process.cwd(), 'src/data/metadata.json');
 const OUTPUT_DIR = join(process.cwd(), 'public/data/factions');
-const KNOWN_METADATA_ONLY_FACTIONS = new Set([901]);
 
 async function fetchFactions() {
   console.log('--- Starting Faction Data Sync ---');
@@ -31,37 +31,11 @@ async function fetchFactions() {
     console.log(`Fetching [${id}] ${name}...`);
 
     try {
-      const response = await fetch(`https://api.corvusbelli.com/army/units/en/${id}`, {
-        headers: {
-          'Origin': 'https://infinitytheuniverse.com',
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      });
-
-      if (!response.ok) {
-        const reason = `${response.status} ${response.statusText}`;
-        console.error(`  Failed to fetch ${id}: ${reason}`);
-        failures.push({ id, name, reason });
+      const data = await fetchArmyData(`units/en/${id}`);
+      if (data === null) {
+        console.log(`  Skipping ${id}. ${name} has no upstream unit payload.`);
         continue;
       }
-
-      const responseText = await response.text();
-
-      if (!responseText.trim().startsWith('{')) {
-        const reason = 'Upstream did not return a JSON faction payload';
-
-        if (KNOWN_METADATA_ONLY_FACTIONS.has(id)) {
-          console.log(`  Skipping ${id}. ${name} is metadata-only upstream.`);
-          continue;
-        }
-
-        console.error(`  Failed to fetch ${id}: ${reason}`);
-        failures.push({ id, name, reason });
-        continue;
-      }
-
-      const data = JSON.parse(responseText);
       const filePath = join(OUTPUT_DIR, `${id}.json`);
 
       writeFileSync(filePath, JSON.stringify(data, null, 2));

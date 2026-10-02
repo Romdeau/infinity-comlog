@@ -12,7 +12,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
-    "data:sync:factions": "bun scripts/fetch-faction-data.ts"
+    "data:sync:factions": "bun scripts/fetch-faction-data.ts",
+    "data:sync:metadata": "bun scripts/fetch-metadata.ts",
+    "data:sync": "bun run data:sync:metadata && bun run data:sync:factions"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -52,8 +52,8 @@ Repeated `Group Count` times.
 | Field | Type | Description |
 | :--- | :--- | :--- |
 | **Group Number** | `VarInt` | The visible group number (usually 1). |
-| **Alignment 1** | `VarInt` | Typically `1`. Required for byte alignment. |
-| **Alignment 2** | `VarInt` | Typically `0`. Required for byte alignment. |
+| **Reinforcement presence** | `Byte` | Schemas 2 and 3 only. `1` means a boolean follows; `0` means absent. |
+| **Reinforcement flag** | `Byte` | `0` or `1`, present only when the preceding marker is `1`. |
 | **Member Count** | `VarInt` | Number of troopers in this group. |
 
 ### 3. Group Members
@@ -61,11 +61,27 @@ Repeated `Member Count` times within each group.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| **Start Byte** | `Byte` | Always `0x00`. Marks start of member. |
+| **Entry ID** | `VarInt` | List entry identifier, often `0`; distinct from the unit ID. |
 | **Unit ID** | `VarInt` | Internal ID of the Unit (requires mapping DB). |
-| **Group ID** | `VarInt` | ID of the combat group this unit belongs to. |
+| **Group ID** | `VarInt` | Profile group ID within the unit, not the combat group number. |
 | **Option ID** | `VarInt` | ID of the profile/loadout option chosen. |
-| **End Byte** | `Byte` | Always `0x00`. Marks end of member. |
+| **Spec-Ops presence** | `Byte` | `0` for an ordinary selection. Custom selections carry additional data. |
+| **Special-table presence** | `Byte` | Schema 3 only. `0` when no special-table selections are present. |
+
+The live Army encoder uses schema 3, which adds the optional `spectables` field to each member. Schema 2 omits that field; schema 1 also omits the reinforcement fields. There is no explicit schema version in the code. The parser tries these layouts in order and requires a complete decode, rejecting truncated or trailing data. Legacy custom Spec-Ops payloads remain unsupported and produce an import error.
+
+### Team Ops selections
+
+When the special-table presence byte is `1`, a VarInt item count follows. Each item contains a length-prefixed JSON array of attributes. The parser preserves these as `Trooper.teamOps` so saved lists and reimports retain the choices.
+
+- `stat` attributes add `q` to the named base stat. `move0` and `move1` instead replace the corresponding movement value in centimeters before display conversion.
+- `skill`, `equip`, and `weapon` attributes add the referenced item, retaining `q` and `extra` modifiers and using the existing metadata resolvers.
+- Upgrades affect only that list entry. Cached faction profiles remain unchanged.
+- Malformed attributes and unsupported stat names produce an import error.
+
+The supplied Shindenbutai Team Ops fixture contains two groups of 10 and 5 entries. Its first three entries select BTS +2, Mimetism (-3), and Tactical Awareness respectively.
+
+Current regression exports for Kestrel, Shindenbutai, Operations, and Next Wave live in `src/test/army-codes.ts`. `src/lib/army-parser.test.ts` verifies both combat groups and every selected unit, profile group, and option against the faction files. A separate legacy fixture checks backward compatibility.
 
 ## Example Trace
 

@@ -1,80 +1,43 @@
-# Faction Data Management
+# Faction data management
 
-This project uses official Infinity Army unit data to provide contextual assistance and human-readable troop names. Because this data changes with game updates, we use a standalone script to synchronize local files with the official API.
-
-## Directory Structure
-
-- `src/data/metadata.json`: Global metadata used by the app. The faction sync script reads this file to determine which faction IDs to fetch.
-- `public/data/factions/`: One JSON file per faction, named `{factionId}.json`.
-
-## Runtime Loading
-
-- App code loads faction JSON through `src/lib/faction-data-service.ts`.
-- `getFactionDataUrl()` always prefixes URLs with `import.meta.env.BASE_URL`, so faction files work under the GitHub Pages `/infinity-comlog/` subpath.
-- `unitService` is the canonical app enrichment path for parser output.
-- The old `ArmyListService` compatibility module has been removed to keep one army enrichment path.
-- Tests can use `setFactionDataForTest()` and `clearFactionDataCacheForTest()` for deterministic faction payloads.
-
-## What Is Automated Today
-
-- `public/data/factions/*.json` can be regenerated from the Corvus Belli API.
-- `src/data/metadata.json` is a prerequisite for that process, but this repo does not currently include a dedicated script to regenerate it.
-- Direct automated metadata pulls are currently access denied, so refresh `src/data/metadata.json` manually from a live Infinity Army app copy before syncing faction files.
-
-If `metadata.json` is out of date, update that file first from the live app payload, then run the faction sync.
-
-## Synchronizing Data
-
-To regenerate the faction data from the project root, run:
+The app uses official Infinity Army metadata and unit data. Refresh both from the project root:
 
 ```bash
+bun run data:sync
+```
+
+On Windows, run Bun in WSL as described in the project guidelines.
+
+The command downloads and validates `src/data/metadata.json`, then reads its faction IDs and refreshes `public/data/factions/{id}.json`. Metadata includes weapon, skill, equipment, and hacking program definitions, so refresh it along with the faction files after game updates.
+
+You can also run either step separately:
+
+```bash
+bun run data:sync:metadata
 bun run data:sync:factions
 ```
 
-The command will:
+The faction-only command uses the existing local metadata. Both commands exit non-zero on failures. Failed or invalid downloads leave the corresponding local file unchanged. A faction run can update some files before another request fails; review the summary and rerun the command before shipping a partial refresh.
 
-1. Read faction IDs from `src/data/metadata.json`.
-2. Fetch `https://api.corvusbelli.com/army/units/en/{id}` for each faction.
-3. Write the response to `public/data/factions/{id}.json`.
-4. Skip known metadata-only factions that do not have an upstream unit payload.
-5. Exit with a non-zero status if any other faction download fails.
+## Upstream requests
 
-## Known Outlier
+- Metadata: `https://api.corvusbelli.com/army/infinity/en/metadata`
+- Factions: `https://api.corvusbelli.com/army/units/en/{id}`
+- Required request origin: `https://infinityuniverse.com`
 
-- `901` / `Non-Aligned Armies` exists in `src/data/metadata.json`, but the Corvus Belli unit endpoint does not expose a corresponding JSON payload for it.
-- The upstream URL returns `200 OK` with an XML `NoSuchKey` body instead of faction JSON.
-- The sync script treats this as a metadata-only faction and skips writing `public/data/factions/901.json`.
-- The actual loadable NA2 faction files are the child factions such as `902`, `904`, `905`, `908`, and `909`.
+The official Army site moved from `infinitytheuniverse.com` to `infinityuniverse.com`. Sending the old origin returns HTTP 403, even though the API URLs have not changed. If access fails again, inspect the live Army app's domain and requests before changing endpoints.
 
-## Recommended Regeneration Workflow
-
-1. Confirm `src/data/metadata.json` reflects the Infinity Army data version you want to ship.
-2. Run `bun run data:sync:factions`.
-3. Review the command output for any failed faction IDs.
-4. Inspect the changed files in `public/data/factions/`.
-5. Run the app or relevant tests before committing.
+Faction `901`, Non-Aligned Armies, previously returned HTTP 200 with an XML `NoSuchKey` body. It now returns valid unit data and is saved normally. The script retains a skip only for that specific missing-key response on `901`; other invalid responses are failures.
 
 ## Verification
 
-After syncing:
+1. Run `bun run data:sync` and check that no downloads failed.
+2. Review changes in `src/data/metadata.json` and `public/data/factions/`.
+3. Run `bun run check`.
+4. Open the app and import or refresh a saved army list to check unit names and profiles.
 
-- The command should finish without listing any failed faction IDs.
-- It is expected to log a skip for `901` / `Non-Aligned Armies` unless the upstream API changes.
-- Updated files should appear under `public/data/factions/`.
-- The top-level `version` field inside a faction JSON should match the upstream Infinity Army payload for that refresh.
+Faction payloads include an upstream `version` field. Versions can differ between factions.
 
-### How it works
-1. It reads `src/data/metadata.json` to identify all valid faction IDs.
-2. It makes a request to `https://api.corvusbelli.com/army/units/en/{id}` for each faction.
-3. It includes the required `Origin: https://infinitytheuniverse.com` header to bypass access restrictions.
-4. It saves the resulting JSON into `public/data/factions/{id}.json`.
+## Runtime loading
 
-## Data Format
-
-The resulting files contain the full response from the Corvus Belli API, which includes:
-- **Units**: High-level troop information.
-- **Profiles**: Specific stats (MOV, CC, BS, etc.).
-- **Options**: Loadout choices (Weapons, Skills, Costs).
-
-## Frequency
-You should run this script whenever a new N5 balance update or new faction is released by Corvus Belli.
+App code loads faction JSON through `src/lib/faction-data-service.ts`. `getFactionDataUrl()` prefixes URLs with `import.meta.env.BASE_URL` for the GitHub Pages `/infinity-comlog/` subpath. `unitService` enriches parser output. Tests use `setFactionDataForTest()` and `clearFactionDataCacheForTest()` for deterministic payloads.

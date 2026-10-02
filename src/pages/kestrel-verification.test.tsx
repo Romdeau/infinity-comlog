@@ -1,3 +1,4 @@
+import { armyCodeFixtures } from '@/test/army-codes';
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render } from '@testing-library/react';
 import ArmyListViewPage from './army-list-view';
@@ -36,7 +37,7 @@ describe('Kestrel List Verification', () => {
   });
 
   it('Parses and Hydrates Kestrel List correctly (Unit 935 -> Tech-Bee)', async () => {
-    const kestrelCode = 'axZrZXN0cmVsLWNvbG9uaWFsLWZvcmNlDkNvbXByZWhlbnNpYmxlgSwCAQEACQAhAQQAABABAgAAhxEBBAAAhwwBAwAAhxUBAgAAhxUBAgAAhxUBBQAAg6cBAgAAEwEBAAIBAAYAhxIBAwAALgECAACHCwEJAACGIgEEAACHIAEFAACHIAEFAA%3D%3D';
+    const kestrelCode = armyCodeFixtures[0].code;
 
     // 1. Parse
     const parser = new ArmyParser(kestrelCode);
