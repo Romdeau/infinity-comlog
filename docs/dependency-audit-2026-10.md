@@ -25,6 +25,7 @@ All 11 May overrides were removed. Updated parent packages now resolve patched d
 - `bun run lint:cached` passed with both a cold and warm cache, including after coverage generation.
 - `bun outdated` lists only the deliberately retained TypeScript and Node type majors.
 - Test typechecking exposed incomplete fixtures, unused imports, a stale suppression, and an obsolete crypto polyfill. These were corrected without changing application behavior.
+- Browser smoke checks passed for startup at `/infinity-comlog/`, settings navigation, Rebellion/dark appearance changes, game-session creation, and the game screen at a 390px mobile viewport. This was a limited smoke check, not a full device or UI regression suite. The preview tool could not target the mission selector, so mission-selection interaction was not manually verified.
 
 ## Direct package inventory
 

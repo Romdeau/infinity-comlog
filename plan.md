@@ -5,7 +5,7 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 
 ## Dependency and tooling maintenance, 2026-10-02
 
-- [~] Audit and update dependencies, remove obsolete overrides and test setup, improve local checks and CI, verify, and push the signed changes to GitHub.
+- [x] Audit and update dependencies, remove obsolete overrides and test setup, improve local checks and CI, and verify. Implementation: e643093. Push the signed maintenance branch to GitHub after recording this completion.
 
 ## Phase A — Appearance Foundation
 - [x] A1: `appearance-provider.tsx` (ThemeId/Mode, resolvedMode, migration, DOM contract, system listener) + test
