@@ -32,11 +32,11 @@ Before making changes, read **[PROJECT_GUIDELINES.md](./PROJECT_GUIDELINES.md)**
 
 ## Local Development
 
-To run this project locally, you will need [Bun](https://bun.sh/) installed.
+Install [Bun](https://bun.sh/) 1.4.0 and Node.js 24 LTS. Bun manages dependencies and scripts; Vite and Vitest use Node, including V8 coverage. Native Windows, macOS, and Linux are supported. WSL is optional; install dependencies inside the environment where you run the app.
 
 1. **Install dependencies**:
    ```bash
-   bun install
+   bun install --frozen-lockfile
    ```
 
 2. **Run the development server**:
@@ -45,12 +45,14 @@ To run this project locally, you will need [Bun](https://bun.sh/) installed.
    ```
 
 3. **Open the app**:
-    Navigate to `http://localhost:5173/` in your browser.
+    Navigate to `http://localhost:5173/infinity-comlog/` in your browser.
 
 4. **Run the full verification gate**:
    ```bash
    bun run check
    ```
+
+For faster feedback while editing, use `bun run lint:cached`, `bun run lint:fix`, `bun run typecheck`, or `bun run test:watch`. See [Testing](./docs/testing.md) for focused test commands and coverage reports, and the [October dependency audit](./docs/dependency-audit-2026-10.md) for update decisions.
 
 ---
 

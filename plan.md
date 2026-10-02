@@ -3,6 +3,10 @@
 Source of truth for the multi-theme redesign described in `design-plan.md`.
 Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commit SHA).
 
+## Dependency and tooling maintenance, 2026-10-02
+
+- [x] Audit and update dependencies, remove obsolete overrides and test setup, improve local checks and CI, and verify. Implementation: e643093. Push the signed maintenance branch to GitHub after recording this completion.
+
 ## Phase A — Appearance Foundation
 - [x] A1: `appearance-provider.tsx` (ThemeId/Mode, resolvedMode, migration, DOM contract, system listener) + test
 - [x] A2: `src/app/themes.ts` theme metadata registry
@@ -84,3 +88,9 @@ Verified the supplied 10/5-entry list in the browser, including BTS 5 on KAIZOKU
 Mimetism (-3) on KAIZOKU HEAVY, and Tactical Awareness on KOBARUTO SPECBOT_1.
 Selections persist through reload and re-enrichment. `bun run check` passes with
 129 tests. Coverage remains unavailable under the installed Bun runtime as noted above.
+
+PR #40 conflict resolution: merged the updated main toolchain, retaining both
+data-sync commands and the current army-code fixture import. Native Windows
+verification passes lint, app/test typechecking, 129 tests, production build,
+and dependency audit. The updated Node runtime also enables V8 coverage;
+the focused parser regression suite reports 96.2% parser line coverage.

@@ -6,7 +6,7 @@ The app uses official Infinity Army metadata and unit data. Refresh both from th
 bun run data:sync
 ```
 
-On Windows, run Bun in WSL as described in the project guidelines.
+On Windows, native PowerShell and WSL are supported. Install dependencies in the environment where you run the commands.
 
 The command downloads and validates `src/data/metadata.json`, then reads its faction IDs and refreshes `public/data/factions/{id}.json`. Metadata includes weapon, skill, equipment, and hacking program definitions, so refresh it along with the faction files after game updates.
 

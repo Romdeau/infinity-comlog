@@ -10,6 +10,12 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     setupFiles: ["./src/setupTests.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.test.{ts,tsx}", "src/setupTests.ts", "src/shared/types/**"],
+    },
   },
   server: {
     watch: {
@@ -18,9 +24,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "react": path.resolve(__dirname, "node_modules/react"),
-      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+      "@": path.resolve(import.meta.dirname, "./src"),
+      "react": path.resolve(import.meta.dirname, "node_modules/react"),
+      "react-dom": path.resolve(import.meta.dirname, "node_modules/react-dom"),
     },
   },
 })
