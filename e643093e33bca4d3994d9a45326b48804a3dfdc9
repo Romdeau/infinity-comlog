@@ -1,0 +1,31 @@
+Dependency audit and local tooling maintenance, 2026-10-02.
+
+Updated direct and transitive packages and removed eleven obsolete overrides to resolve 67 reported advisories. Retained TypeScript 6 for ESLint compatibility and Node 24 types for the LTS runtime. Added cached/fix lint scripts, Vitest lint rules, typechecking of tests, useful coverage reports, native Windows instructions, and Linux/Windows CI. Corrected test fixtures exposed by the new typecheck. No application behavior changed.
+
+Verification: frozen install, bun run check (113 tests in 33 files), coverage, cold/warm lint cache, lint autofix, focused test filtering, and zero-advisory bun audit passed. Limited browser smoke covered startup, settings/theme, session creation, and mobile layout. Mission selector interaction was not verified because the preview locator failed.
+
+Files:
+.github/copilot-instructions.md
+.github/workflows/ci.yml
+.github/workflows/deploy.yml
+.gitignore
+.node-version
+README.md
+bun.lock
+bunfig.toml
+conductor/tech-stack.md
+conductor/workflow.md
+docs/dependency-audit-2026-10.md
+docs/testing.md
+eslint.config.js
+may-bun-audit.md
+package.json
+plan.md
+src/components/army-manager.test.tsx
+src/components/strategic-hints.test.tsx
+src/context/army-context.test.tsx
+src/lib/army-context-mapping.test.ts
+src/lib/unit-service.test.ts
+src/pages/multi-profile-verification.test.tsx
+tsconfig.test.json
+vite.config.ts
