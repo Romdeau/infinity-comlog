@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
 import { InfinityGameFlow } from "./infinity-game-flow";
-import * as React from "react";
 import { GameContext, type GameContextType, type GameSession, type PlayerTurnState } from "@/context/game-context-core";
 import type { EnrichedArmyList } from "@/lib/unit-service";
 

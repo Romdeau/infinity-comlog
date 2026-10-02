@@ -9,9 +9,9 @@ This project follows a specific workflow managed via the `conductor` folder. **P
 
 ## CRITICAL CONSTRAINTS (Environment Specific)
 - **NO AUTOMATIC GIT OPERATIONS**: Never execute `git commit` or `git push` unless explicitly asked.
-- **WSL FOR BUN**: On Windows, all `bun` commands must run inside WSL (`wsl -d Ubuntu-24.04`). 
+- **WINDOWS**: Native Windows and WSL are supported. Install dependencies in the environment where commands run.
 - **SUBPATH DEPLOYMENT**: App is deployed to `/infinity-comlog/`. Always use `import.meta.env.BASE_URL` when referencing assets.
-- **BUN ONLY**: Never use `npm`, `yarn`, or `node` for scripts/installs.
+- **BUN ONLY**: Use `bun` for scripts and installs, never `npm` or `yarn`. Package scripts invoke Node-based tools.
 
 ## Coding Style
 - Follow the patterns in `conductor/code_styleguides/`.
