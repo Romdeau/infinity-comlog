@@ -1,0 +1,23 @@
+Track F part 2 — Game Sequence (§9.4) refactor + redesign.
+
+Extracted from infinity-game-flow.tsx (1065 lines):
+- src/data/booty-table.ts (BOOTY_TABLE_LEFT/RIGHT).
+- src/components/game-flow/game-flow-state.ts (GameState/GameTurn/PlayerTurn/
+  RoundObjective types; isRoundObjective; updateTurn; updateTurnPlayer;
+  toggleRoundObjective; toggleScoringObjective).
+- src/components/game-flow/contextual-hints.tsx (ContextualHints +
+  BootyPopover). infinity-game-flow.tsx re-exports { ContextualHints } so the
+  existing test import path still works.
+
+Redesign in infinity-game-flow.tsx:
+- Removed Card/CardHeader/CardFooter; now a Panel.
+- FlowStatusCard helper removed; status strip rebuilt with Readout tiles.
+- StatusPip for player-complete; status-danger tokens for role warning.
+- session-manager.tsx: green-500 -> status-complete.
+
+Test contract preserved: exact texts (Deployment Assistance / Phase Hints /
+attacker / defender / 5. Final Scoring / objective texts), line-through class,
+checkbox role.
+
+Verification: lint clean, 113 tests, build ok. game-flow files free of
+hardcoded color classes (verified via grep).

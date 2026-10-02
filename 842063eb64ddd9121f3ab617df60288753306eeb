@@ -1,0 +1,5 @@
+Manual Verification Steps:
+1. Start development server: bun run dev
+2. Export list: verified copy to clipboard.
+3. Re-import all: verified execution and feedback in Settings.
+User Confirmation: Received 'yes'.

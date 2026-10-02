@@ -1,0 +1,30 @@
+Tracks H & I sign-off (no app-source changes; verification + plan bookkeeping).
+
+H1 — Hardcoded-color gate:
+- grep over src/**/*.{ts,tsx} (excluding *.test, chart-palette, print-styles)
+  for bg/text/border <tailwind-color>-<num>, text-white, bg-white => ZERO hits.
+- Allowed remainders: chart-palette.ts readVar() fallbacks
+  (currentColor/#ffffff/#cbd5e1); print-styles.tsx intentional black-on-white
+  print palette; range-band.test.tsx negative assertions (bg-green-/bg-red-
+  must be null). App source is token-only.
+
+I1 — Final verification:
+- bun run check (lint + 113 tests + tsc/vite build) green.
+- Theme matrix: [data-theme=hardscifi|orbital|rebellion|drifter] each define
+  light + .dark blocks. Light blocks carry structural tokens (--motion-*,
+  --ease-standard, --radius, --text-*-tracking, --frame-clip, --grid-cell,
+  --panel-*); .dark overrides only color tokens and adds --color-sidebar-*.
+  Color/status/chart/band/surface token KEY sets identical light vs dark
+  (only structural --grid-cell differs, inherited via cascade).
+- Reduced motion: @media (prefers-reduced-motion: reduce) disables
+  .scanline::after animation.
+- Subpath deploy: app-sidebar logo via import.meta.env.BASE_URL; no url()
+  asset refs in CSS that would break under base path.
+- Migration safety: no localStorage.clear()/removeItem() in app source
+  (only setupTests.ts). Stored data + game sessions preserved. Theme key
+  stable: STORAGE_KEYS.theme = 'infinity-theme'.
+- a11y: appearance-panel theme cards use aria-pressed; mode control uses
+  role=radiogroup/radio + aria-checked + aria-label; decorative swatches
+  aria-hidden.
+- Print: print-styles.tsx neutralizes .panel-frame/.card/.grid-bg to
+  black-on-white, theme-independent.

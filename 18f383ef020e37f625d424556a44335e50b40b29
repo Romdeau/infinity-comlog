@@ -1,0 +1,8 @@
+Task: Implement Missing N5 Sequence Phases in UI
+
+Summary:
+- Added 'Strategic Use' GameStep to the UI
+- Updated 'Orders Phase' GameStep to use the new .done property
+- Verified layout on mobile (mental/build check)
+
+Why: To allow players to track Turn 1 Strategic Use of Command Tokens and ensure compatibility with the updated state structure.

@@ -1,0 +1,35 @@
+Track G — Reference / Lists / Analysis / Settings redesign (§9.1, §9.3, §9.5, §9.6).
+
+New files:
+- src/lib/chart-palette.ts: runtime token chart palette. getChartPalette()
+  returns ordered --chart-1..7; getChartChrome() returns grid/axis/tooltip
+  surfaces from --grid-line/--card/--border. useChartPalette() memoizes on
+  themeId+resolvedMode (exhaustive-deps disabled so it re-reads CSS vars on
+  theme/mode change). Fallbacks (currentColor/#ffffff/#cbd5e1) only.
+- src/components/appearance-panel.tsx: theme card grid + Light/Dark/System
+  segmented control wired to useAppearance().
+
+Redesigns:
+- list-analysis.tsx: PageHeader + Panel; summary metrics as Readout tiles
+  (Order Pool/Specialists/SWC Usage/Troop Types); recharts colored via
+  useChartPalette. Empty state via PageHeader 'No Army Lists Loaded'.
+- army-manager.tsx: three top-level Card -> Panel; font-display titles;
+  inline 'uppercase tracking-[0.18em] text-muted-foreground' -> text-ui-label.
+- order-reference.tsx: eyebrow Reference -> Field Manual.
+- turn-reference.tsx: intro section -> Panel; Card ActionLinkCard -> bg-surface-2
+  token surface; font-display headers; dropped Card import.
+- hacking-reference.tsx: device dots bg-{red,green,blue,orange}-500 ->
+  bg-status-{danger,complete,info,warning}.
+- settings.tsx: PageHeader 'System Configuration'; Appearance/Display/Data
+  Panels; AppearancePanel at top; green-500 -> status-complete.
+
+Test contract:
+- list-analysis.test.tsx updated: Card data-slot='card-title' selector removed
+  (Card -> Readout); now asserts Order Pool Readout label presence. Behavior
+  (metric shown) preserved.
+
+Hardcoded-color gate (Track H precheck): only remaining matches are
+print-styles.tsx #cbd5e1 (intentional neutral print color) and a range-band
+test class assertion. App source is otherwise token-only.
+
+Verification: bun run lint clean; bun run test 113 passing; bun run build ok.

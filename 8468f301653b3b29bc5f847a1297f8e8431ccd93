@@ -1,0 +1,6 @@
+Automated Test Command: bun test
+Manual Verification Steps:
+1. Start development server: bun run dev
+2. Open browser to: http://localhost:5173
+3. Import a list and verify rawBase64 and metadata in LocalStorage.
+User Confirmation: Received 'yes'.

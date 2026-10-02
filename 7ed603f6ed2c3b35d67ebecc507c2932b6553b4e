@@ -1,0 +1,3 @@
+Task: Implement Skill-to-Phase Mapping
+Summary: Integrated the skill-to-phase mapping logic into the InfinityGameFlow component. Replaced the hardcoded setup assistance with a generalized ContextualHints component that shows relevant unit skills for each phase of the game (Tactical, Impetuous, Orders, States).
+Files: src/components/infinity-game-flow.tsx, src/lib/army-context-mapping.ts

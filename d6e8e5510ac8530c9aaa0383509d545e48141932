@@ -1,0 +1,19 @@
+Track F part 1 — List View (§9.2) refactor + redesign.
+
+New modules (src/components/list-view/):
+- list-view-helpers.ts: getUnitProfiles/getProfileWeapons/getResolvedSkillNames/
+  getResolvedEquipmentNames/getProfileWeaponIds + types.
+- print-styles.tsx: PrintStyles, theme-independent @media print (neutralizes
+  .panel-frame/.card/.grid-bg to black-on-white).
+- weapon-chart.tsx: fire-control table; preserves 'Range (Inches)'/'Range (cm)'
+  header text (test depends on it); uses shared RangeBand.
+- unit-detail-dialog.tsx: full-screen dossier; StatLine + RangeBand + Readout.
+- unit-card.tsx: dossier panel-frame; StatLine; status/band tokens.
+- list-view.tsx + index.ts barrel.
+
+Page army-list-view.tsx reduced 708 -> ~75 lines (thin shell).
+
+Token fixes: status utilities are status-complete/warning/info (not ok/warn).
+
+Verification: lint clean, 113 tests pass (existing army-list-view.test.tsx
+behaviour preserved), build ok.

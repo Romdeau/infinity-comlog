@@ -1,0 +1,10 @@
+Task: Write Tests for Missing N5 Sequence Phases (Audit against rules)
+
+Summary:
+- Audited N5 game sequence requirements
+- Added 'strategicUse' field to initiationSubSteps
+- Updated 'orders' field in PlayerTurnState to be an object
+- Updated GameProvider and helpers to support new fields
+- Added unit tests for new logic in game-flow-helpers.test.ts
+
+Why: To support the full N5 game sequence including Turn 1 Strategic Use and detailed Order Pool tracking.
