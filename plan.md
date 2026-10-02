@@ -51,6 +51,8 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 
 ## Datafile renewal fix
 
+Implementation commit: `643bc67`.
+
 - [x] Support the user-supplied Team Ops export, including selected stat and skill upgrades.
 
 - [x] Replace old test exports with four current user-supplied codes and verify parsing and enrichment.
