@@ -5,22 +5,27 @@ import { Label } from "@/components/ui/label"
 import { ArmyParser, type ArmyList } from "@/lib/army-parser"
 import { FileCode, AlertCircle } from "lucide-react"
 
-export function ArmyListImporter({ onListParsed }: { onListParsed?: (list: ArmyList | null, rawCode: string) => void }) {
+export function ArmyListImporter({ onListParsed }: { onListParsed?: (list: ArmyList | null, rawCode: string) => boolean | Promise<boolean> }) {
   const [code, setCode] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
+  const [isImporting, setIsImporting] = React.useState(false)
 
-  const handleParse = () => {
+  const handleParse = async () => {
     setError(null)
-    if (!code.trim()) return
+    if (!code.trim() || isImporting) return
 
+    setIsImporting(true)
     try {
       const cleanCode = code.replace(/\s/g, "")
       const parser = new ArmyParser(cleanCode)
       const list = parser.parse()
-      if (onListParsed) onListParsed(list, cleanCode)
+      const imported = await onListParsed?.(list, cleanCode)
+      if (imported) setCode("")
     } catch (e) {
       setError("Failed to parse army code. Please check the code and try again.")
       console.error(e)
+    } finally {
+      setIsImporting(false)
     }
   }
 
@@ -34,6 +39,7 @@ export function ArmyListImporter({ onListParsed }: { onListParsed?: (list: ArmyL
           id="army-code"
           placeholder="e.g. hE4Mc2hpbmRl..."
           value={code}
+          disabled={isImporting}
           onChange={(e) => setCode(e.target.value)}
           className="min-h-[100px] text-[10px] font-mono resize-none leading-relaxed bg-muted/20 border-border/50 focus:border-primary/50"
         />
@@ -41,7 +47,7 @@ export function ArmyListImporter({ onListParsed }: { onListParsed?: (list: ArmyL
           onClick={handleParse}
           size="sm"
           className="w-full text-xs font-bold h-9 shadow-sm"
-          disabled={!code.trim()}
+          disabled={!code.trim() || isImporting}
         >
           <FileCode className="mr-2 size-3.5" />
           Parse & Import List
