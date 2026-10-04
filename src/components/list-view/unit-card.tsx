@@ -1,7 +1,6 @@
-import { InfoIcon, Maximize2Icon } from "lucide-react"
+import { InfoIcon, Maximize2Icon, StarIcon } from "lucide-react"
 
 import type { EnrichedTrooper } from "@/lib/unit-service"
-import { WEAPON_DATA } from "@/lib/weapon-data"
 import { MetadataService } from "@/lib/metadata-service"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -9,18 +8,38 @@ import { Button } from "@/components/ui/button"
 import { StatLine } from "@/components/system"
 import {
   getProfileWeapons,
+  getWeaponModeGroups,
   getResolvedEquipmentNames,
   getResolvedSkillNames,
   getUnitProfiles,
 } from "./list-view-helpers"
+import { UnitOrders } from "./order-summary"
+import { DevicePrograms } from "./device-programs"
 import { UnitDetailDialog } from "./unit-detail-dialog"
 
 /** Dossier panel for a single trooper. */
-export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
+export function UnitCard({
+  unit,
+  fireteams,
+}: {
+  unit: EnrichedTrooper
+  fireteams?: React.ReactNode
+}) {
   const profiles = getUnitProfiles(unit)
 
   return (
-    <div className="card panel-frame flex h-full flex-col overflow-hidden break-inside-avoid rounded-lg">
+    <div
+      className={cn(
+        "card panel-frame flex h-full flex-col overflow-hidden break-inside-avoid rounded-lg",
+        unit.isLieutenant && "ring-2 ring-primary"
+      )}
+    >
+      {unit.isLieutenant && (
+        <div className="flex items-center gap-2 bg-primary px-3 py-1.5 text-xs font-bold tracking-widest text-primary-foreground uppercase">
+          <StarIcon className="size-4" />
+          Lieutenant
+        </div>
+      )}
       <div className="border-b border-border/60 bg-muted/30 px-3 pt-2.5 pb-2">
         <div className="flex flex-col gap-1">
           <div className="flex items-start justify-between gap-3">
@@ -37,7 +56,7 @@ export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
                 </div>
               )}
               <div className="min-w-0">
-                <div className="truncate font-display text-sm leading-none font-semibold tracking-tight uppercase">
+                <div className="break-words font-display text-sm leading-tight font-semibold tracking-tight uppercase">
                   {unit.name}
                 </div>
                 <div className="mt-1.5 flex items-center gap-1.5 text-[9px] font-bold tracking-wider text-muted-foreground uppercase">
@@ -46,8 +65,10 @@ export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
                   <span
                     className={cn(
                       "shrink-0",
-                      unit.training?.toUpperCase() === "REGULAR" && "text-status-complete",
-                      unit.training?.toUpperCase() === "IRREGULAR" && "text-status-warning"
+                      unit.training?.toUpperCase() === "REGULAR" &&
+                        "text-status-complete",
+                      unit.training?.toUpperCase() === "IRREGULAR" &&
+                        "text-status-warning"
                     )}
                   >
                     {unit.training}
@@ -76,6 +97,7 @@ export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
               <UnitDetailDialog unit={unit}>
                 <Button
                   variant="ghost"
+                  aria-label={`View ${unit.name} details`}
                   size="icon"
                   className="size-6 shrink-0 transition-colors hover:bg-primary/10 print:hidden"
                 >
@@ -91,19 +113,27 @@ export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
         </div>
       </div>
 
+      <UnitOrders unit={unit} />
+      {fireteams}
       <div className="flex flex-1 flex-col p-0">
         {profiles.length > 0 ? (
           profiles.map((profile, pIdx) => {
             const resolvedSkills = getResolvedSkillNames(profile)
             const resolvedEquip = getResolvedEquipmentNames(profile)
-            const weapons = getProfileWeapons(profile)
+            const weapons = getProfileWeapons(profile).flatMap((weapon) =>
+              getWeaponModeGroups(weapon.id).map((modes) => ({
+                ...weapon,
+                modes,
+              }))
+            )
 
             return (
               <div
                 key={pIdx}
                 className={cn(
                   "flex flex-col",
-                  pIdx > 0 && "mt-2 border-t-2 border-dashed border-border/60 pt-2"
+                  pIdx > 0 &&
+                    "mt-2 border-t-2 border-dashed border-border/60 pt-2"
                 )}
               >
                 {profiles.length > 1 && (
@@ -133,7 +163,10 @@ export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
                       <div className="text-ui-label">Skills</div>
                       <div className="flex flex-wrap gap-x-1.5 gap-y-0.5">
                         {resolvedSkills.map((s, idx) => (
-                          <span key={idx} className="text-[10px] font-bold text-foreground/90">
+                          <span
+                            key={idx}
+                            className="text-[10px] font-bold text-foreground/90"
+                          >
                             {s}
                             {idx < resolvedSkills.length - 1 ? "," : ""}
                           </span>
@@ -151,7 +184,7 @@ export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
                             key={idx}
                             className="text-[10px] font-bold text-foreground/80 italic"
                           >
-                            {e}
+                            <DevicePrograms name={e} profile={profile} />
                             {idx < resolvedEquip.length - 1 ? "," : ""}
                           </span>
                         ))}
@@ -164,7 +197,7 @@ export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
                       <div className="text-ui-label">Weapons</div>
                       <div className="grid gap-1.5">
                         {weapons.map((w, idx) => {
-                          const modes = WEAPON_DATA[w.id]
+                          const modes = w.modes
                           if (!modes)
                             return (
                               <div
@@ -175,37 +208,49 @@ export function UnitCard({ unit }: { unit: EnrichedTrooper }) {
                               </div>
                             )
 
-                          return modes.map((m, mIdx) => (
+                          return (
                             <div
-                              key={`${idx}-${mIdx}`}
-                              className="flex items-start justify-between gap-3 border-b border-border/40 pb-1 last:border-0 last:pb-0"
+                              key={idx}
+                              className="overflow-hidden rounded border border-border/70 bg-muted/10"
                             >
-                              <div className="flex min-w-0 flex-1 flex-col">
-                                <div className="font-display text-[10px] leading-tight font-semibold tracking-tight break-words text-primary uppercase">
-                                  {m.name}{" "}
-                                  {modes.length > 1 && (
-                                    <span className="text-[8px] font-bold text-muted-foreground italic">
-                                      ({m.mode})
-                                    </span>
-                                  )}
-                                </div>
-                                {m.traits.length > 0 && (
-                                  <div className="mt-0.5 text-[8px] leading-snug break-words text-muted-foreground">
-                                    {m.traits.join(", ")}
-                                  </div>
+                              <div className="flex items-center justify-between gap-2 bg-muted/50 px-2 py-1 font-display text-[11px] font-semibold text-primary uppercase">
+                                {modes[0].name}
+                                {modes.length > 1 && (
+                                  <span className="text-[9px] text-muted-foreground">
+                                    {modes.length} profiles
+                                  </span>
                                 )}
                               </div>
-                              <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
-                                <WeaponStat label="PS" value={m.damage} />
-                                <WeaponStat label="B" value={m.burst} />
-                                <WeaponStat
-                                  label="Ammo"
-                                  value={m.ammo}
-                                  className="text-status-info"
-                                />
+                              <div className="space-y-1 border-l-2 border-primary/30 p-2">
+                                {modes.map((m, mIdx) => (
+                                  <div
+                                    key={`${idx}-${mIdx}`}
+                                    className="flex items-start justify-between gap-3 border-b border-border/40 pb-1 last:border-0 last:pb-0"
+                                  >
+                                    <div className="flex min-w-0 flex-1 flex-col">
+                                      <div className="font-display text-[10px] leading-tight font-semibold tracking-tight break-words text-primary uppercase">
+                                        {m.mode || "Standard"}
+                                      </div>
+                                      {m.traits.length > 0 && (
+                                        <div className="mt-0.5 text-[8px] leading-snug break-words text-muted-foreground">
+                                          {m.traits.join(", ")}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
+                                      <WeaponStat label="PS" value={m.damage} />
+                                      <WeaponStat label="B" value={m.burst} />
+                                      <WeaponStat
+                                        label="Ammo"
+                                        value={m.ammo}
+                                        className="text-status-info"
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
-                          ))
+                          )
                         })}
                       </div>
                     </div>
@@ -238,7 +283,12 @@ function WeaponStat({
       <span className="mb-0.5 text-[6px] leading-none font-bold text-muted-foreground uppercase">
         {label}
       </span>
-      <span className={cn("hud-readout text-[9px] leading-none font-semibold", className)}>
+      <span
+        className={cn(
+          "hud-readout text-[9px] leading-none font-semibold",
+          className
+        )}
+      >
         {value}
       </span>
     </div>

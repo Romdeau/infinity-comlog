@@ -1,8 +1,9 @@
 import * as React from "react"
 
+import { UnitOrders } from "./order-summary"
+import { DevicePrograms } from "./device-programs"
 import { useSettings } from "@/context/settings-context"
 import type { EnrichedTrooper } from "@/lib/unit-service"
-import { WEAPON_DATA } from "@/lib/weapon-data"
 import { MetadataService } from "@/lib/metadata-service"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -15,6 +16,7 @@ import {
 import { RangeBand, Readout, StatLine } from "@/components/system"
 import {
   getProfileWeapons,
+  getWeaponModeGroups,
   getResolvedEquipmentNames,
   getResolvedSkillNames,
   getUnitProfiles,
@@ -50,25 +52,48 @@ export function UnitDetailDialog({
             <div className="flex items-start justify-between gap-4">
               <div className="flex min-w-0 items-center gap-4">
                 {unit.logo && (
-                  <img src={unit.logo} alt="" className="size-10 shrink-0 object-contain" />
+                  <img
+                    src={unit.logo}
+                    alt=""
+                    className="size-10 shrink-0 object-contain"
+                  />
                 )}
                 <div className="min-w-0">
                   <DialogTitle className="truncate font-display text-2xl leading-none font-semibold tracking-[var(--text-display-tracking)] uppercase">
                     {unit.name}
+                    {unit.isLieutenant && (
+                      <Badge className="ml-3">Lieutenant</Badge>
+                    )}
                   </DialogTitle>
                   <div className="mt-2 flex items-center gap-2">
-                    <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-bold tracking-widest uppercase">
+                    <Badge
+                      variant="outline"
+                      className="h-4 px-1.5 text-[8px] font-bold tracking-widest uppercase"
+                    >
                       {unit.type}
                     </Badge>
-                    <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-bold tracking-widest uppercase">
+                    <Badge
+                      variant="outline"
+                      className="h-4 px-1.5 text-[8px] font-bold tracking-widest uppercase"
+                    >
                       {unit.training}
                     </Badge>
                   </div>
                 </div>
               </div>
               <div className="flex shrink-0 gap-4">
-                <Readout label="Points" value={unit.points} size="md" align="center" />
-                <Readout label="SWC" value={unit.swc} size="md" align="center" />
+                <Readout
+                  label="Points"
+                  value={unit.points}
+                  size="md"
+                  align="center"
+                />
+                <Readout
+                  label="SWC"
+                  value={unit.swc}
+                  size="md"
+                  align="center"
+                />
               </div>
             </div>
 
@@ -78,12 +103,18 @@ export function UnitDetailDialog({
           </div>
         </DialogHeader>
 
+        <UnitOrders unit={unit} />
         <div className="flex-1 overflow-y-auto bg-muted/5 p-4">
           <div className="mx-auto max-w-[1600px] space-y-6">
             {profiles.map((profile, pIdx) => {
               const resolvedSkills = getResolvedSkillNames(profile)
               const resolvedEquip = getResolvedEquipmentNames(profile)
-              const weapons = getProfileWeapons(profile)
+              const weapons = getProfileWeapons(profile).flatMap((weapon) =>
+                getWeaponModeGroups(weapon.id).map((modes) => ({
+                  ...weapon,
+                  modes,
+                }))
+              )
 
               return (
                 <div
@@ -95,7 +126,12 @@ export function UnitDetailDialog({
                       <span className="size-2 rounded-full bg-primary" />
                       {profile.name || "Unit Profile"}
                     </div>
-                    <Readout label="Silhouette" value={`S${profile.s}`} size="sm" align="center" />
+                    <Readout
+                      label="Silhouette"
+                      value={`S${profile.s}`}
+                      size="sm"
+                      align="center"
+                    />
                   </div>
 
                   <StatLine
@@ -140,7 +176,7 @@ export function UnitDetailDialog({
                               variant="outline"
                               className="rounded border-border px-2 py-0.5 text-[10px] font-bold italic"
                             >
-                              {e}
+                              <DevicePrograms name={e} profile={profile} />
                             </Badge>
                           ))}
                         </div>
@@ -151,7 +187,7 @@ export function UnitDetailDialog({
                       <SectionLabel>Weapon Systems</SectionLabel>
                       <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
                         {weapons.map((w, idx) => {
-                          const modes = WEAPON_DATA[w.id]
+                          const modes = w.modes
                           if (!modes)
                             return (
                               <div
@@ -162,48 +198,81 @@ export function UnitDetailDialog({
                               </div>
                             )
 
-                          return modes.map((m, mIdx) => (
-                            <div
-                              key={`${idx}-${mIdx}`}
-                              className="space-y-2 rounded-lg border border-border bg-card p-3 transition-all hover:border-primary/40"
+                          return (
+                            <section
+                              key={idx}
+                              className="rounded-lg border-2 border-border bg-muted/20 p-2"
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="space-y-0.5">
-                                  <div className="font-display text-sm font-semibold tracking-tight text-primary uppercase">
-                                    {m.name}
-                                  </div>
-                                  <div className="inline-flex items-center rounded bg-muted px-1.5 py-0 text-[8px] font-bold tracking-widest text-muted-foreground uppercase">
-                                    {m.mode}
-                                  </div>
-                                </div>
-                                <div className="flex gap-4">
-                                  <Readout label="DMG" value={m.damage} size="sm" align="center" />
-                                  <Readout label="B" value={m.burst} size="sm" align="center" />
-                                  <Readout label="Ammo" value={m.ammo} size="sm" align="center" />
-                                </div>
-                              </div>
-
-                              <div className="flex min-h-[18px] flex-wrap gap-1">
-                                {m.traits.map((trait, tIdx) => (
-                                  <span
-                                    key={tIdx}
-                                    className="rounded bg-muted/40 px-1.5 py-0.5 text-[8px] font-bold tracking-wider text-muted-foreground uppercase"
+                              <h4 className="px-1 pb-2 font-display font-semibold text-primary uppercase">
+                                {modes[0].name}{" "}
+                                <span className="text-xs text-muted-foreground">
+                                  {modes.length > 1
+                                    ? `${modes.length} profiles`
+                                    : ""}
+                                </span>
+                              </h4>
+                              <div className="space-y-2">
+                                {modes.map((m, mIdx) => (
+                                  <div
+                                    key={`${idx}-${mIdx}`}
+                                    className="space-y-2 rounded-lg border border-border bg-card p-3 transition-all hover:border-primary/40"
                                   >
-                                    {trait}
-                                  </span>
+                                    <div className="flex items-start justify-between">
+                                      <div className="space-y-0.5">
+                                        <div className="font-display text-sm font-semibold tracking-tight text-primary uppercase">
+                                          {m.name}
+                                        </div>
+                                        <div className="inline-flex items-center rounded bg-muted px-1.5 py-0 text-[8px] font-bold tracking-widest text-muted-foreground uppercase">
+                                          {m.mode}
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-4">
+                                        <Readout
+                                          label="DMG"
+                                          value={m.damage}
+                                          size="sm"
+                                          align="center"
+                                        />
+                                        <Readout
+                                          label="B"
+                                          value={m.burst}
+                                          size="sm"
+                                          align="center"
+                                        />
+                                        <Readout
+                                          label="Ammo"
+                                          value={m.ammo}
+                                          size="sm"
+                                          align="center"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="flex min-h-[18px] flex-wrap gap-1">
+                                      {m.traits.map((trait, tIdx) => (
+                                        <span
+                                          key={tIdx}
+                                          className="rounded bg-muted/40 px-1.5 py-0.5 text-[8px] font-bold tracking-wider text-muted-foreground uppercase"
+                                        >
+                                          {trait}
+                                        </span>
+                                      ))}
+                                    </div>
+
+                                    {m.distance &&
+                                      Object.keys(m.distance).length > 0 && (
+                                        <div className="h-6 overflow-hidden rounded border border-border bg-muted/5">
+                                          <RangeBand
+                                            distance={m.distance}
+                                            unit={settings.measurementUnit}
+                                          />
+                                        </div>
+                                      )}
+                                  </div>
                                 ))}
                               </div>
-
-                              {m.distance && Object.keys(m.distance).length > 0 && (
-                                <div className="h-6 overflow-hidden rounded border border-border bg-muted/5">
-                                  <RangeBand
-                                    distance={m.distance}
-                                    unit={settings.measurementUnit}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          ))
+                            </section>
+                          )
                         })}
                       </div>
                     </div>
