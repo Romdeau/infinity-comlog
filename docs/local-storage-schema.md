@@ -14,6 +14,10 @@ This is the current browser persistence baseline. Versioned storage validation i
 
 ## Current Storage Utility
 
+Army-builder drafts use `comlog_army_drafts`, a record keyed by `new` or the source library list ID. Each draft contains `name`, `factionId`, `pointsLimit`, and `entries`. Entries contain a stable local `key`, unit `id`, profile `groupId`, `optionId`, `combatGroup`, and optional `controllerKey`. Invalid drafts are filtered independently by `validateArmyDrafts`.
+
+Saved built lists include an optional `builderDraft` on the enriched list. They use the existing library schema with an empty `rawBase64`, without a synthetic army code. `ArmyProvider` revalidates and rehydrates these IDs when refreshing lists or changing measurement units. If revalidation fails, it preserves the saved list and reports an import warning. `orderContribution` on built troopers prevents peripherals and additional Posthuman proxies from inflating order analysis. Included package profiles are attached to their owning roster entry and do not add the package's cost a second time.
+
 - Storage keys are centralized in `src/shared/storage/storage-keys.ts`.
 - `src/shared/storage/storage-adapter.ts` owns JSON reads, writes, validation, migration execution, and recoverable warning reporting.
 - `src/shared/storage/storage-schemas.ts` owns current validators and small compatibility migrations.

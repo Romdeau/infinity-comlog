@@ -5,12 +5,14 @@ import {
   BookOpenIcon,
   LayersIcon,
   Settings2Icon,
+  ShieldCheckIcon,
   SwordIcon,
   TablePropertiesIcon,
 } from "lucide-react"
 import {
   ArmyListViewPage,
   ArmyListsPage,
+  ArmyBuilderPage,
   GameSequencePage,
   ListAnalysisPage,
   OrderReferencePage,
@@ -35,6 +37,18 @@ export type AppRouteDefinition = {
 }
 
 export const appRoutes = [
+  {
+    id: "army-builder",
+    path: "/army-builder",
+    routePath: "army-builder",
+    title: "Army Builder",
+    section: "Lists",
+    description: "Build a faction roster with live points, SWC, and army-building checks.",
+    icon: ShieldCheckIcon,
+    navGroup: "Lists",
+    showInSidebar: true,
+    component: ArmyBuilderPage,
+  },
   {
     id: "army-lists",
     path: "/army-lists",

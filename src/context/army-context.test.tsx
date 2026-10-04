@@ -5,6 +5,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArmyProvider, useArmy } from './army-context';
 
 import { SettingsProvider } from './settings-context';
+import { setFactionDataForTest, type FactionPayload } from '@/lib/faction-data-service';
+import { enrichArmyDraft } from '@/features/army/domain/builder-service';
+import { migrateToStoredList, unitService } from '@/lib/unit-service';
+import pano from '../../public/data/factions/101.json';
 
 describe('ArmyContext', () => {
   beforeEach(() => {
@@ -43,6 +47,24 @@ describe('ArmyContext', () => {
       <ArmyProvider>{children}</ArmyProvider>
     </SettingsProvider>
   );
+
+  it('restores and refreshes a built active list without an encoded army code', async () => {
+    setFactionDataForTest(101, pano as FactionPayload);
+    unitService.clearCacheForTest();
+    const built = await enrichArmyDraft({
+      name: 'Built patrol', factionId: 101, pointsLimit: 100,
+      entries: [{ key: 'officer', id: 1, groupId: 1, optionId: 10, combatGroup: 1 }],
+    }, 'imperial');
+    localStorage.setItem('comlog_stored_lists', JSON.stringify({ built: migrateToStoredList(built) }));
+    localStorage.setItem('comlog_active_pair', JSON.stringify({ a: 'built', b: null }));
+    localStorage.setItem('comlog_settings', JSON.stringify({ measurementUnit: 'metric' }));
+    const { result } = renderHook(() => useArmy(), { wrapper });
+    await waitFor(() => expect(result.current.lists.listA?.combatGroups[0].members[0].profiles[0].mov).toBe('10-10'));
+    await React.act(async () => { await result.current.reimportAllLists(); });
+    expect(result.current.importErrors).toEqual([]);
+    expect(result.current.storedLists.built.rawBase64).toBe('');
+    expect(result.current.storedLists.built.builderDraft?.name).toBe('Built patrol');
+  });
 
   it('should store lists as StoredArmyList objects when saved', () => {
     const { result } = renderHook(() => useArmy(), { wrapper });

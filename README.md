@@ -23,6 +23,7 @@ Before making changes, read **[PROJECT_GUIDELINES.md](./PROJECT_GUIDELINES.md)**
 
 ## Features
 
+- **Army Builder**: Choose a faction, use 100/200/300-point presets or a custom limit, assemble loadouts and combat groups, and save validated N5 lists. Drafts persist locally.
 - **Army Lists**: Import Infinity Army codes, save lists locally, and maintain compatible active List A/List B pairings.
 - **List View**: Inspect combat groups, unit details, weapon profiles, and print-friendly rosters.
 - **List Analysis**: Compare order pools, specialists, SWC usage, and troop type investment.

@@ -1,5 +1,6 @@
 import { type ArmyList, type Trooper, type CombatGroup } from './army-parser';
 import { MetadataService, type FactionFilters, type MeasurementUnit } from './metadata-service';
+import type { ArmyDraft } from '@/features/army/domain/army-builder';
 import {
   loadFactionData,
   type FactionItemRef,
@@ -10,6 +11,7 @@ import {
 export type UnitData = FactionPayload & { filters?: FactionFilters };
 
 export interface EnrichedTrooper extends Trooper {
+  orderContribution?: number;
   name: string;
   isc: string;
   logo?: string;
@@ -46,6 +48,7 @@ export interface EnrichedCombatGroup extends Omit<CombatGroup, 'members'> {
 }
 
 export interface EnrichedArmyList extends Omit<ArmyList, 'combatGroups'> {
+  builderDraft?: ArmyDraft;
   combatGroups: EnrichedCombatGroup[];
   version?: number;
 }

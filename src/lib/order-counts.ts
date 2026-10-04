@@ -76,6 +76,12 @@ export function getUnitOrders(member: EnrichedTrooper): OrderCounts {
     counts.tactical = Math.max(counts.tactical, 1)
   if (has(/^Impetuous\b/i)) counts.impetuous = Math.max(counts.impetuous, 1)
   if (has(/^Frenzy\b/i) && !counts.impetuous) counts.frenzy = 1
+  // Builder lists mark peripherals and additional proxies as sharing an order.
+  if (member.orderContribution === 0) {
+    counts.regular = 0
+    counts.irregular = 0
+    counts.unknown = 0
+  }
   return counts
 }
 

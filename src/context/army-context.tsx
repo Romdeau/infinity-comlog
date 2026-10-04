@@ -9,6 +9,7 @@ import {
   generateValidationHash 
 } from "@/lib/unit-service"
 import { ArmyParser } from "@/lib/army-parser"
+import { enrichArmyDraft } from "@/features/army/domain/builder-service"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { useSettings } from "@/context/settings-context"
 import { STORAGE_KEYS } from "@/shared/storage/storage-keys"
@@ -48,6 +49,17 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
         }
 
         const currentList = newStored[id];
+
+        if (currentList.builderDraft) {
+          try {
+            const enriched = await enrichArmyDraft(currentList.builderDraft, settings.measurementUnit);
+            newStored[id] = { ...currentList, ...enriched, validationHash: generateValidationHash(enriched) };
+            changed = true;
+          } catch (error) {
+            errors.push(`Could not refresh built list "${currentList.armyName}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+          continue;
+        }
 
         // 2. Validate Schema Version and Hash
         const isOutdated = (currentList.schemaVersion || 0) < CURRENT_SCHEMA_VERSION;
@@ -195,6 +207,16 @@ export function ArmyProvider({ children }: { children: React.ReactNode }) {
     const errors: string[] = [];
 
     for (const [id, currentList] of Object.entries(storedLists)) {
+      if (currentList.builderDraft) {
+        try {
+          const enriched = await enrichArmyDraft(currentList.builderDraft, settings.measurementUnit);
+          newStored[id] = { ...currentList, ...enriched, validationHash: generateValidationHash(enriched) };
+          changed = true;
+        } catch (error) {
+          errors.push(`Could not refresh built list "${currentList.armyName}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+        continue;
+      }
       if (currentList.rawBase64 || currentList.rawCode) {
         try {
           const rawCode = currentList.rawBase64 || currentList.rawCode || '';

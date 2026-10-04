@@ -24,6 +24,15 @@ const profile = (skills: string[]) =>
   ({ resolvedSkills: skills }) as EnrichedTrooper["profiles"][number]
 
 describe("order counts", () => {
+  it("respects the builder's shared Posthuman order across source and legacy profiles", () => {
+    const counts = sumOrders([
+      member({ orderContribution: 1, orders: [{ type: "REGULAR", total: 1 }] }),
+      member({ orderContribution: 0, orders: [{ type: "REGULAR", total: 1 }] }),
+      member({ orderContribution: 0 }),
+    ])
+    expect(counts.regular).toBe(1)
+    expect(totalOrders(counts)).toBe(1)
+  })
   it("uses source totals, including two lieutenant orders, without double counting skills", () => {
     const unit = member({
       isLieutenant: true,

@@ -13,6 +13,7 @@ export type FactionOrder = {
 }
 
 export type FactionProfile = {
+  ava?: number
   peripheral?: unknown[]
   id?: number
   name?: string
@@ -34,6 +35,9 @@ export type FactionProfile = {
 }
 
 export type FactionOption = {
+  disabled?: boolean
+  minis?: number
+  includes?: { q: number; group: number; option: number }[]
   peripheral?: unknown[]
   id: number
   name?: string
@@ -47,12 +51,16 @@ export type FactionOption = {
 }
 
 export type FactionProfileGroup = {
+  isc?: string
+  notes?: string | null
   id: number
   profiles: FactionProfile[]
   options: FactionOption[]
 }
 
 export type FactionUnit = {
+  factions?: number[]
+  notes?: string | null
   slug?: string
   id?: number
   idArmy?: number
@@ -63,10 +71,27 @@ export type FactionUnit = {
 }
 
 export type FactionPayload = {
+  relations?: FactionRelation[]
   fireteamChart?: FireteamChart
   units: FactionUnit[]
   filters?: FactionFilters
   version?: string
+}
+
+export type FactionRelationRef = {
+  unit: number
+  profile?: number
+  options?: number[]
+  group?: boolean
+  min?: number
+  minDependant?: number
+}
+
+export type FactionRelation = {
+  units: (FactionRelationRef & { depends?: FactionRelationRef[]; perParent?: boolean })[]
+  min: number
+  max?: number
+  group: boolean
 }
 
 export type FireteamEntry = {

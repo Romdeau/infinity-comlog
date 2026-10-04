@@ -2,6 +2,22 @@
 
 Welcome to Infinity Comlog. This utility helps you manage Infinity N5 army lists, inspect roster details, analyze list composition, track game sessions, and reference common rules at the table.
 
+## Army builder
+
+Open **Army Builder**, or choose **Build an army** in Army Lists.
+
+1. Choose a faction or sectorial and name the army.
+2. Select 100, 200, or 300 points. **Edit** accepts any positive whole-number limit. Base SWC is the limit divided by 50; profiles with bonus SWC increase that allowance.
+3. Search by unit, weapon, equipment, or skill. Expand a unit to compare its loadouts. Choose a destination combat group, then **Add** a loadout.
+4. Use **Add combat group** and each roster entry's group selector to arrange your force. Assign separately purchased Servant or Cyberplug peripherals to an eligible controller. Moving a controller moves its attached peripherals; moving a Posthuman moves its proxies together.
+5. Resolve the roster checks, then **Save to library**. In Army Lists, assign the saved list to A or B to use the roster, analysis, and game tools.
+
+The builder checks points, SWC, exactly one Lieutenant, faction availability, shared character restrictions, a maximum of 15 troopers and 10 per combat group, profile dependencies, peripheral controllers, and Posthuman composition. Unspent points are allowed. The catalogue excludes optional mercenary mode, Spec-Ops, Reinforcement pools, and disabled alternate profiles. Included pilots and peripherals stay with their purchased loadout. Fireteams are formed during deployment and are not assigned by this editor.
+
+Draft changes save automatically on this device. Reducing the limit keeps the roster and reports any overspend. Changing faction or clearing the roster asks before removing selections. Use **Edit a copy** in the library to revise a built list; saving creates a new library entry and preserves the original and any active assignments. Built lists refresh from their profile IDs when measurements or army data change. They do not have an Infinity Army export code; use List View to print them.
+
+Rules references: [Army list](https://infinitythewiki.com/Army_List), [Peripheral](https://infinitythewiki.com/Peripheral), and [G: Jumper](https://infinitythewiki.com/G:_Jumper).
+
 ## Army Lists
 
 Use **Army Lists** to paste Infinity Army codes and assign them to active List A or List B.
