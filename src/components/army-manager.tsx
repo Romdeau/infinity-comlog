@@ -70,14 +70,13 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
 
   const handleListParsed = async (list: ArmyList | null, rawCode: string) => {
     if (!list) {
-      setActiveList(importTarget, null)
-      return
+      return setActiveList(importTarget, null).valid
     }
 
     const message = getPairValidationMessage(list, importTarget)
     if (message) {
       setValidationError(message)
-      return
+      return false
     }
 
     setValidationError(null)
@@ -87,7 +86,14 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
       const enriched = await unitService.enrichArmyList(list, settings.measurementUnit)
       enriched.rawCode = rawCode
       const result = setActiveList(importTarget, enriched)
-      if (!result.valid) setValidationError(result.message)
+      if (!result.valid) {
+        setValidationError(result.message)
+        return false
+      }
+
+      const otherTarget = importTarget === "listA" ? "listB" : "listA"
+      if (!lists[otherTarget]) setImportTarget(otherTarget)
+      return true
     } finally {
       setLoadingTarget(null)
     }
