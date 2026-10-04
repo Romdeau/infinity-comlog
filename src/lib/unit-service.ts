@@ -4,6 +4,7 @@ import type { ArmyDraft } from '@/features/army/domain/army-builder';
 import {
   loadFactionData,
   type FactionItemRef,
+  type FactionOrder,
   type FactionPayload,
 } from './faction-data-service';
 
@@ -19,6 +20,7 @@ export interface EnrichedTrooper extends Trooper {
   points: number;
   swc: string;
   isLieutenant: boolean;
+  orders?: FactionOrder[];
   profiles: {
     name?: string;
     mov: string;
@@ -243,7 +245,7 @@ class UnitService {
 
     const isLieutenant = enrichedProfiles.some((p) =>
       p.skills.some((s) => s.id === 119) || // Lieutenant skill ID
-      p.resolvedSkills.some((s: string) => s.toLowerCase().includes('lieutenant'))
+      p.resolvedSkills.some((s: string) => /^lieutenant(?:$|\s*\()/i.test(s))
     );
 
     const result: EnrichedTrooper = {
@@ -256,6 +258,7 @@ class UnitService {
       points: option?.points || 0,
       swc: option?.swc?.toString() || '0',
       isLieutenant,
+      orders: option?.orders?.map(order => ({ ...order })),
       profiles: enrichedProfiles
     };
 

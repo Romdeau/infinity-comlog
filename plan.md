@@ -9,6 +9,8 @@ Status legend: `[ ]` pending, `[~]` in progress, `[x]` done (append 7-char commi
 
 ## Army builder, 2026-10-04
 
+- [x] Merge main through `afb9be2`, retaining both builder and roster/fireteam data fields. Make the roster order summary respect shared Posthuman orders. `bun run check` passes 172 tests, lint, typechecking, and the production build.
+
 - [x] Add the standard N5 army builder, faction/loadout catalogue, point presets and custom formats, automatic SWC, combat groups, rule validation, persistent drafts, and library integration. Verified domain rules, saving and rehydration, a full 100-point roster, and desktop/mobile layout. `bun run check` passes 150 tests, lint, typechecking, and the production build; coverage was run. Fast-forwarded from main through `19e7cc5`, preserving the security dependency fix, import behavior, and favicon. `bun run audit` reports no vulnerabilities. Commit and push authorized by the user.
 
 ## Phase A — Appearance Foundation
