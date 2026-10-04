@@ -58,7 +58,7 @@ export function WeaponChart({
     .sort((a, b) => {
       const nameCompare = a.name.localeCompare(b.name)
       if (nameCompare !== 0) return nameCompare
-      return a.mode.localeCompare(b.mode)
+      return a.id - b.id || a.mode.localeCompare(b.mode)
     })
 
   if (sortedWeapons.length === 0) return null
@@ -86,7 +86,9 @@ export function WeaponChart({
             <th className="border-r border-border p-2 text-center">PS</th>
             <th className="border-r border-border p-2 text-center">B</th>
             <th className="border-r border-border p-2 text-center">Ammo</th>
-            <th className="border-r border-border p-2 text-center">SR: Attrib</th>
+            <th className="border-r border-border p-2 text-center">
+              SR: Attrib
+            </th>
             <th className="border-r border-border p-2 text-center">SR: No</th>
             <th className="p-2 text-left">Traits</th>
           </tr>
@@ -95,11 +97,23 @@ export function WeaponChart({
           {sortedWeapons.map((w, idx) => (
             <tr
               key={`${w.id}-${idx}`}
-              className="border-b border-border/60 transition-colors last:border-0 hover:bg-muted/30"
+              className={`border-b border-border/60 transition-colors last:border-0 hover:bg-muted/30 ${idx === 0 || sortedWeapons[idx - 1].id !== w.id || sortedWeapons[idx - 1].name !== w.name ? "border-t-2 border-t-border" : ""}`}
             >
-              <td className="border-r border-border/60 p-2 font-display text-xs font-semibold whitespace-nowrap uppercase">
-                {w.name}
-              </td>
+              {(idx === 0 ||
+                sortedWeapons[idx - 1].id !== w.id ||
+                sortedWeapons[idx - 1].name !== w.name) && (
+                <th
+                  scope="rowgroup"
+                  rowSpan={
+                    sortedWeapons.filter(
+                      (row) => row.id === w.id && row.name === w.name
+                    ).length
+                  }
+                  className="border-r border-border bg-muted/30 p-2 text-left align-top font-display text-xs font-semibold whitespace-nowrap uppercase"
+                >
+                  {w.name}
+                </th>
+              )}
               <td className="border-r border-border/60 p-2 font-bold whitespace-nowrap text-muted-foreground italic">
                 {w.mode}
               </td>

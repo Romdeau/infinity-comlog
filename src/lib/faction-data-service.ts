@@ -7,10 +7,13 @@ export type FactionItemRef = {
 }
 
 export type FactionOrder = {
+  total?: number
+  list?: number
   type?: string
 }
 
 export type FactionProfile = {
+  peripheral?: unknown[]
   id?: number
   name?: string
   cc?: number
@@ -31,6 +34,7 @@ export type FactionProfile = {
 }
 
 export type FactionOption = {
+  peripheral?: unknown[]
   id: number
   name?: string
   points?: number
@@ -49,6 +53,7 @@ export type FactionProfileGroup = {
 }
 
 export type FactionUnit = {
+  slug?: string
   id?: number
   idArmy?: number
   name: string
@@ -58,10 +63,22 @@ export type FactionUnit = {
 }
 
 export type FactionPayload = {
+  fireteamChart?: FireteamChart
   units: FactionUnit[]
   filters?: FactionFilters
   version?: string
 }
+
+export type FireteamEntry = {
+  min: number
+  max: number
+  name: string
+  comment: string
+  required: boolean
+  slug: string
+}
+export type FireteamDefinition = { name: string; obs: string; type: string[]; units: FireteamEntry[] }
+export type FireteamChart = { spec: Record<string, number>; desc: string; teams: FireteamDefinition[] }
 
 const factionCache: Record<number, FactionPayload> = {}
 

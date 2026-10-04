@@ -1,5 +1,5 @@
 import type { EnrichedTrooper } from "@/lib/unit-service"
-import type { WeaponMode } from "@/lib/weapon-data"
+import { WEAPON_DATA, type WeaponMode } from "@/lib/weapon-data"
 
 export type EnrichedProfile = EnrichedTrooper["profiles"][number]
 export type WeaponRef = EnrichedProfile["weapons"][number]
@@ -33,4 +33,15 @@ export function getProfileWeaponIds(profile: EnrichedProfile): number[] {
   }
 
   return getProfileWeapons(profile).map((weapon) => weapon.id)
+}
+
+/** Some upstream IDs contain both equipment and weapons; group only matching names. */
+export function getWeaponModeGroups(id: number): (WeaponMode[] | undefined)[] {
+  const modes = WEAPON_DATA[id]
+  if (!modes) return [undefined]
+  const groups = new Map<string, WeaponMode[]>()
+  modes.forEach((mode) =>
+    groups.set(mode.name, [...(groups.get(mode.name) || []), mode])
+  )
+  return [...groups.values()]
 }
