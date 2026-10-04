@@ -41,3 +41,7 @@
 ## Dependency maintenance, 2026-10-02
 
 Update the existing stack, including Vitest 5. Retain TypeScript 6 until TypeScript-ESLint supports the TypeScript 7 compiler API. Native Windows is supported so local checks do not require a second toolchain in WSL. Keep CI and local runtime versions aligned, remove obsolete Bun test registration, and provide cached linting, autofix, standalone typechecking, and coverage reports.
+
+## Dependency audit follow-up, 2026-10-04
+
+Keep the shadcn components and vendor the unchanged Tailwind stylesheet from `shadcn@4.21.1` in `src/styles/vendor/shadcn.css`, with its MIT license alongside it. Remove the installed `shadcn` CLI because its dependency tree includes `braces@3.0.3`, affected by GHSA-vfj7-8cjw-p6xm with no patched release. The application only imported the stylesheet. Review upstream CSS changes manually when updating the vendored copy.
