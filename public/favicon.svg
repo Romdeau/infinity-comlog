@@ -1,16 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#d946ef;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#701a75;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  <path d="M30 40 C10 40, 10 60, 30 60 C40 60, 60 40, 70 40 C90 40, 90 60, 70 60 C60 60, 40 40, 30 40 Z" 
-        fill="none" 
-        stroke="url(#grad)" 
-        stroke-width="12" 
-        stroke-linecap="round" 
-        stroke-linejoin="round" />
-  <circle cx="30" cy="50" r="4" fill="#fff" />
-  <circle cx="70" cy="50" r="4" fill="#fff" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <title>Griffin-inspired four-optic helmet</title>
+  <desc>Blue heavy infantry helmet with swept side fins, four pink optical sensors and a gray respirator. Transparent background.</desc>
+  <g stroke="#152334" stroke-width="4" stroke-linejoin="round">
+    <!-- Swept antenna fins and outer helmet silhouette. -->
+    <path d="M37 32 17 13 14 17 21 49 30 63ZM91 32 111 13 114 17 107 49 98 63Z" fill="#436da5"/>
+    <path d="M43 14 64 10 85 14 101 34 105 78 92 105 77 117H51L36 105 23 78 27 34Z" fill="#737b7c"/>
+    <!-- Broad uninterrupted faceplate, tapering around the respirator. -->
+    <path d="M44 15 64 11 84 15 94 32 90 72 77 94H51L38 72 34 32Z" fill="#416aa5"/>
+    <path d="M44 15 64 11 84 15 88 24 64 20 40 24Z" fill="#6386b6" stroke="none"/>
+    <path d="m27 43-4 30 12 17 8-9-9-19 2-16ZM101 43l4 30-12 17-8-9 9-19-2-16Z" fill="#939995"/>
+    <!-- Four separate optics: two diagonal upper eyes, two lower eyes. -->
+    <path d="m43 38 14 9 1 10-9-2-9-12Z" fill="#ff80b0"/>
+    <path d="m85 38-14 9-1 10 9-2 9-12Z" fill="#ff80b0"/>
+    <path d="m46 64 12 2 1 10-8 1-6-7Z" fill="#ff80b0"/>
+    <path d="m82 64-12 2-1 10 8 1 6-7Z" fill="#ff80b0"/>
+    <!-- Compact gray breathing apparatus, with restrained orange fittings. -->
+    <path d="m54 88 10-5 10 5 6 21-10 8H58l-10-8Z" fill="#a2a7a0"/>
+    <path d="M59 93h10v16H59Z" fill="#283b4c" stroke="none"/>
+    <path d="m38 91 9-6 5 13-6 12-8-6ZM90 91l-9-6-5 13 6 12 8-6Z" fill="#e3a33d"/>
+  </g>
 </svg>
