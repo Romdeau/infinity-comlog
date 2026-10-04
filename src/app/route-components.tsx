@@ -1,6 +1,7 @@
 import { lazy } from "react"
 
 export const ArmyListsPage = lazy(() => import("@/pages/army-lists"))
+export const ArmyBuilderPage = lazy(() => import("@/pages/army-builder"))
 export const ArmyListViewPage = lazy(() => import("@/pages/army-list-view"))
 export const ListAnalysisPage = lazy(() => import("@/pages/list-analysis"))
 export const GameSequencePage = lazy(() => import("@/pages/game-sequence"))

@@ -76,11 +76,11 @@ export function analyzeList(list: EnrichedArmyList): AnalysisMetric {
       typePoints[type] = (typePoints[type] || 0) + unit.points
       typeCounts[type] = (typeCounts[type] || 0) + 1
 
-      totalSwc += parseFloat(unit.swc || "0")
+      totalSwc += unit.swc?.startsWith('+') ? 0 : parseFloat(unit.swc || "0")
 
       const training = unit.training?.toUpperCase()
-      if (training === "REGULAR") regular += 1
-      else if (training === "IRREGULAR") irregular += 1
+      if (training === "REGULAR") regular += unit.orderContribution ?? 1
+      else if (training === "IRREGULAR") irregular += unit.orderContribution ?? 1
 
       const unitSkills = getUnitSkillNames(unit)
       let hasImpetuous = false

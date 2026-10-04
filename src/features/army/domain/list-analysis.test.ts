@@ -82,6 +82,12 @@ const list = {
 } as EnrichedArmyList
 
 describe("analyzeList", () => {
+  it("does not count bonus SWC as spent or additional proxies as regular orders", () => {
+    const copy = structuredClone(list)
+    copy.combatGroups[0].members[0].swc = "+1"
+    copy.combatGroups[0].members[0].orderContribution = 0
+    expect(analyzeList(copy)).toMatchObject({ regular: 0, irregular: 1, totalSwc: 0 })
+  })
   it("summarizes orders, specialists, SWC, skills, and troop type investment", () => {
     const result = analyzeList(list)
 

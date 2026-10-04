@@ -2,6 +2,7 @@ export const STORAGE_KEYS = {
   theme: "infinity-theme",
   settings: "comlog_settings",
   storedLists: "comlog_stored_lists",
+  armyDrafts: "comlog_army_drafts",
   activePair: "comlog_active_pair",
   sessions: "comlog_sessions",
   activeSessionId: "comlog_active_session_id",

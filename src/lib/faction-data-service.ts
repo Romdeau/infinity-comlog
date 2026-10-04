@@ -11,6 +11,7 @@ export type FactionOrder = {
 }
 
 export type FactionProfile = {
+  ava?: number
   id?: number
   name?: string
   cc?: number
@@ -31,6 +32,9 @@ export type FactionProfile = {
 }
 
 export type FactionOption = {
+  disabled?: boolean
+  minis?: number
+  includes?: { q: number; group: number; option: number }[]
   id: number
   name?: string
   points?: number
@@ -43,12 +47,16 @@ export type FactionOption = {
 }
 
 export type FactionProfileGroup = {
+  isc?: string
+  notes?: string | null
   id: number
   profiles: FactionProfile[]
   options: FactionOption[]
 }
 
 export type FactionUnit = {
+  factions?: number[]
+  notes?: string | null
   id?: number
   idArmy?: number
   name: string
@@ -58,9 +66,26 @@ export type FactionUnit = {
 }
 
 export type FactionPayload = {
+  relations?: FactionRelation[]
   units: FactionUnit[]
   filters?: FactionFilters
   version?: string
+}
+
+export type FactionRelationRef = {
+  unit: number
+  profile?: number
+  options?: number[]
+  group?: boolean
+  min?: number
+  minDependant?: number
+}
+
+export type FactionRelation = {
+  units: (FactionRelationRef & { depends?: FactionRelationRef[]; perParent?: boolean })[]
+  min: number
+  max?: number
+  group: boolean
 }
 
 const factionCache: Record<number, FactionPayload> = {}

@@ -1,5 +1,7 @@
 import { ArmyManager } from "@/components/army-manager"
 import { PageHeader } from "@/components/system"
+import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button"
 
 export default function ArmyListsPage() {
   return (
@@ -7,7 +9,8 @@ export default function ArmyListsPage() {
       <PageHeader
         eyebrow="List Workspace"
         title="Prepare Your Active Lists"
-        description="Import a roster, keep two active lists ready for comparison, and maintain a reusable local library for future games."
+        description="Build or import a roster, keep two active lists ready for comparison, and maintain a reusable local library for future games."
+        actions={<Button asChild><Link to="/army-builder">Build an army</Link></Button>}
       />
       <ArmyManager />
     </div>

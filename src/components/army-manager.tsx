@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Link } from "react-router-dom"
 
 import { ArmyListImporter } from "./army-list-importer"
 import { useArmy } from "@/context/army-context"
@@ -202,7 +203,7 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
             </div>
             <div>
               <div className="font-display text-base font-semibold tracking-tight">Saved Library</div>
-              <p className="text-sm text-muted-foreground">Reuse imported lists without pasting the code again.</p>
+              <p className="text-sm text-muted-foreground">Reuse built and imported lists across your games.</p>
             </div>
           </div>
           <Badge variant="secondary">{storedEntries.length}</Badge>
@@ -216,15 +217,21 @@ export function ArmyManager({ containerClassName }: ArmyManagerProps) {
         ) : (
           <div className="space-y-3">
             {storedEntries.map(([id, list]) => (
-              <LibraryListItem
-                key={id}
-                list={list}
-                isActiveA={isSameList(listA, list)}
-                isActiveB={isSameList(listB, list)}
-                onAssignA={() => applyListToSlot("listA", list)}
-                onAssignB={() => applyListToSlot("listB", list)}
-                onDelete={() => deleteList(id)}
-              />
+              <div key={id} className="space-y-2">
+                <LibraryListItem
+                  list={list}
+                  isActiveA={isSameList(listA, list)}
+                  isActiveB={isSameList(listB, list)}
+                  onAssignA={() => applyListToSlot("listA", list)}
+                  onAssignB={() => applyListToSlot("listB", list)}
+                  onDelete={() => deleteList(id)}
+                />
+                {list.builderDraft && (
+                  <Button asChild variant="outline" className="h-11 w-full">
+                    <Link to={`/army-builder?list=${encodeURIComponent(id)}`}>Edit a copy</Link>
+                  </Button>
+                )}
+              </div>
             ))}
           </div>
         )}
@@ -394,6 +401,7 @@ function ArmyListDisplay({ list, onClear }: { list: EnrichedArmyList; onClear: (
             className={cn("size-8 shrink-0", copied ? "text-primary" : "text-muted-foreground")}
             onClick={handleExport}
             title="Copy army code"
+            disabled={!list.rawCode && !("rawBase64" in list && list.rawBase64)}
           >
             {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
           </Button>

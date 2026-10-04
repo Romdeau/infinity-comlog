@@ -19,7 +19,7 @@ describe("app route registry", () => {
   it("derives sidebar and settings navigation from registered routes", () => {
     const sidebarUrls = navGroups.flatMap((group) => group.items.map((item) => item.url))
 
-    expect(sidebarUrls).toEqual(["/army-lists", "/army-list-view", "/list-analysis", "/game-sequence", "/order-reference"])
+    expect(sidebarUrls).toEqual(["/army-builder", "/army-lists", "/army-list-view", "/list-analysis", "/game-sequence", "/order-reference"])
     expect(settingsNavItem.url).toBe("/settings")
     expect(defaultRoutePath).toBe("/army-lists")
   })
