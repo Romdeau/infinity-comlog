@@ -94,3 +94,13 @@ data-sync commands and the current army-code fixture import. Native Windows
 verification passes lint, app/test typechecking, 129 tests, production build,
 and dependency audit. The updated Node runtime also enables V8 coverage;
 the focused parser regression suite reports 96.2% parser line coverage.
+
+## Griffin favicon, 2026-10-04
+
+- [x] Create and visually check a Griffin-inspired SVG helmet at 512, 32 and
+  16 pixels, with four pink optics, blue armor, side fins and a gray respirator.
+- [x] Replace `public/favicon.svg` with the approved helmet design.
+- [x] Remove the discarded concepts and redundant previews.
+
+Validation: `bun run check` passes, including all 129 tests and the production
+build. The built favicon matches the approved SVG.
